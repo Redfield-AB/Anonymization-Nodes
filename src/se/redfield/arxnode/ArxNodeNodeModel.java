@@ -14,6 +14,8 @@ import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
+import se.redfield.arxnode.config.Config;
+
 public class ArxNodeNodeModel extends NodeModel {
 
 	private static final NodeLogger logger = NodeLogger.getLogger(ArxNodeNodeModel.class);

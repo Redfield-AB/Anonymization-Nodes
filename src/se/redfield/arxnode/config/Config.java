@@ -1,7 +1,8 @@
-package se.redfield.arxnode;
+package se.redfield.arxnode.config;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -19,11 +20,12 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 public class Config {
 	private static final NodeLogger logger = NodeLogger.getLogger(Config.class);
 
-	static final String CONFIG_HIERARCHY_FILE_PREFIX = "hierarchy_file_";
-	static final String CONFIG_HIERARCHY_ATTR_TYPE_PREFIX = "hierarchy_attr_type_";
-	static final String CONFIG_KANONYMITY_FACTOR_KEY = "k_anonymity_factor";
+	public static final String CONFIG_HIERARCHY_FILE_PREFIX = "hierarchy_file_";
+	public static final String CONFIG_HIERARCHY_ATTR_TYPE_PREFIX = "hierarchy_attr_type_";
+	public static final String CONFIG_KANONYMITY_FACTOR_KEY = "k_anonymity_factor";
+	public static final String CONFIG_PRIVACY_MODELS = "privacy_models";
 
-	static final int DEFAULT_KANONYMITY_FACTOR = 3;
+	public static final int DEFAULT_KANONYMITY_FACTOR = 3;
 
 	static final String INTERNALS_POSTFIX = "_Internals";
 
@@ -33,10 +35,12 @@ public class Config {
 	private Map<String, SettingsModelString> attrTypeSettings;
 	private SettingsModelIntegerBounded kAnonymityFactorSetting = new SettingsModelIntegerBounded(
 			CONFIG_KANONYMITY_FACTOR_KEY, DEFAULT_KANONYMITY_FACTOR, 1, Integer.MAX_VALUE);;
+	private PrivacyModelsConfig privacyModelConfig;
 
 	public Config() {
 		hierarchySettings = new HashMap<>();
 		attrTypeSettings = new HashMap<>();
+		privacyModelConfig = new PrivacyModelsConfig();
 	}
 
 	public void load(NodeSettingsRO settings) {
@@ -56,6 +60,7 @@ public class Config {
 						loadModelString(key, settings));
 			}
 		});
+		privacyModelConfig = PrivacyModelsConfig.load(settings);
 
 		try {
 			kAnonymityFactorSetting.loadSettingsFrom(settings);
@@ -82,6 +87,7 @@ public class Config {
 		hierarchySettings.values().forEach(v -> v.saveSettingsTo(settings));
 		attrTypeSettings.values().forEach(v -> v.saveSettingsTo(settings));
 
+		privacyModelConfig.save(settings);
 		kAnonymityFactorSetting.saveSettingsTo(settings);
 	}
 
@@ -115,6 +121,10 @@ public class Config {
 
 	public int getKAnonymityFactor() {
 		return kAnonymityFactorSetting.getIntValue();
+	}
+
+	public List<PrivacyModelConfig> getPrivacyModels() {
+		return privacyModelConfig.getModels();
 	}
 
 	public DataTableSpec createOutDataTableSpec() {

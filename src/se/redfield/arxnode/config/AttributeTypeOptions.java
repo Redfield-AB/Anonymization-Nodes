@@ -1,4 +1,4 @@
-package se.redfield.arxnode;
+package se.redfield.arxnode.config;
 
 import org.deidentifier.arx.AttributeType;
 

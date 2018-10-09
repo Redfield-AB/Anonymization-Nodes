@@ -4,7 +4,10 @@ Bundle-Name: ArxNode-Node extension for KNIME Workbench
 Bundle-SymbolicName: se.redfield.arxnode.ArxNode;singleton:=true
 Bundle-Version: 0.1.1
 Bundle-ClassPath: arxnode.jar,
- lib/libarx-3.7.1.jar
+ lib/libarx-3.7.1.jar,
+ lib/gson-2.8.5.jar,
+ lib/jgoodies-common-1.7.0.jar,
+ lib/jgoodies-forms-1.8.0.jar
 Bundle-Activator: se.redfield.arxnode.ArxNodeNodePlugin
 Bundle-Vendor: Redfield AB
 Require-Bundle: org.eclipse.core.runtime,

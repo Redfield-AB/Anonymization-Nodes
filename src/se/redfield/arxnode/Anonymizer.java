@@ -15,7 +15,6 @@ import org.deidentifier.arx.Data;
 import org.deidentifier.arx.Data.DefaultData;
 import org.deidentifier.arx.DataType;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
-import org.deidentifier.arx.criteria.KAnonymity;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.RowKey;
@@ -25,6 +24,8 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
+
+import se.redfield.arxnode.config.Config;
 
 public class Anonymizer {
 
@@ -55,26 +56,6 @@ public class Anonymizer {
 		});
 		Utils.time("Read table");
 
-		// defData = defData.create(sourceDataSet);
-
-		// defData.getDefinition().setDataType("age", DataType.INTEGER);
-		// defData.getDefinition().setDataType("income", DataType.INTEGER);
-
-		// defData.getDefinition().setAttributeType("gender", hierarchyGender);
-		// defData.getDefinition().setAttributeType("name",
-		// AttributeType.IDENTIFYING_ATTRIBUTE);
-		// defData.getDefinition().setAttributeType("surname",
-		// AttributeType.IDENTIFYING_ATTRIBUTE);
-		// defData.getDefinition().setAttributeType("age", hierarchyAge);
-		// defData.getDefinition().setAttributeType("code", hierarchyIsco);
-		// defData.getDefinition().setAttributeType("occupation",
-		// AttributeType.IDENTIFYING_ATTRIBUTE);
-		// defData.getDefinition().setAttributeType("Postal Code", hierarchyZip);
-		// defData.getDefinition().setAttributeType("Place Name",
-		// AttributeType.IDENTIFYING_ATTRIBUTE);
-		// defData.getDefinition().setAttributeType("familystate",
-		// hierarchyFamilyState);
-		// defData.getDefinition().setAttributeType("income", hierarchyIncome);
 		config.getColumns().values().forEach(c -> {
 			HierarchyBuilder<?> hierarchy = getHierarchy(c.getHierarchyFile());
 			if (hierarchy != null) {
@@ -86,15 +67,16 @@ public class Anonymizer {
 			}
 		});
 
-		ARXConfiguration config = ARXConfiguration.create();
-		config.addPrivacyModel(new KAnonymity(this.config.getKAnonymityFactor()));
-		config.setSuppressionLimit(1.0);
+		ARXConfiguration arxConfig = ARXConfiguration.create();
+		// config.addPrivacyModel(new KAnonymity(this.config.getKAnonymityFactor()));
+		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion()));
+		arxConfig.setSuppressionLimit(1.0);
 		// config.setHeuristicSearchTimeLimit(100);
 		Utils.time("Anon config");
 
 		try {
 			ARXAnonymizer anonymizer = new ARXAnonymizer();
-			ARXResult res = anonymizer.anonymize(defData, config);
+			ARXResult res = anonymizer.anonymize(defData, arxConfig);
 			Utils.time("Anonymize");
 
 			BufferedDataContainer container = exec.createDataContainer(this.config.createOutDataTableSpec());

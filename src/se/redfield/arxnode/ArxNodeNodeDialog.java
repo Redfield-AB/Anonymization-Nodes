@@ -23,11 +23,15 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import se.redfield.arxnode.config.AttributeTypeOptions;
+import se.redfield.arxnode.config.Config;
+
 public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 
 	private static final NodeLogger logger = NodeLogger.getLogger(ArxNodeNodeDialog.class);
 
 	private JPanel columnsPanel;
+	private PrivacyModelsPane privacyPanel;
 	private List<SettingsModel> models;
 
 	protected ArxNodeNodeDialog() {
@@ -38,7 +42,9 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 						Config.DEFAULT_KANONYMITY_FACTOR, 1, Integer.MAX_VALUE), "K-Anonymity factor:", 1, 5));
 
 		columnsPanel = new JPanel();
+		privacyPanel = new PrivacyModelsPane();
 		addTab("Columns", columnsPanel);
+		addTab("Privacy Models", privacyPanel.getComponent());
 
 	}
 
@@ -48,6 +54,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		logger.warn("Dialog.loadSettings");
 		models = new ArrayList<>();
 		initColumnsPanel(settings, specs[0]);
+		privacyPanel.load(settings);
 	}
 
 	private void initColumnsPanel(NodeSettingsRO settings, DataTableSpec spec) {
@@ -86,6 +93,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		logger.warn("Dialog.saveSettings");
 		super.saveAdditionalSettingsTo(settings);
 		models.forEach(m -> m.saveSettingsTo(settings));
+		privacyPanel.save(settings);
 	}
 
 }
