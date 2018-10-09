@@ -45,8 +45,6 @@ public class Anonymizer {
 		String[] columnNames = inTable.getDataTableSpec().getColumnNames();
 		defData.add(columnNames);
 		for (int i = 0; i < columnNames.length; i++) {
-			// logger.warn("type:
-			// "+inTable.getDataTableSpec().getColumnSpec(columnNames[i]).getType().getCellClass().getSimpleName());
 			defData.getDefinition().setDataType(columnNames[i], DataType.STRING);
 		}
 
@@ -63,15 +61,13 @@ public class Anonymizer {
 			} else if (c.getAttrType() != null) {
 				defData.getDefinition().setAttributeType(c.getName(), c.getAttrType());
 			} else {
-				defData.getDefinition().setAttributeType(c.getName(), AttributeType.INSENSITIVE_ATTRIBUTE);
+				defData.getDefinition().setAttributeType(c.getName(), AttributeType.IDENTIFYING_ATTRIBUTE);
 			}
 		});
 
 		ARXConfiguration arxConfig = ARXConfiguration.create();
-		// config.addPrivacyModel(new KAnonymity(this.config.getKAnonymityFactor()));
 		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion()));
 		arxConfig.setSuppressionLimit(1.0);
-		// config.setHeuristicSearchTimeLimit(100);
 		Utils.time("Anon config");
 
 		try {

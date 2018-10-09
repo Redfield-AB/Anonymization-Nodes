@@ -74,7 +74,7 @@ public class ArxNodeNodeModel extends NodeModel {
 
 	@Override
 	protected void reset() {
-		logger.warn("reset");
+		logger.debug("reset");
 		if (anonymizer != null) {
 			anonymizer.clear();
 		}
@@ -82,7 +82,7 @@ public class ArxNodeNodeModel extends NodeModel {
 
 	@Override
 	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
-		logger.warn("configure");
+		logger.debug("configure");
 
 		config.initColumns(inSpecs[0]);
 		anonymizer = new Anonymizer(config);
@@ -92,7 +92,7 @@ public class ArxNodeNodeModel extends NodeModel {
 
 	@Override
 	protected void saveSettingsTo(final NodeSettingsWO settings) {
-		logger.warn("saveSettingsTo");
+		logger.debug("saveSettingsTo");
 		config.save(settings);
 	}
 

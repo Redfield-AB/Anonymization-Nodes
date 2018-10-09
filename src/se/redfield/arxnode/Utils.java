@@ -30,7 +30,7 @@ public class Utils {
 
 	public static void time(String task) {
 		long duration = System.currentTimeMillis() - time;
-		logger.warn(task + " " + duration + "ms");
+		logger.debug(task + " " + duration + "ms");
 		time();
 	}
 }

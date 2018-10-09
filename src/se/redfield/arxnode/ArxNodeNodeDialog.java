@@ -17,10 +17,8 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import se.redfield.arxnode.config.AttributeTypeOptions;
@@ -36,22 +34,25 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 
 	protected ArxNodeNodeDialog() {
 		super();
-		logger.warn("Dialog.constructor");
-		addDialogComponent(
-				new DialogComponentNumber(new SettingsModelIntegerBounded(Config.CONFIG_KANONYMITY_FACTOR_KEY,
-						Config.DEFAULT_KANONYMITY_FACTOR, 1, Integer.MAX_VALUE), "K-Anonymity factor:", 1, 5));
+		logger.debug("Dialog.constructor");
+		// addDialogComponent(
+		// new DialogComponentNumber(new
+		// SettingsModelIntegerBounded(Config.CONFIG_KANONYMITY_FACTOR_KEY,
+		// Config.DEFAULT_KANONYMITY_FACTOR, 1, Integer.MAX_VALUE), "K-Anonymity
+		// factor:", 1, 5));
 
 		columnsPanel = new JPanel();
 		privacyPanel = new PrivacyModelsPane();
 		addTab("Columns", columnsPanel);
 		addTab("Privacy Models", privacyPanel.getComponent());
-
+		selectTab("Columns");
+		removeTab("Options");
 	}
 
 	@Override
 	public void loadAdditionalSettingsFrom(NodeSettingsRO settings, DataTableSpec[] specs)
 			throws NotConfigurableException {
-		logger.warn("Dialog.loadSettings");
+		logger.debug("Dialog.loadSettings");
 		models = new ArrayList<>();
 		initColumnsPanel(settings, specs[0]);
 		privacyPanel.load(settings);
@@ -68,6 +69,13 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 					Config.CONFIG_HIERARCHY_FILE_PREFIX + columnSpec.getName(), "");
 			SettingsModelString attrTypeModel = new SettingsModelString(
 					Config.CONFIG_HIERARCHY_ATTR_TYPE_PREFIX + columnSpec.getName(), "");
+			attrTypeModel.addChangeListener(e -> {
+				AttributeTypeOptions opt = AttributeTypeOptions.valueOf(attrTypeModel.getStringValue());
+				fileModel.setEnabled(opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE);
+				if (!fileModel.isEnabled()) {
+					fileModel.setStringValue("");
+				}
+			});
 			try {
 				fileModel.loadSettingsFrom(settings);
 				attrTypeModel.loadSettingsFrom(settings);
@@ -80,17 +88,17 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 			gc.gridx = 0;
 			columnsPanel.add(new JLabel(columnSpec.getName()), gc);
 			gc.gridx = 1;
-			columnsPanel.add(new DialogComponentFileChooser(fileModel, "ArxNode", "ahs").getComponentPanel(), gc);
+			columnsPanel.add(new DialogComponentStringSelection(attrTypeModel, "", AttributeTypeOptions.stringValues())
+					.getComponentPanel(), gc);
 			gc.gridx = 2;
-			columnsPanel.add(new DialogComponentStringSelection(attrTypeModel, "Attribute type",
-					AttributeTypeOptions.stringValues()).getComponentPanel(), gc);
+			columnsPanel.add(new DialogComponentFileChooser(fileModel, "ArxNode", "ahs").getComponentPanel(), gc);
 			gc.gridy++;
 		}
 	}
 
 	@Override
 	public void saveAdditionalSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException {
-		logger.warn("Dialog.saveSettings");
+		logger.debug("Dialog.saveSettings");
 		super.saveAdditionalSettingsTo(settings);
 		models.forEach(m -> m.saveSettingsTo(settings));
 		privacyPanel.save(settings);

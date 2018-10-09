@@ -110,6 +110,7 @@ public class PrivacyModelsPane {
 		JButton bEdit = new JButton("Edit");
 		bEdit.addActionListener(e -> onEdit());
 		JButton bRemove = new JButton("Remove");
+		bRemove.addActionListener(e -> onRemove());
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gc = new GridBagConstraints();
@@ -143,6 +144,14 @@ public class PrivacyModelsPane {
 		PrivacyModelConfig selected = list.getSelectedValue();
 		if (selected != null) {
 			edit(selected, false);
+		}
+	}
+
+	private void onRemove() {
+		PrivacyModelConfig selected = list.getSelectedValue();
+		if (selected != null) {
+			config.getModels().remove(selected);
+			model.fireUpdate();
 		}
 	}
 

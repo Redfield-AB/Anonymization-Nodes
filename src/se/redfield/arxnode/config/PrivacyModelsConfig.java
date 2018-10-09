@@ -3,6 +3,7 @@ package se.redfield.arxnode.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
@@ -24,6 +25,12 @@ public class PrivacyModelsConfig {
 	public void save(NodeSettingsWO settings) {
 		String json = createGson().toJson(this);
 		settings.addString(Config.CONFIG_PRIVACY_MODELS, json);
+	}
+
+	public void validate() throws InvalidSettingsException {
+		if (models.size() == 0) {
+			throw new InvalidSettingsException("No privacy models selected");
+		}
 	}
 
 	public static PrivacyModelsConfig load(NodeSettingsRO settings) {

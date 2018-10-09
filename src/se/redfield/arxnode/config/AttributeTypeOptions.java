@@ -3,7 +3,6 @@ package se.redfield.arxnode.config;
 import org.deidentifier.arx.AttributeType;
 
 public enum AttributeTypeOptions {
-	NONE(null), //
 	IDENTIFYING_ATTRIBUTE(AttributeType.IDENTIFYING_ATTRIBUTE), //
 	SENSITIVE_ATTRIBUTE(AttributeType.SENSITIVE_ATTRIBUTE), //
 	INSENSITIVE_ATTRIBUTE(AttributeType.INSENSITIVE_ATTRIBUTE), //

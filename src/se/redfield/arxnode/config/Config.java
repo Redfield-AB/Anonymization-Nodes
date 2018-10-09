@@ -14,7 +14,6 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
-import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 public class Config {
@@ -33,8 +32,10 @@ public class Config {
 
 	private Map<String, SettingsModelString> hierarchySettings;
 	private Map<String, SettingsModelString> attrTypeSettings;
-	private SettingsModelIntegerBounded kAnonymityFactorSetting = new SettingsModelIntegerBounded(
-			CONFIG_KANONYMITY_FACTOR_KEY, DEFAULT_KANONYMITY_FACTOR, 1, Integer.MAX_VALUE);;
+	// private SettingsModelIntegerBounded kAnonymityFactorSetting = new
+	// SettingsModelIntegerBounded(
+	// CONFIG_KANONYMITY_FACTOR_KEY, DEFAULT_KANONYMITY_FACTOR, 1,
+	// Integer.MAX_VALUE);;
 	private PrivacyModelsConfig privacyModelConfig;
 
 	public Config() {
@@ -62,11 +63,11 @@ public class Config {
 		});
 		privacyModelConfig = PrivacyModelsConfig.load(settings);
 
-		try {
-			kAnonymityFactorSetting.loadSettingsFrom(settings);
-		} catch (InvalidSettingsException e) {
-			logger.error(e.getMessage(), e);
-		}
+		// try {
+		// kAnonymityFactorSetting.loadSettingsFrom(settings);
+		// } catch (InvalidSettingsException e) {
+		// logger.error(e.getMessage(), e);
+		// }
 	}
 
 	private String extractColumnName(String key, String prefix) {
@@ -88,7 +89,7 @@ public class Config {
 		attrTypeSettings.values().forEach(v -> v.saveSettingsTo(settings));
 
 		privacyModelConfig.save(settings);
-		kAnonymityFactorSetting.saveSettingsTo(settings);
+		// kAnonymityFactorSetting.saveSettingsTo(settings);
 	}
 
 	public void initColumns(DataTableSpec spec) {
@@ -103,12 +104,11 @@ public class Config {
 				c.setHierarchyFile(hierarchy.getStringValue());
 			}
 
-			SettingsModelString attrType = attrTypeSettings.get(name);
-			if (attrType != null) {
-				AttributeTypeOptions option = AttributeTypeOptions.valueOf(attrType.getStringValue());
-				if (option != null) {
-					c.setAttrType(option.getType());
-				}
+			try {
+				AttributeTypeOptions option = AttributeTypeOptions.valueOf(attrTypeSettings.get(name).getStringValue());
+				c.setAttrType(option.getType());
+			} catch (Exception e) {
+				// ignore
 			}
 
 			columns.put(name, c);
@@ -119,9 +119,9 @@ public class Config {
 		return columns;
 	}
 
-	public int getKAnonymityFactor() {
-		return kAnonymityFactorSetting.getIntValue();
-	}
+	// public int getKAnonymityFactor() {
+	// return kAnonymityFactorSetting.getIntValue();
+	// }
 
 	public List<PrivacyModelConfig> getPrivacyModels() {
 		return privacyModelConfig.getModels();
@@ -137,13 +137,29 @@ public class Config {
 
 	public void validate(NodeSettingsRO settings) throws InvalidSettingsException {
 		for (String key : settings.keySet()) {
+			if (key.endsWith(INTERNALS_POSTFIX)) {
+				// ignore
+				continue;
+			}
 			if (key.startsWith(CONFIG_HIERARCHY_FILE_PREFIX)) {
 				String path = settings.getString(key, "");
 				if (!StringUtils.isEmpty(path) && !new File(path).exists()) {
 					throw new InvalidSettingsException("File " + path + " not found");
 				}
 			}
+			if (key.startsWith(CONFIG_HIERARCHY_ATTR_TYPE_PREFIX)) {
+				AttributeTypeOptions opt = AttributeTypeOptions.valueOf(settings.getString(key));
+				if (opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE) {
+					String name = extractColumnName(key, CONFIG_HIERARCHY_ATTR_TYPE_PREFIX);
+					String hierarchyFile = settings.getString(CONFIG_HIERARCHY_FILE_PREFIX + name, "");
+					if (StringUtils.isEmpty(hierarchyFile)) {
+						throw new InvalidSettingsException(
+								"Hierarcy file not set for quasi-identifying attribute '" + name + "'");
+					}
+				}
+			}
 		}
-		kAnonymityFactorSetting.validateSettings(settings);
+		PrivacyModelsConfig.load(settings).validate();
+		// kAnonymityFactorSetting.validateSettings(settings);
 	}
 }
