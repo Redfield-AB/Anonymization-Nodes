@@ -14,6 +14,8 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 public class Config {
@@ -21,6 +23,7 @@ public class Config {
 
 	public static final String CONFIG_HIERARCHY_FILE_PREFIX = "hierarchy_file_";
 	public static final String CONFIG_HIERARCHY_ATTR_TYPE_PREFIX = "hierarchy_attr_type_";
+	public static final String CONFIG_WEIGHT_PREFIX = "attr_weight_";
 	public static final String CONFIG_KANONYMITY_FACTOR_KEY = "k_anonymity_factor";
 	public static final String CONFIG_PRIVACY_MODELS = "privacy_models";
 
@@ -32,6 +35,7 @@ public class Config {
 
 	private Map<String, SettingsModelString> hierarchySettings;
 	private Map<String, SettingsModelString> attrTypeSettings;
+	private Map<String, SettingsModelDoubleBounded> weightSettings;
 	// private SettingsModelIntegerBounded kAnonymityFactorSetting = new
 	// SettingsModelIntegerBounded(
 	// CONFIG_KANONYMITY_FACTOR_KEY, DEFAULT_KANONYMITY_FACTOR, 1,
@@ -39,26 +43,48 @@ public class Config {
 	private PrivacyModelsConfig privacyModelConfig;
 
 	public Config() {
+		this(null);
+	}
+
+	public Config(Map<String, ColumnConfig> columns) {
 		hierarchySettings = new HashMap<>();
 		attrTypeSettings = new HashMap<>();
+		weightSettings = new HashMap<>();
 		privacyModelConfig = new PrivacyModelsConfig();
+		this.columns = new HashMap<>();
+		if (columns != null) {
+			columns.values().forEach(c -> {
+				this.columns.put(c.getName(), new ColumnConfig(c.getName(), c.getIndex()));
+			});
+		}
 	}
 
 	public void load(NodeSettingsRO settings) {
+		logger.debug("Config.load");
 		hierarchySettings.clear();
 		attrTypeSettings.clear();
+		weightSettings.clear();
 		settings.keySet().forEach(key -> {
 			if (key.endsWith(INTERNALS_POSTFIX)) {
 				// ignore
 				return;
 			}
+
+			SettingsModel model = null;
 			if (key.startsWith(CONFIG_HIERARCHY_FILE_PREFIX)) {
-				hierarchySettings.put(extractColumnName(key, CONFIG_HIERARCHY_FILE_PREFIX),
-						loadModelString(key, settings));
+				model = getHierarchySetting(extractColumnName(key, CONFIG_HIERARCHY_FILE_PREFIX));
+			} else if (key.startsWith(CONFIG_HIERARCHY_ATTR_TYPE_PREFIX)) {
+				model = getAttrTypeSetting(extractColumnName(key, CONFIG_HIERARCHY_ATTR_TYPE_PREFIX));
+			} else if (key.startsWith(CONFIG_WEIGHT_PREFIX)) {
+				model = getWeightSetting(extractColumnName(key, CONFIG_WEIGHT_PREFIX));
 			}
-			if (key.startsWith(CONFIG_HIERARCHY_ATTR_TYPE_PREFIX)) {
-				attrTypeSettings.put(extractColumnName(key, CONFIG_HIERARCHY_ATTR_TYPE_PREFIX),
-						loadModelString(key, settings));
+
+			if (model != null) {
+				try {
+					model.loadSettingsFrom(settings);
+				} catch (InvalidSettingsException e) {
+					logger.warn(e.getMessage(), e);
+				}
 			}
 		});
 		privacyModelConfig = PrivacyModelsConfig.load(settings);
@@ -68,63 +94,52 @@ public class Config {
 		// } catch (InvalidSettingsException e) {
 		// logger.error(e.getMessage(), e);
 		// }
+		columns.values().forEach(c -> readColumnSettings(c));
 	}
 
 	private String extractColumnName(String key, String prefix) {
 		return key.substring(prefix.length());
 	}
 
-	private SettingsModelString loadModelString(String key, NodeSettingsRO settings) {
-		SettingsModelString model = new SettingsModelString(key, "");
-		try {
-			model.loadSettingsFrom(settings);
-		} catch (InvalidSettingsException e) {
-			logger.warn(e.getMessage(), e);
-		}
-		return model;
-	}
-
 	public void save(NodeSettingsWO settings) {
+		logger.debug("Config.save");
 		hierarchySettings.values().forEach(v -> v.saveSettingsTo(settings));
 		attrTypeSettings.values().forEach(v -> v.saveSettingsTo(settings));
+		weightSettings.values().forEach(v -> v.saveSettingsTo(settings));
 
 		privacyModelConfig.save(settings);
 		// kAnonymityFactorSetting.saveSettingsTo(settings);
 	}
 
 	public void initColumns(DataTableSpec spec) {
-		columns = new HashMap<String, ColumnConfig>();
+		logger.debug("Config.initColumns");
+		columns.clear();
 		for (int j = 0; j < spec.getColumnNames().length; j++) {
-			// logger.warn(spec.getColumnNames()[j]);
 			String name = spec.getColumnNames()[j];
 			ColumnConfig c = new ColumnConfig(name, j);
-
-			SettingsModelString hierarchy = hierarchySettings.get(name);
-			if (hierarchy != null && hierarchy.getStringValue().length() > 0) {
-				c.setHierarchyFile(hierarchy.getStringValue());
-			}
-
-			try {
-				AttributeTypeOptions option = AttributeTypeOptions.valueOf(attrTypeSettings.get(name).getStringValue());
-				c.setAttrType(option.getType());
-			} catch (Exception e) {
-				// ignore
-			}
-
+			readColumnSettings(c);
 			columns.put(name, c);
 		}
 	}
 
-	public Map<String, ColumnConfig> getColumns() {
-		return columns;
-	}
+	private void readColumnSettings(ColumnConfig c) {
+		SettingsModelString hierarchy = hierarchySettings.get(c.getName());
+		if (hierarchy != null && hierarchy.getStringValue().length() > 0) {
+			c.setHierarchyFile(hierarchy.getStringValue());
+		}
 
-	// public int getKAnonymityFactor() {
-	// return kAnonymityFactorSetting.getIntValue();
-	// }
+		try {
+			AttributeTypeOptions option = AttributeTypeOptions
+					.valueOf(attrTypeSettings.get(c.getName()).getStringValue());
+			c.setAttrType(option.getType());
+		} catch (Exception e) {
+			// ignore
+		}
 
-	public List<PrivacyModelConfig> getPrivacyModels() {
-		return privacyModelConfig.getModels();
+		SettingsModelDoubleBounded weight = weightSettings.get(c.getName());
+		if (weight != null) {
+			c.setWeight(weight.getDoubleValue());
+		}
 	}
 
 	public DataTableSpec createOutDataTableSpec() {
@@ -136,6 +151,7 @@ public class Config {
 	}
 
 	public void validate(NodeSettingsRO settings) throws InvalidSettingsException {
+		logger.debug("Config.validate");
 		for (String key : settings.keySet()) {
 			if (key.endsWith(INTERNALS_POSTFIX)) {
 				// ignore
@@ -161,5 +177,42 @@ public class Config {
 		}
 		PrivacyModelsConfig.load(settings).validate();
 		// kAnonymityFactorSetting.validateSettings(settings);
+	}
+
+	public Map<String, ColumnConfig> getColumns() {
+		return columns;
+	}
+
+	// public int getKAnonymityFactor() {
+	// return kAnonymityFactorSetting.getIntValue();
+	// }
+
+	public List<PrivacyModelConfig> getPrivacyModels() {
+		return privacyModelConfig.getModels();
+	}
+
+	public PrivacyModelsConfig getPrivacyModelConfig() {
+		return privacyModelConfig;
+	}
+
+	public SettingsModelString getHierarchySetting(String name) {
+		if (!hierarchySettings.containsKey(name)) {
+			hierarchySettings.put(name, new SettingsModelString(CONFIG_HIERARCHY_FILE_PREFIX + name, ""));
+		}
+		return hierarchySettings.get(name);
+	}
+
+	public SettingsModelString getAttrTypeSetting(String name) {
+		if (!attrTypeSettings.containsKey(name)) {
+			attrTypeSettings.put(name, new SettingsModelString(CONFIG_HIERARCHY_ATTR_TYPE_PREFIX + name, ""));
+		}
+		return attrTypeSettings.get(name);
+	}
+
+	public SettingsModelDoubleBounded getWeightSetting(String name) {
+		if (!weightSettings.containsKey(name)) {
+			weightSettings.put(name, new SettingsModelDoubleBounded(CONFIG_WEIGHT_PREFIX + name, 0.5, 0, 1));
+		}
+		return weightSettings.get(name);
 	}
 }

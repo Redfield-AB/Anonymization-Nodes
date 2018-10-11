@@ -8,10 +8,14 @@ public class ColumnConfig {
 	private int index;
 	private String hierarchyFile;
 	private AttributeType attrType;
+	private double weight;
 
 	public ColumnConfig(String name, int index) {
 		this.name = name;
 		this.index = index;
+		this.hierarchyFile = "";
+		this.attrType = AttributeType.IDENTIFYING_ATTRIBUTE;
+		this.weight = 0.5;
 	}
 
 	public String getName() {
@@ -27,9 +31,6 @@ public class ColumnConfig {
 	}
 
 	public String getHierarchyFile() {
-		if (hierarchyFile == null) {
-			hierarchyFile = "";
-		}
 		return hierarchyFile;
 	}
 
@@ -39,5 +40,13 @@ public class ColumnConfig {
 
 	public void setAttrType(AttributeType attrType) {
 		this.attrType = attrType;
+	}
+
+	public double getWeight() {
+		return weight;
+	}
+
+	public void setWeight(double weight) {
+		this.weight = weight;
 	}
 }

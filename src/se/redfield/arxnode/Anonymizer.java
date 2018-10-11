@@ -10,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.ARXAnonymizer;
 import org.deidentifier.arx.ARXConfiguration;
 import org.deidentifier.arx.ARXResult;
-import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.Data;
 import org.deidentifier.arx.Data.DefaultData;
 import org.deidentifier.arx.DataType;
@@ -39,8 +38,46 @@ public class Anonymizer {
 	}
 
 	public BufferedDataTable process(BufferedDataTable inTable, ExecutionContext exec) {
-		BufferedDataTable outTable = null;
 		Utils.time();
+		Data arxData = read(inTable);
+		Utils.time("Read table");
+		ARXConfiguration arxConfig = configure(arxData);
+		Utils.time("Anon config");
+
+		try {
+			ARXAnonymizer anonymizer = new ARXAnonymizer();
+			ARXResult res = anonymizer.anonymize(arxData, arxConfig);
+			Utils.time("Anonymize");
+			return write(res, exec);
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+		}
+		return null;
+	}
+
+	private BufferedDataTable write(ARXResult res, ExecutionContext exec) {
+		BufferedDataContainer container = exec.createDataContainer(this.config.createOutDataTableSpec());
+		int rowIdx = 0;
+		Iterator<String[]> iter = res.getOutput().iterator();
+		iter.next();
+		while (iter.hasNext()) {
+			String[] row = iter.next();
+			// logger.warn("row" + Arrays.toString(row));
+
+			DataCell[] cells = new DataCell[row.length];
+			for (int i = 0; i < cells.length; i++) {
+				cells[i] = new StringCell(row[i]);
+			}
+
+			RowKey key = new RowKey("Row " + rowIdx++);
+			DataRow datarow = new DefaultRow(key, cells);
+			container.addRowToTable(datarow);
+		}
+		container.close();
+		return container.getTable();
+	}
+
+	private Data read(BufferedDataTable inTable) {
 		DefaultData defData = Data.create();
 		String[] columnNames = inTable.getDataTableSpec().getColumnNames();
 		defData.add(columnNames);
@@ -52,54 +89,24 @@ public class Anonymizer {
 			defData.add(
 					row.stream().map(cell -> cell.toString()).collect(Collectors.toList()).toArray(new String[] {}));
 		});
-		Utils.time("Read table");
+		return defData;
+	}
 
+	private ARXConfiguration configure(Data defData) {
 		config.getColumns().values().forEach(c -> {
 			HierarchyBuilder<?> hierarchy = getHierarchy(c.getHierarchyFile());
 			if (hierarchy != null) {
 				defData.getDefinition().setAttributeType(c.getName(), hierarchy);
-			} else if (c.getAttrType() != null) {
-				defData.getDefinition().setAttributeType(c.getName(), c.getAttrType());
 			} else {
-				defData.getDefinition().setAttributeType(c.getName(), AttributeType.IDENTIFYING_ATTRIBUTE);
+				defData.getDefinition().setAttributeType(c.getName(), c.getAttrType());
 			}
 		});
 
 		ARXConfiguration arxConfig = ARXConfiguration.create();
 		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion()));
+		config.getColumns().values().forEach(c -> arxConfig.setAttributeWeight(c.getName(), c.getWeight()));
 		arxConfig.setSuppressionLimit(1.0);
-		Utils.time("Anon config");
-
-		try {
-			ARXAnonymizer anonymizer = new ARXAnonymizer();
-			ARXResult res = anonymizer.anonymize(defData, arxConfig);
-			Utils.time("Anonymize");
-
-			BufferedDataContainer container = exec.createDataContainer(this.config.createOutDataTableSpec());
-			int rowIdx = 0;
-			Iterator<String[]> iter = res.getOutput().iterator();
-			iter.next();
-			while (iter.hasNext()) {
-				String[] row = iter.next();
-				// logger.warn("row" + Arrays.toString(row));
-
-				DataCell[] cells = new DataCell[row.length];
-				for (int i = 0; i < cells.length; i++) {
-					cells[i] = new StringCell(row[i]);
-				}
-
-				RowKey key = new RowKey("Row " + rowIdx++);
-				DataRow datarow = new DefaultRow(key, cells);
-				container.addRowToTable(datarow);
-			}
-			container.close();
-			outTable = container.getTable();
-			Utils.time("write table");
-			return outTable;
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-		}
-		return null;
+		return arxConfig;
 	}
 
 	private HierarchyBuilder<?> getHierarchy(String path) {

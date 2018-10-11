@@ -1,14 +1,11 @@
 package se.redfield.arxnode;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.util.ArrayList;
-import java.util.List;
+import java.awt.Font;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 
-import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -17,32 +14,39 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+
 import se.redfield.arxnode.config.AttributeTypeOptions;
+import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
 
 public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 
 	private static final NodeLogger logger = NodeLogger.getLogger(ArxNodeNodeDialog.class);
 
+	private Config config;
 	private JPanel columnsPanel;
 	private PrivacyModelsPane privacyPanel;
-	private List<SettingsModel> models;
 
 	protected ArxNodeNodeDialog() {
 		super();
-		logger.debug("Dialog.constructor");
+		logger.info("Dialog.constructor");
 		// addDialogComponent(
 		// new DialogComponentNumber(new
 		// SettingsModelIntegerBounded(Config.CONFIG_KANONYMITY_FACTOR_KEY,
 		// Config.DEFAULT_KANONYMITY_FACTOR, 1, Integer.MAX_VALUE), "K-Anonymity
 		// factor:", 1, 5));
 
+		config = new Config();
+
 		columnsPanel = new JPanel();
-		privacyPanel = new PrivacyModelsPane();
+		privacyPanel = new PrivacyModelsPane(config);
 		addTab("Columns", columnsPanel);
 		addTab("Privacy Models", privacyPanel.getComponent());
 		selectTab("Columns");
@@ -52,56 +56,68 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	@Override
 	public void loadAdditionalSettingsFrom(NodeSettingsRO settings, DataTableSpec[] specs)
 			throws NotConfigurableException {
-		logger.debug("Dialog.loadSettings");
-		models = new ArrayList<>();
+		logger.info("Dialog.loadSettings");
+		config.load(settings);
+		config.initColumns(specs[0]);
 		initColumnsPanel(settings, specs[0]);
-		privacyPanel.load(settings);
 	}
 
 	private void initColumnsPanel(NodeSettingsRO settings, DataTableSpec spec) {
 		columnsPanel.removeAll();
-		columnsPanel.setLayout(new GridBagLayout());
-		GridBagConstraints gc = new GridBagConstraints();
-		gc.gridx = 0;
-		gc.gridy = 0;
-		for (DataColumnSpec columnSpec : spec) {
-			SettingsModelString fileModel = new SettingsModelString(
-					Config.CONFIG_HIERARCHY_FILE_PREFIX + columnSpec.getName(), "");
-			SettingsModelString attrTypeModel = new SettingsModelString(
-					Config.CONFIG_HIERARCHY_ATTR_TYPE_PREFIX + columnSpec.getName(), "");
-			attrTypeModel.addChangeListener(e -> {
-				AttributeTypeOptions opt = AttributeTypeOptions.valueOf(attrTypeModel.getStringValue());
-				fileModel.setEnabled(opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE);
-				if (!fileModel.isEnabled()) {
-					fileModel.setStringValue("");
-				}
-			});
-			try {
-				fileModel.loadSettingsFrom(settings);
-				attrTypeModel.loadSettingsFrom(settings);
-			} catch (InvalidSettingsException e) {
-				logger.warn(e.getMessage(), e);
-			}
-			models.add(fileModel);
-			models.add(attrTypeModel);
 
-			gc.gridx = 0;
-			columnsPanel.add(new JLabel(columnSpec.getName()), gc);
-			gc.gridx = 1;
-			columnsPanel.add(new DialogComponentStringSelection(attrTypeModel, "", AttributeTypeOptions.stringValues())
-					.getComponentPanel(), gc);
-			gc.gridx = 2;
-			columnsPanel.add(new DialogComponentFileChooser(fileModel, "ArxNode", "ahs").getComponentPanel(), gc);
-			gc.gridy++;
+		String rowSpec = "15:n, p:n";
+		for (int i = 0; i < config.getColumns().size() - 1; i++) {
+			rowSpec += ",5:n, p:n";
 		}
+		rowSpec += ",15:n";
+		CellConstraints cc = new CellConstraints();
+		columnsPanel.setLayout(new FormLayout("15:n, f:p:g, 15:n", rowSpec));
+
+		ColumnConfig[] columns = new ColumnConfig[config.getColumns().size()];
+		config.getColumns().values().forEach(c -> columns[c.getIndex()] = c);
+		for (int i = 0; i < columns.length; i++) {
+			columnsPanel.add(createColumnRow(columns[i]), cc.rc(i * 2 + 2, 2));
+		}
+	}
+
+	private JPanel createColumnRow(ColumnConfig c) {
+		SettingsModelString fileModel = config.getHierarchySetting(c.getName());
+		SettingsModelString attrTypeModel = config.getAttrTypeSetting(c.getName());
+		SettingsModelDoubleBounded weightModel = config.getWeightSetting(c.getName());
+		DialogComponentFileChooser fileChooser = new DialogComponentFileChooser(fileModel, "ArxNode", "ahs");
+
+		attrTypeModel.addChangeListener(e -> updateFileChooserEnabled(fileModel, attrTypeModel, fileChooser));
+		updateFileChooserEnabled(fileModel, attrTypeModel, fileChooser);
+
+		JLabel columnLabel = new JLabel(c.getName());
+		Font font = UIManager.getFont("Label.font");
+		columnLabel.setFont(new Font(font.getName(), Font.BOLD, font.getSize() + 2));
+
+		CellConstraints cc = new CellConstraints();
+		JPanel row = new JPanel(new FormLayout("l:p:n, 5:n, r:p:g, 5:n, r:p:n", "p:n, 5:n, p:n"));
+		row.add(columnLabel, cc.rc(1, 1));
+		row.add(new DialogComponentStringSelection(attrTypeModel, "", AttributeTypeOptions.stringValues())
+				.getComponentPanel(), cc.rc(1, 3));
+		row.add(new DialogComponentNumber(weightModel, "Weight", 0.05).getComponentPanel(), cc.rc(1, 5));
+		row.add(fileChooser.getComponentPanel(), cc.rcw(3, 1, 5));
+		return row;
+	}
+
+	private void updateFileChooserEnabled(SettingsModelString fileModel, SettingsModelString attrTypeModel,
+			DialogComponentFileChooser fileChooser) {
+		AttributeTypeOptions opt = AttributeTypeOptions.valueOf(attrTypeModel.getStringValue());
+		fileModel.setEnabled(opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE);
+		if (!fileModel.isEnabled()) {
+			fileModel.setStringValue("");
+		}
+		fileChooser.getComponentPanel().setVisible(fileModel.isEnabled());
 	}
 
 	@Override
 	public void saveAdditionalSettingsTo(NodeSettingsWO settings) throws InvalidSettingsException {
-		logger.debug("Dialog.saveSettings");
+		logger.info("Dialog.saveSettings");
 		super.saveAdditionalSettingsTo(settings);
-		models.forEach(m -> m.saveSettingsTo(settings));
-		privacyPanel.save(settings);
+		config.save(settings);
 	}
 
 }

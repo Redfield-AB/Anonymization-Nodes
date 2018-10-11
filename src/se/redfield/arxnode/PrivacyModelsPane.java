@@ -15,24 +15,21 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
-
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.config.DPresenceConfig;
 import se.redfield.arxnode.config.KAnonymityConfig;
 import se.redfield.arxnode.config.PrivacyModelConfig;
 import se.redfield.arxnode.config.PrivacyModelEditor;
-import se.redfield.arxnode.config.PrivacyModelsConfig;
 import se.redfield.arxnode.util.PopupMenuButton;
 
 public class PrivacyModelsPane {
 	// private static final NodeLogger logger =
 	// NodeLogger.getLogger(PrivacyModelsPane.class);
 
-	private PrivacyModelsConfig config;
+	private Config config;
 
 	private JPanel container;
 	private JPanel editPanel;
@@ -44,6 +41,10 @@ public class PrivacyModelsPane {
 	private PrivacyModelConfig currentConfig;
 	private PrivacyModelEditor currentEditor;
 	private boolean isNew;
+
+	public PrivacyModelsPane(Config config) {
+		this.config = config;
+	}
 
 	public JPanel getComponent() {
 		if (container == null) {
@@ -83,7 +84,7 @@ public class PrivacyModelsPane {
 	private void onSave() {
 		currentEditor.readFromComponent(currentConfig);
 		if (isNew) {
-			config.getModels().add(currentConfig);
+			config.getPrivacyModels().add(currentConfig);
 		}
 		model.fireUpdate();
 		cancelEdit();
@@ -150,7 +151,7 @@ public class PrivacyModelsPane {
 	private void onRemove() {
 		PrivacyModelConfig selected = list.getSelectedValue();
 		if (selected != null) {
-			config.getModels().remove(selected);
+			config.getPrivacyModels().remove(selected);
 			model.fireUpdate();
 		}
 	}
@@ -167,15 +168,6 @@ public class PrivacyModelsPane {
 		editPanel.setVisible(true);
 	}
 
-	public void load(NodeSettingsRO settings) {
-		config = PrivacyModelsConfig.load(settings);
-	}
-
-	public void save(NodeSettingsWO settings) {
-		config.save(settings);
-
-	}
-
 	private class PrivacyListModel implements ListModel<PrivacyModelConfig> {
 		private List<ListDataListener> listeners = new ArrayList<>();
 
@@ -184,12 +176,12 @@ public class PrivacyModelsPane {
 			if (config == null) {
 				return 0;
 			}
-			return config.getModels().size();
+			return config.getPrivacyModels().size();
 		}
 
 		@Override
 		public PrivacyModelConfig getElementAt(int index) {
-			return config.getModels().get(index);
+			return config.getPrivacyModels().get(index);
 		}
 
 		@Override
