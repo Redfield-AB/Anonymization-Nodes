@@ -26,6 +26,7 @@ public class Config {
 	public static final String CONFIG_WEIGHT_PREFIX = "attr_weight_";
 	public static final String CONFIG_KANONYMITY_FACTOR_KEY = "k_anonymity_factor";
 	public static final String CONFIG_PRIVACY_MODELS = "privacy_models";
+	public static final String CONFIG_TRANSFORMATION_SETTINGS_PREFIX = "CONFIG_TRANSFORMATION_SETTINGS_";
 
 	public static final int DEFAULT_KANONYMITY_FACTOR = 3;
 
@@ -36,6 +37,7 @@ public class Config {
 	private Map<String, SettingsModelString> hierarchySettings;
 	private Map<String, SettingsModelString> attrTypeSettings;
 	private Map<String, SettingsModelDoubleBounded> weightSettings;
+	private Map<String, TransformationConfig> transformationSettings;
 	// private SettingsModelIntegerBounded kAnonymityFactorSetting = new
 	// SettingsModelIntegerBounded(
 	// CONFIG_KANONYMITY_FACTOR_KEY, DEFAULT_KANONYMITY_FACTOR, 1,
@@ -51,6 +53,7 @@ public class Config {
 		hierarchySettings = new HashMap<>();
 		attrTypeSettings = new HashMap<>();
 		weightSettings = new HashMap<>();
+		transformationSettings = new HashMap<>();
 		privacyModelConfig = new PrivacyModelsConfig();
 		anonymizationConfig = new AnonymizationConfig();
 		this.columns = new HashMap<>();
@@ -66,12 +69,12 @@ public class Config {
 		hierarchySettings.clear();
 		attrTypeSettings.clear();
 		weightSettings.clear();
+		transformationSettings.clear();
 		settings.keySet().forEach(key -> {
 			if (key.endsWith(INTERNALS_POSTFIX)) {
 				// ignore
 				return;
 			}
-
 			SettingsModel model = null;
 			if (key.startsWith(CONFIG_HIERARCHY_FILE_PREFIX)) {
 				model = getHierarchySetting(extractColumnName(key, CONFIG_HIERARCHY_FILE_PREFIX));
@@ -79,6 +82,9 @@ public class Config {
 				model = getAttrTypeSetting(extractColumnName(key, CONFIG_HIERARCHY_ATTR_TYPE_PREFIX));
 			} else if (key.startsWith(CONFIG_WEIGHT_PREFIX)) {
 				model = getWeightSetting(extractColumnName(key, CONFIG_WEIGHT_PREFIX));
+			} else if (key.startsWith(CONFIG_TRANSFORMATION_SETTINGS_PREFIX)) {
+				getTransformationConfig(extractColumnName(key, CONFIG_TRANSFORMATION_SETTINGS_PREFIX)).load(settings,
+						key);
 			}
 
 			if (model != null) {
@@ -112,7 +118,9 @@ public class Config {
 
 		privacyModelConfig.save(settings);
 		anonymizationConfig.save(settings);
-		// kAnonymityFactorSetting.saveSettingsTo(settings);
+
+		transformationSettings
+				.forEach((key, config) -> config.save(settings, CONFIG_TRANSFORMATION_SETTINGS_PREFIX + key));
 	}
 
 	public void initColumns(DataTableSpec spec) {
@@ -144,6 +152,8 @@ public class Config {
 		if (weight != null) {
 			c.setWeight(weight.getDoubleValue());
 		}
+
+		c.setTransformationConfig(getTransformationConfig(c.getName()));
 	}
 
 	public DataTableSpec createOutDataTableSpec() {
@@ -222,5 +232,12 @@ public class Config {
 
 	public AnonymizationConfig getAnonymizationConfig() {
 		return anonymizationConfig;
+	}
+
+	public TransformationConfig getTransformationConfig(String name) {
+		if (!transformationSettings.containsKey(name)) {
+			transformationSettings.put(name, new TransformationConfig());
+		}
+		return transformationSettings.get(name);
 	}
 }

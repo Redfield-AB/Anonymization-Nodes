@@ -9,6 +9,7 @@ public class ColumnConfig {
 	private String hierarchyFile;
 	private AttributeType attrType;
 	private double weight;
+	private TransformationConfig transformationConfig;
 
 	public ColumnConfig(String name, int index) {
 		this.name = name;
@@ -16,6 +17,7 @@ public class ColumnConfig {
 		this.hierarchyFile = "";
 		this.attrType = AttributeType.IDENTIFYING_ATTRIBUTE;
 		this.weight = 0.5;
+		this.transformationConfig = new TransformationConfig();
 	}
 
 	public String getName() {
@@ -48,5 +50,15 @@ public class ColumnConfig {
 
 	public void setWeight(double weight) {
 		this.weight = weight;
+	}
+
+	public TransformationConfig getTransformationConfig() {
+		return transformationConfig;
+	}
+
+	public void setTransformationConfig(TransformationConfig transformationConfig) {
+		if (transformationConfig != null) {
+			this.transformationConfig = transformationConfig;
+		}
 	}
 }

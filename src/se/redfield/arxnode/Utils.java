@@ -1,10 +1,6 @@
 package se.redfield.arxnode;
 
-import org.deidentifier.arx.ARXConfiguration;
-import org.knime.core.data.DataCell;
-import org.knime.core.data.DataColumnSpec;
-import org.knime.core.data.def.IntCell;
-import org.knime.core.data.def.StringCell;
+import org.deidentifier.arx.DataType;
 import org.knime.core.node.NodeLogger;
 
 import com.google.gson.Gson;
@@ -13,18 +9,6 @@ import com.google.gson.GsonBuilder;
 public class Utils {
 
 	private static final NodeLogger logger = NodeLogger.getLogger(Utils.class);
-
-	public static DataCell createCell(DataColumnSpec spec, String value) {
-		String cellClass = spec.getType().getCellClass().getSimpleName();
-		logger.warn("cell for type: " + cellClass);
-		switch (cellClass) {
-		case "StringCell":
-			return new StringCell(value);
-		case "IntCell":
-			return new IntCell(Integer.valueOf(value));
-		}
-		return null;
-	}
 
 	private static long time = 0;
 
@@ -38,8 +22,19 @@ public class Utils {
 		time();
 	}
 
-	public static String toString(ARXConfiguration cfg) {
+	public static String toPrettyJson(Object obj) {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		return gson.toJson(cfg);
+		return gson.toJson(obj);
+	}
+
+	public static DataType<?> knimeToArxType(org.knime.core.data.DataType type) {
+		switch (type.getName()) {
+		case "String":
+			return DataType.STRING;
+		case "Number (integer)":
+			return DataType.INTEGER;
+		}
+		logger.warn("Unknown DataType: " + type.getName());
+		return DataType.STRING;
 	}
 }

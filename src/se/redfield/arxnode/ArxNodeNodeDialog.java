@@ -25,6 +25,9 @@ import com.jgoodies.forms.layout.FormLayout;
 import se.redfield.arxnode.config.AttributeTypeOptions;
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
+import se.redfield.arxnode.ui.AnonymizationConfigPanel;
+import se.redfield.arxnode.ui.PrivacyModelsPane;
+import se.redfield.arxnode.ui.TransformationConfigPanel;
 
 public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 
@@ -86,32 +89,36 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		SettingsModelString attrTypeModel = config.getAttrTypeSetting(c.getName());
 		SettingsModelDoubleBounded weightModel = config.getWeightSetting(c.getName());
 		DialogComponentFileChooser fileChooser = new DialogComponentFileChooser(fileModel, "ArxNode", "ahs");
+		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(c.getTransformationConfig());
 
-		attrTypeModel.addChangeListener(e -> updateFileChooserEnabled(fileModel, attrTypeModel, fileChooser));
-		updateFileChooserEnabled(fileModel, attrTypeModel, fileChooser);
+		attrTypeModel.addChangeListener(
+				e -> updateControlsVisibility(fileModel, attrTypeModel, fileChooser, transformationPanel));
+		updateControlsVisibility(fileModel, attrTypeModel, fileChooser, transformationPanel);
 
 		JLabel columnLabel = new JLabel(c.getName());
 		Font font = UIManager.getFont("Label.font");
 		columnLabel.setFont(new Font(font.getName(), Font.BOLD, font.getSize() + 2));
 
 		CellConstraints cc = new CellConstraints();
-		JPanel row = new JPanel(new FormLayout("l:p:n, 5:n, r:p:g, 5:n, r:p:n", "p:n, 5:n, p:n"));
+		JPanel row = new JPanel(new FormLayout("l:p:n, 5:n, r:p:g, 5:n, r:p:n", "p:n, 5:n, p:n, 5:n, p:n"));
 		row.add(columnLabel, cc.rc(1, 1));
 		row.add(new DialogComponentStringSelection(attrTypeModel, "", AttributeTypeOptions.stringValues())
 				.getComponentPanel(), cc.rc(1, 3));
 		row.add(new DialogComponentNumber(weightModel, "Weight", 0.05).getComponentPanel(), cc.rc(1, 5));
 		row.add(fileChooser.getComponentPanel(), cc.rcw(3, 1, 5));
+		row.add(transformationPanel, cc.rcw(5, 1, 5));
 		return row;
 	}
 
-	private void updateFileChooserEnabled(SettingsModelString fileModel, SettingsModelString attrTypeModel,
-			DialogComponentFileChooser fileChooser) {
+	private void updateControlsVisibility(SettingsModelString fileModel, SettingsModelString attrTypeModel,
+			DialogComponentFileChooser fileChooser, TransformationConfigPanel transformationConfig) {
 		AttributeTypeOptions opt = AttributeTypeOptions.fromName(attrTypeModel.getStringValue());
 		fileModel.setEnabled(opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE);
 		if (!fileModel.isEnabled()) {
 			fileModel.setStringValue("");
 		}
 		fileChooser.getComponentPanel().setVisible(fileModel.isEnabled());
+		transformationConfig.setVisible(fileModel.isEnabled());
 	}
 
 	@Override

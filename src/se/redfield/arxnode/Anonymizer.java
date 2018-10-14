@@ -10,12 +10,15 @@ import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.ARXAnonymizer;
 import org.deidentifier.arx.ARXConfiguration;
 import org.deidentifier.arx.ARXResult;
+import org.deidentifier.arx.AttributeType;
+import org.deidentifier.arx.AttributeType.MicroAggregationFunction;
 import org.deidentifier.arx.Data;
 import org.deidentifier.arx.Data.DefaultData;
-import org.deidentifier.arx.DataType;
+import org.deidentifier.arx.DataDefinition;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
@@ -26,6 +29,8 @@ import org.knime.core.node.NodeLogger;
 
 import se.redfield.arxnode.config.AnonymizationConfig;
 import se.redfield.arxnode.config.Config;
+import se.redfield.arxnode.config.TransformationConfig;
+import se.redfield.arxnode.config.TransformationConfig.Mode;
 
 public class Anonymizer {
 
@@ -83,7 +88,8 @@ public class Anonymizer {
 		String[] columnNames = inTable.getDataTableSpec().getColumnNames();
 		defData.add(columnNames);
 		for (int i = 0; i < columnNames.length; i++) {
-			defData.getDefinition().setDataType(columnNames[i], DataType.STRING);
+			DataType type = inTable.getDataTableSpec().getColumnSpec(columnNames[i]).getType();
+			defData.getDefinition().setDataType(columnNames[i], Utils.knimeToArxType(type));
 		}
 
 		inTable.forEach(row -> {
@@ -95,11 +101,29 @@ public class Anonymizer {
 
 	private ARXConfiguration configure(Data defData) {
 		config.getColumns().values().forEach(c -> {
+			DataDefinition def = defData.getDefinition();
 			HierarchyBuilder<?> hierarchy = getHierarchy(c.getHierarchyFile());
 			if (hierarchy != null) {
-				defData.getDefinition().setAttributeType(c.getName(), hierarchy);
+				def.setAttributeType(c.getName(), hierarchy);
 			} else {
-				defData.getDefinition().setAttributeType(c.getName(), c.getAttrType());
+				def.setAttributeType(c.getName(), c.getAttrType());
+			}
+
+			if (c.getAttrType() == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
+				TransformationConfig tc = c.getTransformationConfig();
+				if (tc.getMode() == Mode.GENERALIZATION) {
+					if (tc.getMinGeneralization() != null) {
+						def.setMinimumGeneralization(c.getName(), tc.getMinGeneralization());
+					}
+					if (tc.getMaxGeneralization() != null) {
+						def.setMaximumGeneralization(c.getName(), tc.getMaxGeneralization());
+					}
+				} else {
+					boolean clustering = tc.getMode() == Mode.CLUSTERING_AND_MICROAGGREGATION;
+					MicroAggregationFunction func = tc.getMicroaggregationFunc()
+							.createFunction(tc.isIgnoreMissingData());
+					def.setMicroAggregationFunction(c.getName(), func, clustering);
+				}
 			}
 		});
 
@@ -127,7 +151,8 @@ public class Anonymizer {
 			arxConfig.getQualityModel().getConfiguration()
 					.setPrecomputationThreshold(aConfig.getPrecomputationThreshold().getDoubleValue());
 		}
-		logger.debug("ArxConfiguraton: \n" + Utils.toString(arxConfig));
+		logger.debug("ArxConfiguraton: \n" + Utils.toPrettyJson(arxConfig));
+		logger.debug("DataDefinition: \n" + Utils.toPrettyJson(defData.getDefinition()));
 		return arxConfig;
 	}
 
