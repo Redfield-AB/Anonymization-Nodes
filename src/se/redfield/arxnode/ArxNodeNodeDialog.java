@@ -49,6 +49,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		privacyPanel = new PrivacyModelsPane(config);
 		addTab("Columns", columnsPanel);
 		addTab("Privacy Models", privacyPanel.getComponent());
+		addTab("Anonymization Config", new AnonymizationConfigPanel(config.getAnonymizationConfig()).getComponent());
 		selectTab("Columns");
 		removeTab("Options");
 	}
@@ -105,7 +106,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 
 	private void updateFileChooserEnabled(SettingsModelString fileModel, SettingsModelString attrTypeModel,
 			DialogComponentFileChooser fileChooser) {
-		AttributeTypeOptions opt = AttributeTypeOptions.valueOf(attrTypeModel.getStringValue());
+		AttributeTypeOptions opt = AttributeTypeOptions.fromName(attrTypeModel.getStringValue());
 		fileModel.setEnabled(opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE);
 		if (!fileModel.isEnabled()) {
 			fileModel.setStringValue("");

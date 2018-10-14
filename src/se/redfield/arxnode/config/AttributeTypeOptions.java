@@ -26,4 +26,12 @@ public enum AttributeTypeOptions {
 		return result;
 	}
 
+	public static AttributeTypeOptions fromName(String name) {
+		try {
+			return valueOf(name);
+		} catch (IllegalArgumentException e) {
+
+		}
+		return AttributeTypeOptions.IDENTIFYING_ATTRIBUTE;
+	}
 }

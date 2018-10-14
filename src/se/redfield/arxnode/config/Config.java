@@ -41,6 +41,7 @@ public class Config {
 	// CONFIG_KANONYMITY_FACTOR_KEY, DEFAULT_KANONYMITY_FACTOR, 1,
 	// Integer.MAX_VALUE);;
 	private PrivacyModelsConfig privacyModelConfig;
+	private AnonymizationConfig anonymizationConfig;
 
 	public Config() {
 		this(null);
@@ -51,6 +52,7 @@ public class Config {
 		attrTypeSettings = new HashMap<>();
 		weightSettings = new HashMap<>();
 		privacyModelConfig = new PrivacyModelsConfig();
+		anonymizationConfig = new AnonymizationConfig();
 		this.columns = new HashMap<>();
 		if (columns != null) {
 			columns.values().forEach(c -> {
@@ -88,6 +90,7 @@ public class Config {
 			}
 		});
 		privacyModelConfig = PrivacyModelsConfig.load(settings);
+		anonymizationConfig.load(settings);
 
 		// try {
 		// kAnonymityFactorSetting.loadSettingsFrom(settings);
@@ -108,6 +111,7 @@ public class Config {
 		weightSettings.values().forEach(v -> v.saveSettingsTo(settings));
 
 		privacyModelConfig.save(settings);
+		anonymizationConfig.save(settings);
 		// kAnonymityFactorSetting.saveSettingsTo(settings);
 	}
 
@@ -214,5 +218,9 @@ public class Config {
 			weightSettings.put(name, new SettingsModelDoubleBounded(CONFIG_WEIGHT_PREFIX + name, 0.5, 0, 1));
 		}
 		return weightSettings.get(name);
+	}
+
+	public AnonymizationConfig getAnonymizationConfig() {
+		return anonymizationConfig;
 	}
 }

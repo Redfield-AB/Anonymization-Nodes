@@ -1,10 +1,14 @@
 package se.redfield.arxnode;
 
+import org.deidentifier.arx.ARXConfiguration;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.NodeLogger;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class Utils {
 
@@ -32,5 +36,10 @@ public class Utils {
 		long duration = System.currentTimeMillis() - time;
 		logger.debug(task + " " + duration + "ms");
 		time();
+	}
+
+	public static String toString(ARXConfiguration cfg) {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		return gson.toJson(cfg);
 	}
 }

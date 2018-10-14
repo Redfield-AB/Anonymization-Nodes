@@ -24,6 +24,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 
+import se.redfield.arxnode.config.AnonymizationConfig;
 import se.redfield.arxnode.config.Config;
 
 public class Anonymizer {
@@ -105,7 +106,28 @@ public class Anonymizer {
 		ARXConfiguration arxConfig = ARXConfiguration.create();
 		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion()));
 		config.getColumns().values().forEach(c -> arxConfig.setAttributeWeight(c.getName(), c.getWeight()));
-		arxConfig.setSuppressionLimit(1.0);
+
+		AnonymizationConfig aConfig = config.getAnonymizationConfig();
+		if (aConfig.getHeuristicSearchEnabled().getBooleanValue()) {
+			arxConfig.setHeuristicSearchEnabled(true);
+			if (aConfig.getLimitSearchSteps().getBooleanValue()) {
+				arxConfig.setHeuristicSearchStepLimit(aConfig.getSearchStepsLimit().getIntValue());
+			}
+			if (aConfig.getLimitSearchTime().getBooleanValue()) {
+				arxConfig.setHeuristicSearchTimeLimit(aConfig.getSearchTimeLimit().getIntValue());
+			}
+		}
+
+		arxConfig.setSuppressionLimit(aConfig.getSuppresionLimit().getDoubleValue());
+		arxConfig.setPracticalMonotonicity(aConfig.getPractivalMonotonicity().getBooleanValue());
+
+		boolean precomputationEnabled = aConfig.getPrecomputationEnabled().getBooleanValue();
+		arxConfig.getQualityModel().getConfiguration().setPrecomputed(precomputationEnabled);
+		if (precomputationEnabled) {
+			arxConfig.getQualityModel().getConfiguration()
+					.setPrecomputationThreshold(aConfig.getPrecomputationThreshold().getDoubleValue());
+		}
+		logger.debug("ArxConfiguraton: \n" + Utils.toString(arxConfig));
 		return arxConfig;
 	}
 
