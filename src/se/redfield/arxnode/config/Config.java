@@ -18,6 +18,9 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
+import se.redfield.arxnode.config.pmodels.PrivacyModelsConfig;
+
 public class Config {
 	private static final NodeLogger logger = NodeLogger.getLogger(Config.class);
 

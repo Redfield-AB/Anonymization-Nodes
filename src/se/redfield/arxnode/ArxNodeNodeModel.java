@@ -31,8 +31,12 @@ public class ArxNodeNodeModel extends NodeModel {
 	@Override
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
 			throws Exception {
-
-		return new BufferedDataTable[] { anonymizer.process(inData[0], exec) };
+		try {
+			return new BufferedDataTable[] { anonymizer.process(inData[0], exec) };
+		} catch (Throwable e) {
+			logger.error(e.getMessage(), e);
+			throw e;
+		}
 
 		// // the data table spec of the single output table,
 		// // the table will have three columns:

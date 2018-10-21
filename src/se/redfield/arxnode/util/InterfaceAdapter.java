@@ -1,6 +1,8 @@
 package se.redfield.arxnode.util;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -15,6 +17,15 @@ public class InterfaceAdapter<T> implements JsonSerializer<T>, JsonDeserializer<
 
 	private static final String CLASSNAME = "CLASSNAME";
 	private static final String DATA = "DATA";
+	private Map<String, Class<?>> classes;
+
+	public InterfaceAdapter(Class<?>... classes) {
+		this.classes = new HashMap<>();
+		for (int i = 0; i < classes.length; i++) {
+			Class<?> c = classes[i];
+			this.classes.put(c.getSimpleName(), c);
+		}
+	}
 
 	public T deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
 			throws JsonParseException {
@@ -37,7 +48,20 @@ public class InterfaceAdapter<T> implements JsonSerializer<T>, JsonDeserializer<
 		try {
 			return Class.forName(className);
 		} catch (ClassNotFoundException e) {
-			throw new JsonParseException(e.getMessage());
+			Class<?> result = classes.get(toSimpleName(className));
+			if (result == null) {
+				throw new JsonParseException("Class " + className + " not found");
+			}
+			return result;
 		}
 	}
+
+	private String toSimpleName(String className) {
+		int idx = className.lastIndexOf(".");
+		if (idx > -1) {
+			return className.substring(idx + 1);
+		}
+		return className;
+	}
+
 }

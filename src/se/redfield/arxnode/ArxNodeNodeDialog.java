@@ -32,6 +32,7 @@ import se.redfield.arxnode.ui.TransformationConfigPanel;
 public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 
 	private static final NodeLogger logger = NodeLogger.getLogger(ArxNodeNodeDialog.class);
+	private static final String PRIVACY_MODELS_TAB_TITLE = "Privacy Models";
 
 	private Config config;
 	private JPanel columnsPanel;
@@ -51,7 +52,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		columnsPanel = new JPanel();
 		privacyPanel = new PrivacyModelsPane(config);
 		addTab("Columns", columnsPanel);
-		addTab("Privacy Models", privacyPanel.getComponent());
+		addTab(PRIVACY_MODELS_TAB_TITLE, privacyPanel.getComponent());
 		addTab("Anonymization Config", new AnonymizationConfigPanel(config.getAnonymizationConfig()).getComponent());
 		selectTab("Columns");
 		removeTab("Options");
@@ -92,8 +93,8 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(c.getTransformationConfig());
 
 		attrTypeModel.addChangeListener(
-				e -> updateControlsVisibility(fileModel, attrTypeModel, fileChooser, transformationPanel));
-		updateControlsVisibility(fileModel, attrTypeModel, fileChooser, transformationPanel);
+				e -> onAttrTypeChanged(fileModel, attrTypeModel, fileChooser, transformationPanel, false));
+		onAttrTypeChanged(fileModel, attrTypeModel, fileChooser, transformationPanel, true);
 
 		JLabel columnLabel = new JLabel(c.getName());
 		Font font = UIManager.getFont("Label.font");
@@ -110,8 +111,8 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		return row;
 	}
 
-	private void updateControlsVisibility(SettingsModelString fileModel, SettingsModelString attrTypeModel,
-			DialogComponentFileChooser fileChooser, TransformationConfigPanel transformationConfig) {
+	private void onAttrTypeChanged(SettingsModelString fileModel, SettingsModelString attrTypeModel,
+			DialogComponentFileChooser fileChooser, TransformationConfigPanel transformationConfig, boolean init) {
 		AttributeTypeOptions opt = AttributeTypeOptions.fromName(attrTypeModel.getStringValue());
 		fileModel.setEnabled(opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE);
 		if (!fileModel.isEnabled()) {
@@ -119,6 +120,10 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		}
 		fileChooser.getComponentPanel().setVisible(fileModel.isEnabled());
 		transformationConfig.setVisible(fileModel.isEnabled());
+
+		if (!init && opt == AttributeTypeOptions.SENSITIVE_ATTRIBUTE) {
+			setSelected(PRIVACY_MODELS_TAB_TITLE);
+		}
 	}
 
 	@Override

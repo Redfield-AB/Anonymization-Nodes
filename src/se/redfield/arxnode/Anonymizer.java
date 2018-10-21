@@ -34,7 +34,7 @@ import se.redfield.arxnode.config.TransformationConfig.Mode;
 
 public class Anonymizer {
 
-	private static final NodeLogger logger = NodeLogger.getLogger(Config.class);
+	private static final NodeLogger logger = NodeLogger.getLogger(Anonymizer.class);
 
 	private Config config;
 	private Map<String, HierarchyBuilder<?>> hierarchies = new HashMap<>();
@@ -54,7 +54,11 @@ public class Anonymizer {
 			ARXAnonymizer anonymizer = new ARXAnonymizer();
 			ARXResult res = anonymizer.anonymize(arxData, arxConfig);
 			Utils.time("Anonymize");
-			return write(res, exec);
+			if (res.isResultAvailable()) {
+				return write(res, exec);
+			} else {
+				throw new RuntimeException("No solution found");
+			}
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 		}

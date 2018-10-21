@@ -19,10 +19,11 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.config.Config;
-import se.redfield.arxnode.config.DPresenceConfig;
-import se.redfield.arxnode.config.KAnonymityConfig;
-import se.redfield.arxnode.config.PrivacyModelConfig;
-import se.redfield.arxnode.config.PrivacyModelEditor;
+import se.redfield.arxnode.config.pmodels.DPresenceConfig;
+import se.redfield.arxnode.config.pmodels.KAnonymityConfig;
+import se.redfield.arxnode.config.pmodels.LDiversityConfig;
+import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
+import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 import se.redfield.arxnode.util.PopupMenuButton;
 
 public class PrivacyModelsPane {
@@ -103,9 +104,12 @@ public class PrivacyModelsPane {
 		kAnonymityItem.addActionListener(e -> edit(new KAnonymityConfig(), true));
 		JMenuItem dPresenceItem = new JMenuItem("DPresence");
 		dPresenceItem.addActionListener(e -> edit(new DPresenceConfig(), true));
+		JMenuItem lDiversityItem = new JMenuItem("LDiversity");
+		lDiversityItem.addActionListener(e -> edit(new LDiversityConfig(), true));
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(kAnonymityItem);
 		menu.add(dPresenceItem);
+		menu.add(lDiversityItem);
 		JButton bAdd = new PopupMenuButton("Add", menu);
 
 		JButton bEdit = new JButton("Edit");
@@ -160,7 +164,7 @@ public class PrivacyModelsPane {
 		currentConfig = config;
 		this.isNew = isNew;
 
-		currentEditor = config.createEditor();
+		currentEditor = config.createEditor(this.config.getColumns().values());
 
 		editComponentContainer.removeAll();
 		editComponentContainer.add(currentEditor.getComponent());
