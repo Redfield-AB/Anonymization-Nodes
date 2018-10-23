@@ -62,7 +62,7 @@ public class Config {
 		this.columns = new HashMap<>();
 		if (columns != null) {
 			columns.values().forEach(c -> {
-				this.columns.put(c.getName(), new ColumnConfig(c.getName(), c.getIndex()));
+				this.columns.put(c.getName(), new ColumnConfig(c.getName(), c.getIndex(), c.getDataType()));
 			});
 		}
 	}
@@ -131,7 +131,7 @@ public class Config {
 		columns.clear();
 		for (int j = 0; j < spec.getColumnNames().length; j++) {
 			String name = spec.getColumnNames()[j];
-			ColumnConfig c = new ColumnConfig(name, j);
+			ColumnConfig c = new ColumnConfig(name, j, spec.getColumnSpec(j).getType());
 			readColumnSettings(c);
 			columns.put(name, c);
 		}
@@ -143,13 +143,7 @@ public class Config {
 			c.setHierarchyFile(hierarchy.getStringValue());
 		}
 
-		try {
-			AttributeTypeOptions option = AttributeTypeOptions
-					.valueOf(attrTypeSettings.get(c.getName()).getStringValue());
-			c.setAttrType(option.getType());
-		} catch (Exception e) {
-			// ignore
-		}
+		readAttType(c);
 
 		SettingsModelDoubleBounded weight = weightSettings.get(c.getName());
 		if (weight != null) {
@@ -157,6 +151,16 @@ public class Config {
 		}
 
 		c.setTransformationConfig(getTransformationConfig(c.getName()));
+	}
+
+	private void readAttType(ColumnConfig c) {
+		try {
+			AttributeTypeOptions option = AttributeTypeOptions
+					.valueOf(attrTypeSettings.get(c.getName()).getStringValue());
+			c.setAttrType(option.getType());
+		} catch (Exception e) {
+			// ignore
+		}
 	}
 
 	public DataTableSpec createOutDataTableSpec() {
@@ -221,7 +225,14 @@ public class Config {
 
 	public SettingsModelString getAttrTypeSetting(String name) {
 		if (!attrTypeSettings.containsKey(name)) {
-			attrTypeSettings.put(name, new SettingsModelString(CONFIG_HIERARCHY_ATTR_TYPE_PREFIX + name, ""));
+			SettingsModelString s = new SettingsModelString(CONFIG_HIERARCHY_ATTR_TYPE_PREFIX + name, "");
+			s.addChangeListener(e -> {
+				ColumnConfig c = columns.get(name);
+				if (c != null) {
+					readAttType(c);
+				}
+			});
+			attrTypeSettings.put(name, s);
 		}
 		return attrTypeSettings.get(name);
 	}

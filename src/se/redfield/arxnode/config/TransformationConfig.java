@@ -1,6 +1,7 @@
 package se.redfield.arxnode.config;
 
 import org.deidentifier.arx.AttributeType.MicroAggregationFunction;
+import org.deidentifier.arx.DataType;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
@@ -127,6 +128,13 @@ public class TransformationConfig {
 				return MicroAggregationFunction.createMode(ignore);
 			}
 			return null;
+		}
+
+		public static MicroaggregationFunction[] values(DataType<?> type) {
+			if (type == DataType.STRING) {
+				return new MicroaggregationFunction[] { MODE };
+			}
+			return values();
 		}
 	}
 }

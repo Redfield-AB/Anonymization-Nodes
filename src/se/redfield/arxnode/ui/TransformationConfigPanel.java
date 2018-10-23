@@ -13,10 +13,13 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.TransformationConfig;
 import se.redfield.arxnode.config.TransformationConfig.MicroaggregationFunction;
 import se.redfield.arxnode.config.TransformationConfig.Mode;
@@ -26,11 +29,16 @@ public class TransformationConfigPanel extends JPanel {
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationConfigPanel.class);
 
 	private TransformationConfig config;
+	private MicroaggregationFunction[] microaggregationOptions;
+
+	private SettingsModelDoubleBounded weightSetting;
 	private JPanel generalizationPanel;
 	private JPanel microaggregationPanel;
 
-	public TransformationConfigPanel(TransformationConfig config) {
-		this.config = config;
+	public TransformationConfigPanel(ColumnConfig config, SettingsModelDoubleBounded weightSetting) {
+		this.config = config.getTransformationConfig();
+		this.microaggregationOptions = MicroaggregationFunction.values(config.getDataType());
+		this.weightSetting = weightSetting;
 		initUI();
 	}
 
@@ -43,12 +51,13 @@ public class TransformationConfigPanel extends JPanel {
 		});
 		cbMode.setSelectedItem(config.getMode());
 
-		setLayout(new FormLayout("p:n, 5:n, p:n, f:p:g", "p:n, 5:n, f:p:n, 5:n, f:p:n"));
+		setLayout(new FormLayout("p:n, 5:n, p:n, 5:n, p:n, f:p:g", "p:n, 5:n, f:p:n, 5:n, f:p:n"));
 		CellConstraints cc = new CellConstraints();
 		add(new JLabel("Mode"), cc.rc(1, 1));
 		add(cbMode, cc.rc(1, 3));
-		add(generalizationPanel, cc.rcw(3, 1, 4));
-		add(microaggregationPanel, cc.rcw(5, 1, 4));
+		add(new DialogComponentNumber(weightSetting, "Weight", 0.05).getComponentPanel(), cc.rc(1, 5));
+		add(generalizationPanel, cc.rcw(3, 1, 6));
+		add(microaggregationPanel, cc.rcw(5, 1, 6));
 		setBorder(BorderFactory.createTitledBorder("Transformation"));
 	}
 
@@ -95,7 +104,7 @@ public class TransformationConfigPanel extends JPanel {
 	}
 
 	private JPanel createMicroaggregationPanel() {
-		JComboBox<MicroaggregationFunction> cbFunc = new JComboBox<>(MicroaggregationFunction.values());
+		JComboBox<MicroaggregationFunction> cbFunc = new JComboBox<>(microaggregationOptions);
 		cbFunc.setSelectedItem(config.getMicroaggregationFunc());
 		cbFunc.addActionListener(
 				e -> config.setMicroaggregationFunc((MicroaggregationFunction) cbFunc.getSelectedItem()));

@@ -2,6 +2,8 @@ package se.redfield.arxnode.ui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +17,8 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.knime.core.node.NodeLogger;
+
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -27,8 +31,7 @@ import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 import se.redfield.arxnode.util.PopupMenuButton;
 
 public class PrivacyModelsPane {
-	// private static final NodeLogger logger =
-	// NodeLogger.getLogger(PrivacyModelsPane.class);
+	private static final NodeLogger logger = NodeLogger.getLogger(PrivacyModelsPane.class);
 
 	private Config config;
 
@@ -38,6 +41,9 @@ public class PrivacyModelsPane {
 
 	private JList<PrivacyModelConfig> list;
 	private PrivacyListModel model;
+
+	private JButton bEdit;
+	private JButton bRemove;
 
 	private PrivacyModelConfig currentConfig;
 	private PrivacyModelEditor currentEditor;
@@ -62,6 +68,12 @@ public class PrivacyModelsPane {
 		container.setLayout(new FormLayout("f:p:g", "p:n, 5:n, f:p:g"));
 		container.add(createEditPanel(), cc.rc(1, 1));
 		container.add(listPanel, cc.rc(3, 1));
+		container.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentHidden(ComponentEvent e) {
+				cancelEdit();
+			}
+		});
 	}
 
 	private JPanel createEditPanel() {
@@ -99,6 +111,7 @@ public class PrivacyModelsPane {
 		list = new JList<>();
 		model = new PrivacyListModel();
 		list.setModel(model);
+		list.addListSelectionListener(e -> onSelectionChanged());
 
 		JMenuItem kAnonymityItem = new JMenuItem("KAnonyminy");
 		kAnonymityItem.addActionListener(e -> edit(new KAnonymityConfig(), true));
@@ -112,10 +125,12 @@ public class PrivacyModelsPane {
 		menu.add(lDiversityItem);
 		JButton bAdd = new PopupMenuButton("Add", menu);
 
-		JButton bEdit = new JButton("Edit");
+		bEdit = new JButton("Edit");
 		bEdit.addActionListener(e -> onEdit());
-		JButton bRemove = new JButton("Remove");
+		bEdit.setEnabled(false);
+		bRemove = new JButton("Remove");
 		bRemove.addActionListener(e -> onRemove());
+		bRemove.setEnabled(false);
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints gc = new GridBagConstraints();
@@ -145,6 +160,12 @@ public class PrivacyModelsPane {
 		return panel;
 	}
 
+	private void onSelectionChanged() {
+		boolean enabled = !list.isSelectionEmpty();
+		bEdit.setEnabled(enabled);
+		bRemove.setEnabled(enabled);
+	}
+
 	private void onEdit() {
 		PrivacyModelConfig selected = list.getSelectedValue();
 		if (selected != null) {
@@ -155,14 +176,20 @@ public class PrivacyModelsPane {
 	private void onRemove() {
 		PrivacyModelConfig selected = list.getSelectedValue();
 		if (selected != null) {
+			cancelEdit();
 			config.getPrivacyModels().remove(selected);
 			model.fireUpdate();
+			list.clearSelection();
 		}
 	}
 
 	private void edit(PrivacyModelConfig config, boolean isNew) {
 		currentConfig = config;
 		this.isNew = isNew;
+
+		if (isNew) {
+			list.clearSelection();
+		}
 
 		currentEditor = config.createEditor(this.config.getColumns().values());
 

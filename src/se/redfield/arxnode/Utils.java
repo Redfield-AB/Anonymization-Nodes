@@ -32,7 +32,12 @@ public class Utils {
 		case "String":
 			return DataType.STRING;
 		case "Number (integer)":
+		case "Number (long)":
 			return DataType.INTEGER;
+		case "Date and Time":
+			return DataType.DATE;
+		case "Number (double)":
+			return DataType.DECIMAL;
 		}
 		logger.warn("Unknown DataType: " + type.getName());
 		return DataType.STRING;

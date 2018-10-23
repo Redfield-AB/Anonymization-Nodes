@@ -14,7 +14,6 @@ import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
-import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
@@ -52,7 +51,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		columnsPanel = new JPanel();
 		privacyPanel = new PrivacyModelsPane(config);
 		addTab("Columns", columnsPanel);
-		addTab(PRIVACY_MODELS_TAB_TITLE, privacyPanel.getComponent());
+		addTab(PRIVACY_MODELS_TAB_TITLE, privacyPanel.getComponent(), false);
 		addTab("Anonymization Config", new AnonymizationConfigPanel(config.getAnonymizationConfig()).getComponent());
 		selectTab("Columns");
 		removeTab("Options");
@@ -90,7 +89,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		SettingsModelString attrTypeModel = config.getAttrTypeSetting(c.getName());
 		SettingsModelDoubleBounded weightModel = config.getWeightSetting(c.getName());
 		DialogComponentFileChooser fileChooser = new DialogComponentFileChooser(fileModel, "ArxNode", "ahs");
-		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(c.getTransformationConfig());
+		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(c, weightModel);
 
 		attrTypeModel.addChangeListener(
 				e -> onAttrTypeChanged(fileModel, attrTypeModel, fileChooser, transformationPanel, false));
@@ -101,13 +100,12 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		columnLabel.setFont(new Font(font.getName(), Font.BOLD, font.getSize() + 2));
 
 		CellConstraints cc = new CellConstraints();
-		JPanel row = new JPanel(new FormLayout("l:p:n, 5:n, r:p:g, 5:n, r:p:n", "p:n, 5:n, p:n, 5:n, p:n"));
+		JPanel row = new JPanel(new FormLayout("l:p:n, 5:n, r:p:g", "p:n, 5:n, p:n, 5:n, p:n"));
 		row.add(columnLabel, cc.rc(1, 1));
 		row.add(new DialogComponentStringSelection(attrTypeModel, "", AttributeTypeOptions.stringValues())
 				.getComponentPanel(), cc.rc(1, 3));
-		row.add(new DialogComponentNumber(weightModel, "Weight", 0.05).getComponentPanel(), cc.rc(1, 5));
-		row.add(fileChooser.getComponentPanel(), cc.rcw(3, 1, 5));
-		row.add(transformationPanel, cc.rcw(5, 1, 5));
+		row.add(fileChooser.getComponentPanel(), cc.rcw(3, 1, 3));
+		row.add(transformationPanel, cc.rcw(5, 1, 3));
 		return row;
 	}
 
