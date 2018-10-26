@@ -1,6 +1,7 @@
 package se.redfield.arxnode;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -17,10 +18,14 @@ import org.deidentifier.arx.Data.DefaultData;
 import org.deidentifier.arx.DataDefinition;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataColumnSpec;
+import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
@@ -43,7 +48,7 @@ public class Anonymizer {
 		this.config = config;
 	}
 
-	public BufferedDataTable process(BufferedDataTable inTable, ExecutionContext exec) {
+	public BufferedDataTable[] process(BufferedDataTable inTable, ExecutionContext exec) {
 		Utils.time();
 		Data arxData = read(inTable);
 		Utils.time("Read table");
@@ -54,34 +59,57 @@ public class Anonymizer {
 			ARXAnonymizer anonymizer = new ARXAnonymizer();
 			ARXResult res = anonymizer.anonymize(arxData, arxConfig);
 			Utils.time("Anonymize");
-			if (res.isResultAvailable()) {
-				return write(res, exec);
-			} else {
-				throw new RuntimeException("No solution found");
-			}
+			return new BufferedDataTable[] { createDataTable(res, exec), createStatsTable(res, exec) };
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 		}
 		return null;
 	}
 
-	private BufferedDataTable write(ARXResult res, ExecutionContext exec) {
+	private BufferedDataTable createStatsTable(ARXResult res, ExecutionContext exec) {
+		BufferedDataContainer container = exec.createDataContainer(createStatsTableSpec());
+		DataCell[] cells = new DataCell[4];
+
+		cells[0] = new DoubleCell(Double.valueOf(res.getGlobalOptimum().getHighestScore().toString()));
+		cells[1] = new StringCell(Arrays.toString(res.getGlobalOptimum().getQuasiIdentifyingAttributes()));
+		cells[2] = new StringCell(Arrays.toString(res.getGlobalOptimum().getTransformation()));
+		cells[3] = new StringCell(res.getGlobalOptimum().getAnonymity().toString());
+
+		RowKey key = new RowKey("Row0");
+		DataRow datarow = new DefaultRow(key, cells);
+		container.addRowToTable(datarow);
+		container.close();
+		return container.getTable();
+	}
+
+	public DataTableSpec createStatsTableSpec() {
+		DataColumnSpec[] outColSpecs = new DataColumnSpec[4];
+		outColSpecs[0] = new DataColumnSpecCreator("Information Loss", DoubleCell.TYPE).createSpec();
+		outColSpecs[1] = new DataColumnSpecCreator("Headers", StringCell.TYPE).createSpec();
+		outColSpecs[2] = new DataColumnSpecCreator("Transformation", StringCell.TYPE).createSpec();
+		outColSpecs[3] = new DataColumnSpecCreator("Anonymity", StringCell.TYPE).createSpec();
+		return new DataTableSpec(outColSpecs);
+	}
+
+	private BufferedDataTable createDataTable(ARXResult res, ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(this.config.createOutDataTableSpec());
-		int rowIdx = 0;
-		Iterator<String[]> iter = res.getOutput().iterator();
-		iter.next();
-		while (iter.hasNext()) {
-			String[] row = iter.next();
-			// logger.warn("row" + Arrays.toString(row));
+		if (res.isResultAvailable()) {
+			int rowIdx = 0;
+			Iterator<String[]> iter = res.getOutput().iterator();
+			iter.next();
+			while (iter.hasNext()) {
+				String[] row = iter.next();
+				// logger.warn("row" + Arrays.toString(row));
 
-			DataCell[] cells = new DataCell[row.length];
-			for (int i = 0; i < cells.length; i++) {
-				cells[i] = new StringCell(row[i]);
+				DataCell[] cells = new DataCell[row.length];
+				for (int i = 0; i < cells.length; i++) {
+					cells[i] = new StringCell(row[i]);
+				}
+
+				RowKey key = new RowKey("Row " + rowIdx++);
+				DataRow datarow = new DefaultRow(key, cells);
+				container.addRowToTable(datarow);
 			}
-
-			RowKey key = new RowKey("Row " + rowIdx++);
-			DataRow datarow = new DefaultRow(key, cells);
-			container.addRowToTable(datarow);
 		}
 		container.close();
 		return container.getTable();

@@ -55,6 +55,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		addTab("Anonymization Config", new AnonymizationConfigPanel(config.getAnonymizationConfig()).getComponent());
 		selectTab("Columns");
 		removeTab("Options");
+
 	}
 
 	@Override

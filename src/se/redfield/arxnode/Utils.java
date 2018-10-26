@@ -42,4 +42,5 @@ public class Utils {
 		logger.warn("Unknown DataType: " + type.getName());
 		return DataType.STRING;
 	}
+
 }

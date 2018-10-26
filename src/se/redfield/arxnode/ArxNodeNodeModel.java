@@ -24,7 +24,7 @@ public class ArxNodeNodeModel extends NodeModel {
 	private Anonymizer anonymizer;
 
 	protected ArxNodeNodeModel() {
-		super(1, 1);
+		super(1, 2);
 		config = new Config();
 	}
 
@@ -32,7 +32,7 @@ public class ArxNodeNodeModel extends NodeModel {
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
 			throws Exception {
 		try {
-			return new BufferedDataTable[] { anonymizer.process(inData[0], exec) };
+			return anonymizer.process(inData[0], exec);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 			throw e;
@@ -91,7 +91,7 @@ public class ArxNodeNodeModel extends NodeModel {
 		config.initColumns(inSpecs[0]);
 		anonymizer = new Anonymizer(config);
 
-		return new DataTableSpec[] { config.createOutDataTableSpec() };
+		return new DataTableSpec[] { config.createOutDataTableSpec(), anonymizer.createStatsTableSpec() };
 	}
 
 	@Override

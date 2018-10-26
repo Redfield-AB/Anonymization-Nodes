@@ -27,7 +27,8 @@
     <ports>
         <inPort index="0" name="In-Port name">Description of first input port...</inPort>
         <!-- possibly more input ports here-->
-        <outPort index="0" name="Out-Port name">Description of first output port...</outPort>
+        <outPort index="0" name="Anonymized Data">Result table with anonymized data</outPort>
+        <outPort index="1" name="Stats">Anonymization stats</outPort>
         <!-- possibly more output ports here-->
     </ports>    
     <views>
