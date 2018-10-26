@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ArxNode-Node extension for KNIME Workbench
 Bundle-SymbolicName: se.redfield.arxnode.ArxNode;singleton:=true
-Bundle-Version: 0.1.9
+Bundle-Version: 0.1.10
 Bundle-ClassPath: arxnode.jar,
  lib/libarx-3.7.1.jar,
  lib/gson-2.8.5.jar,

@@ -1,15 +1,21 @@
 package se.redfield.arxnode;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.ARXAnonymizer;
 import org.deidentifier.arx.ARXConfiguration;
+import org.deidentifier.arx.ARXLattice.ARXNode;
 import org.deidentifier.arx.ARXResult;
 import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.AttributeType.MicroAggregationFunction;
@@ -42,42 +48,59 @@ public class Anonymizer {
 	private static final NodeLogger logger = NodeLogger.getLogger(Anonymizer.class);
 
 	private Config config;
-	private Map<String, HierarchyBuilder<?>> hierarchies = new HashMap<>();
+	private ARXNode optimum;
 
 	public Anonymizer(Config config) {
 		this.config = config;
 	}
 
-	public BufferedDataTable[] process(BufferedDataTable inTable, ExecutionContext exec) {
-		Utils.time();
-		Data arxData = read(inTable);
-		Utils.time("Read table");
-		ARXConfiguration arxConfig = configure(arxData);
-		Utils.time("Anon config");
+	public BufferedDataTable[] process(BufferedDataTable inTable, ExecutionContext exec, int threadsNum)
+			throws Exception {
+		List<Data> arxData = read(inTable, threadsNum);
 
-		try {
-			ARXAnonymizer anonymizer = new ARXAnonymizer();
-			ARXResult res = anonymizer.anonymize(arxData, arxConfig);
-			Utils.time("Anonymize");
-			return new BufferedDataTable[] { createDataTable(res, exec), createStatsTable(res, exec) };
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
+		ExecutorService executor = Executors.newFixedThreadPool(arxData.size());
+		CompletionService<ARXResult> service = new ExecutorCompletionService<>(executor);
+		for (Data data : arxData) {
+			service.submit(() -> {
+				ARXAnonymizer anonymizer = new ARXAnonymizer();
+				logger.info("data:" + data.getHandle().getNumRows());
+				return anonymizer.anonymize(data, configure(data));
+			});
 		}
-		return null;
+		int received = 0;
+		List<ARXResult> results = new ArrayList<>();
+		while (received++ < arxData.size()) {
+			try {
+				logger.info("take");
+				results.add(service.take().get());
+			} catch (InterruptedException | ExecutionException e) {
+				executor.shutdownNow();
+				throw e;
+			}
+		}
+
+		optimum = results.stream().filter(ARXResult::isResultAvailable).map(ARXResult::getGlobalOptimum).findFirst()
+				.get();
+		return new BufferedDataTable[] { createDataTable(results, exec), createStatsTable(results, exec) };
 	}
 
-	private BufferedDataTable createStatsTable(ARXResult res, ExecutionContext exec) {
+	private BufferedDataTable createStatsTable(List<ARXResult> results, ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(createStatsTableSpec());
-		DataCell[] cells = new DataCell[4];
+		int row = 0;
+		for (ARXResult res : results) {
+			ARXNode opt = findOptimumNode(res);
+			DataCell[] cells = new DataCell[4];
 
-		cells[0] = new DoubleCell(Double.valueOf(res.getGlobalOptimum().getHighestScore().toString()));
-		cells[1] = new StringCell(Arrays.toString(res.getGlobalOptimum().getQuasiIdentifyingAttributes()));
-		cells[2] = new StringCell(Arrays.toString(res.getGlobalOptimum().getTransformation()));
-		cells[3] = new StringCell(res.getGlobalOptimum().getAnonymity().toString());
+			cells[0] = new DoubleCell(Double.valueOf(opt.getHighestScore().toString()));
+			cells[1] = new StringCell(Arrays.toString(opt.getQuasiIdentifyingAttributes()));
+			cells[2] = new StringCell(Arrays.toString(opt.getTransformation()));
+			cells[3] = new StringCell(opt.getAnonymity().toString());
 
-		RowKey key = new RowKey("Row0");
-		DataRow datarow = new DefaultRow(key, cells);
-		container.addRowToTable(datarow);
+			RowKey key = new RowKey("Row" + row++);
+			DataRow datarow = new DefaultRow(key, cells);
+			container.addRowToTable(datarow);
+		}
+
 		container.close();
 		return container.getTable();
 	}
@@ -91,31 +114,64 @@ public class Anonymizer {
 		return new DataTableSpec(outColSpecs);
 	}
 
-	private BufferedDataTable createDataTable(ARXResult res, ExecutionContext exec) {
+	private BufferedDataTable createDataTable(List<ARXResult> results, ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(this.config.createOutDataTableSpec());
-		if (res.isResultAvailable()) {
-			int rowIdx = 0;
-			Iterator<String[]> iter = res.getOutput().iterator();
-			iter.next();
-			while (iter.hasNext()) {
-				String[] row = iter.next();
-				// logger.warn("row" + Arrays.toString(row));
+		int rowIdx = 0;
+		for (ARXResult res : results) {
+			if (res.isResultAvailable()) {
+				Iterator<String[]> iter = res.getOutput(findOptimumNode(res)).iterator();
+				iter.next();
+				while (iter.hasNext()) {
+					String[] row = iter.next();
+					// logger.warn("row" + Arrays.toString(row));
 
-				DataCell[] cells = new DataCell[row.length];
-				for (int i = 0; i < cells.length; i++) {
-					cells[i] = new StringCell(row[i]);
+					DataCell[] cells = new DataCell[row.length];
+					for (int i = 0; i < cells.length; i++) {
+						cells[i] = new StringCell(row[i]);
+					}
+
+					RowKey key = new RowKey("Row " + rowIdx++);
+					DataRow datarow = new DefaultRow(key, cells);
+					container.addRowToTable(datarow);
 				}
-
-				RowKey key = new RowKey("Row " + rowIdx++);
-				DataRow datarow = new DefaultRow(key, cells);
-				container.addRowToTable(datarow);
 			}
 		}
 		container.close();
 		return container.getTable();
 	}
 
-	private Data read(BufferedDataTable inTable) {
+	private ARXNode findOptimumNode(ARXResult res) {
+		int[] levels = optimum.getTransformation();
+		ARXNode opt = res.getGlobalOptimum();
+		for (ARXNode[] nodes : res.getLattice().getLevels()) {
+			for (ARXNode n : nodes) {
+				if (Arrays.equals(levels, n.getTransformation())) {
+					return n;
+				}
+			}
+		}
+		return opt;
+	}
+
+	private List<Data> read(BufferedDataTable inTable, int parts) {
+		List<Data> result = new ArrayList<>();
+		long partitionSize = inTable.size() / parts;
+		long index = 0;
+		DefaultData current = createData(inTable);
+		result.add(current);
+		for (DataRow row : inTable) {
+			current.add(
+					row.stream().map(cell -> cell.toString()).collect(Collectors.toList()).toArray(new String[] {}));
+			if (++index >= partitionSize && result.size() < parts) {
+				current = createData(inTable);
+				result.add(current);
+				index = 0;
+			}
+		}
+		return result;
+	}
+
+	private DefaultData createData(BufferedDataTable inTable) {
 		DefaultData defData = Data.create();
 		String[] columnNames = inTable.getDataTableSpec().getColumnNames();
 		defData.add(columnNames);
@@ -124,10 +180,6 @@ public class Anonymizer {
 			defData.getDefinition().setDataType(columnNames[i], Utils.knimeToArxType(type));
 		}
 
-		inTable.forEach(row -> {
-			defData.add(
-					row.stream().map(cell -> cell.toString()).collect(Collectors.toList()).toArray(new String[] {}));
-		});
 		return defData;
 	}
 
@@ -183,8 +235,9 @@ public class Anonymizer {
 			arxConfig.getQualityModel().getConfiguration()
 					.setPrecomputationThreshold(aConfig.getPrecomputationThreshold().getDoubleValue());
 		}
-		logger.debug("ArxConfiguraton: \n" + Utils.toPrettyJson(arxConfig));
-		logger.debug("DataDefinition: \n" + Utils.toPrettyJson(defData.getDefinition()));
+		// logger.debug("ArxConfiguraton: \n" + Utils.toPrettyJson(arxConfig));
+		// logger.debug("DataDefinition: \n" +
+		// Utils.toPrettyJson(defData.getDefinition()));
 		return arxConfig;
 	}
 
@@ -192,20 +245,16 @@ public class Anonymizer {
 		if (StringUtils.isEmpty(path)) {
 			return null;
 		}
-		HierarchyBuilder<?> hierarchy = hierarchies.get(path);
-		if (hierarchy == null) {
-			try {
-				hierarchy = HierarchyBuilder.create(path);
-				hierarchies.put(path, hierarchy);
-			} catch (IOException e) {
-				logger.error(e.getMessage(), e);
-			}
-
+		try {
+			return HierarchyBuilder.create(path);
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
 		}
-		return hierarchy;
+
+		return null;
 	}
 
 	public void clear() {
-		hierarchies.clear();
+
 	}
 }

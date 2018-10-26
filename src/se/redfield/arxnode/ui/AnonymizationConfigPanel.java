@@ -30,15 +30,17 @@ public class AnonymizationConfigPanel {
 
 	private JPanel createGeneralPanel() {
 		CellConstraints cc = new CellConstraints();
-		JPanel panel = new JPanel(new FormLayout("l:p:n, p:g", "p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n"));
-		panel.add(new DialogComponentNumber(config.getSuppresionLimit(), "Suppression limit", 0.01).getComponentPanel(),
+		JPanel panel = new JPanel(new FormLayout("l:p:n, p:g", "p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n"));
+		panel.add(new DialogComponentNumber(config.getNumOfThreads(), "# of threads", 1).getComponentPanel(),
 				cc.rc(1, 1));
+		panel.add(new DialogComponentNumber(config.getSuppresionLimit(), "Suppression limit", 0.01).getComponentPanel(),
+				cc.rc(3, 1));
 		panel.add(new DialogComponentBoolean(config.getPractivalMonotonicity(),
-				"Approximate: assume practical monotonicity").getComponentPanel(), cc.rc(3, 1));
+				"Approximate: assume practical monotonicity").getComponentPanel(), cc.rc(5, 1));
 		panel.add(new DialogComponentBoolean(config.getPrecomputationEnabled(), "Enable precomputation")
-				.getComponentPanel(), cc.rc(5, 1));
-		panel.add(new DialogComponentNumber(config.getPrecomputationThreshold(), "Precomputation threshold", 0.01)
 				.getComponentPanel(), cc.rc(7, 1));
+		panel.add(new DialogComponentNumber(config.getPrecomputationThreshold(), "Precomputation threshold", 0.01)
+				.getComponentPanel(), cc.rc(9, 1));
 		panel.setBorder(BorderFactory.createTitledBorder("General"));
 		return panel;
 	}

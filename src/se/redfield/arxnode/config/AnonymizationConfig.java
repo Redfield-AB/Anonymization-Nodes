@@ -25,6 +25,7 @@ public class AnonymizationConfig {
 	private static String CONFIG_PRACTIVAL_MONOTONICITY = "CONFIG_PRACTIVAL_MONOTONICITY";
 	private static String CONFIG_PRECOMPUTATION_ENABLED = "CONFIG_PRECOMPUTATION_ENABLED";
 	private static String CONFIG_PRECOMPUTATION_THRESHOLD = "CONFIG_PRECOMPUTATION_THRESHOLD";
+	private static String CONFIG_NUM_OF_THREADS = "CONFIG_NUM_OF_THREADS";
 
 	private SettingsModelBoolean heuristicSearchEnabled;
 	private SettingsModelBoolean limitSearchSteps;
@@ -38,6 +39,8 @@ public class AnonymizationConfig {
 
 	private SettingsModelBoolean precomputationEnabled;
 	private SettingsModelDoubleBounded precomputationThreshold;
+
+	private SettingsModelIntegerBounded numOfThreads;
 
 	private List<SettingsModel> settingsModels;
 
@@ -56,8 +59,11 @@ public class AnonymizationConfig {
 		precomputationEnabled = new SettingsModelBoolean(CONFIG_PRECOMPUTATION_ENABLED, false);
 		precomputationThreshold = new SettingsModelDoubleBounded(CONFIG_PRECOMPUTATION_THRESHOLD, 0, 0, 1);
 
+		numOfThreads = new SettingsModelIntegerBounded(CONFIG_NUM_OF_THREADS, 1, 1, 20);
+
 		settingsModels = new ArrayList<>(Arrays.asList(heuristicSearchEnabled, limitSearchSteps, limitSearchTime,
-				searchStepsLimit, searchTimeLimit, suppresionLimit, practivalMonotonicity));
+				searchStepsLimit, searchTimeLimit, suppresionLimit, practivalMonotonicity, precomputationEnabled,
+				precomputationThreshold, numOfThreads));
 
 		limitSearchSteps.setEnabled(false);
 		limitSearchTime.setEnabled(false);
@@ -135,5 +141,9 @@ public class AnonymizationConfig {
 
 	public SettingsModelDoubleBounded getPrecomputationThreshold() {
 		return precomputationThreshold;
+	}
+
+	public SettingsModelIntegerBounded getNumOfThreads() {
+		return numOfThreads;
 	}
 }
