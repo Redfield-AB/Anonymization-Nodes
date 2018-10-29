@@ -26,6 +26,7 @@ public class AnonymizationConfig {
 	private static String CONFIG_PRECOMPUTATION_ENABLED = "CONFIG_PRECOMPUTATION_ENABLED";
 	private static String CONFIG_PRECOMPUTATION_THRESHOLD = "CONFIG_PRECOMPUTATION_THRESHOLD";
 	private static String CONFIG_NUM_OF_THREADS = "CONFIG_NUM_OF_THREADS";
+	private static String CONFIG_PARTITIONS_SINGLE_OPTIMUM = "CONFIG_PARTITIONS_SINGLE_OPTIMUM";
 
 	private SettingsModelBoolean heuristicSearchEnabled;
 	private SettingsModelBoolean limitSearchSteps;
@@ -41,6 +42,7 @@ public class AnonymizationConfig {
 	private SettingsModelDoubleBounded precomputationThreshold;
 
 	private SettingsModelIntegerBounded numOfThreads;
+	private SettingsModelBoolean partitionsSingleOptimum;
 
 	private List<SettingsModel> settingsModels;
 
@@ -60,10 +62,11 @@ public class AnonymizationConfig {
 		precomputationThreshold = new SettingsModelDoubleBounded(CONFIG_PRECOMPUTATION_THRESHOLD, 0, 0, 1);
 
 		numOfThreads = new SettingsModelIntegerBounded(CONFIG_NUM_OF_THREADS, 1, 1, 20);
+		partitionsSingleOptimum = new SettingsModelBoolean(CONFIG_PARTITIONS_SINGLE_OPTIMUM, true);
 
 		settingsModels = new ArrayList<>(Arrays.asList(heuristicSearchEnabled, limitSearchSteps, limitSearchTime,
 				searchStepsLimit, searchTimeLimit, suppresionLimit, practivalMonotonicity, precomputationEnabled,
-				precomputationThreshold, numOfThreads));
+				precomputationThreshold, numOfThreads, partitionsSingleOptimum));
 
 		limitSearchSteps.setEnabled(false);
 		limitSearchTime.setEnabled(false);
@@ -71,6 +74,7 @@ public class AnonymizationConfig {
 		searchTimeLimit.setEnabled(false);
 		practivalMonotonicity.setEnabled(false);
 		precomputationThreshold.setEnabled(false);
+		partitionsSingleOptimum.setEnabled(false);
 
 		addEnabledListener(heuristicSearchEnabled, limitSearchSteps, limitSearchTime);
 		addEnabledListener(limitSearchSteps, searchStepsLimit);
@@ -81,6 +85,9 @@ public class AnonymizationConfig {
 			if (!practivalMonotonicity.isEnabled()) {
 				practivalMonotonicity.setBooleanValue(false);
 			}
+		});
+		numOfThreads.addChangeListener(e -> {
+			partitionsSingleOptimum.setEnabled(numOfThreads.getIntValue() > 1);
 		});
 	}
 
@@ -145,5 +152,9 @@ public class AnonymizationConfig {
 
 	public SettingsModelIntegerBounded getNumOfThreads() {
 		return numOfThreads;
+	}
+
+	public SettingsModelBoolean getPartitionsSingleOptimum() {
+		return partitionsSingleOptimum;
 	}
 }

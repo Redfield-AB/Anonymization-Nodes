@@ -2,6 +2,7 @@ package se.redfield.arxnode.config.pmodels;
 
 import java.util.Collection;
 
+import org.deidentifier.arx.Data;
 import org.deidentifier.arx.criteria.DPresence;
 import org.deidentifier.arx.criteria.PrivacyCriterion;
 
@@ -41,7 +42,7 @@ public class DPresenceConfig implements PrivacyModelConfig {
 	}
 
 	@Override
-	public PrivacyCriterion createCriterion() {
+	public PrivacyCriterion createCriterion(Data data) {
 		return new DPresence(dMin, dMax, null);
 	}
 

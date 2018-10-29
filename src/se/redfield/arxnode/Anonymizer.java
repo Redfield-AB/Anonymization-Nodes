@@ -79,9 +79,16 @@ public class Anonymizer {
 			}
 		}
 
-		optimum = results.stream().filter(ARXResult::isResultAvailable).map(ARXResult::getGlobalOptimum).findFirst()
-				.get();
+		optimum = findSingleOptimum(results);
 		return new BufferedDataTable[] { createDataTable(results, exec), createStatsTable(results, exec) };
+	}
+
+	private ARXNode findSingleOptimum(List<ARXResult> results) {
+		if (config.getAnonymizationConfig().getPartitionsSingleOptimum().getBooleanValue()) {
+			return results.stream().filter(ARXResult::isResultAvailable).map(ARXResult::getGlobalOptimum).findFirst()
+					.get();
+		}
+		return null;
 	}
 
 	private BufferedDataTable createStatsTable(List<ARXResult> results, ExecutionContext exec) {
@@ -141,6 +148,9 @@ public class Anonymizer {
 	}
 
 	private ARXNode findOptimumNode(ARXResult res) {
+		if (optimum == null) {
+			return res.getGlobalOptimum();
+		}
 		int[] levels = optimum.getTransformation();
 		ARXNode opt = res.getGlobalOptimum();
 		for (ARXNode[] nodes : res.getLattice().getLevels()) {
@@ -210,9 +220,8 @@ public class Anonymizer {
 				}
 			}
 		});
-
 		ARXConfiguration arxConfig = ARXConfiguration.create();
-		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion()));
+		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion(defData)));
 		config.getColumns().values().forEach(c -> arxConfig.setAttributeWeight(c.getName(), c.getWeight()));
 
 		AnonymizationConfig aConfig = config.getAnonymizationConfig();

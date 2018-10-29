@@ -2,6 +2,7 @@ package se.redfield.arxnode.config.pmodels;
 
 import java.util.Collection;
 
+import org.deidentifier.arx.Data;
 import org.deidentifier.arx.criteria.DistinctLDiversity;
 import org.deidentifier.arx.criteria.EntropyLDiversity;
 import org.deidentifier.arx.criteria.EntropyLDiversity.EntropyEstimator;
@@ -64,7 +65,7 @@ public class LDiversityConfig extends ColumnPrivacyModelConfig {
 	}
 
 	@Override
-	public PrivacyCriterion createCriterion() {
+	public PrivacyCriterion createCriterion(Data data) {
 		switch (variant) {
 		case DISTINCT:
 			return new DistinctLDiversity(getColumn(), intL);

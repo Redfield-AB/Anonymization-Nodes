@@ -2,6 +2,7 @@ package se.redfield.arxnode.config.pmodels;
 
 import java.util.Collection;
 
+import org.deidentifier.arx.Data;
 import org.deidentifier.arx.criteria.KAnonymity;
 import org.deidentifier.arx.criteria.PrivacyCriterion;
 
@@ -31,7 +32,7 @@ public class KAnonymityConfig implements PrivacyModelConfig {
 	}
 
 	@Override
-	public PrivacyCriterion createCriterion() {
+	public PrivacyCriterion createCriterion(Data data) {
 		return new KAnonymity(factor);
 	}
 

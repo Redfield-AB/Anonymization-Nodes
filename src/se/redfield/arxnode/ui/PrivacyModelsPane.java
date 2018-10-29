@@ -27,6 +27,7 @@ import se.redfield.arxnode.config.pmodels.DPresenceConfig;
 import se.redfield.arxnode.config.pmodels.KAnonymityConfig;
 import se.redfield.arxnode.config.pmodels.LDiversityConfig;
 import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
+import se.redfield.arxnode.config.pmodels.TClosenessConfig;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 import se.redfield.arxnode.util.PopupMenuButton;
 
@@ -113,17 +114,7 @@ public class PrivacyModelsPane {
 		list.setModel(model);
 		list.addListSelectionListener(e -> onSelectionChanged());
 
-		JMenuItem kAnonymityItem = new JMenuItem("KAnonyminy");
-		kAnonymityItem.addActionListener(e -> edit(new KAnonymityConfig(), true));
-		JMenuItem dPresenceItem = new JMenuItem("DPresence");
-		dPresenceItem.addActionListener(e -> edit(new DPresenceConfig(), true));
-		JMenuItem lDiversityItem = new JMenuItem("LDiversity");
-		lDiversityItem.addActionListener(e -> edit(new LDiversityConfig(), true));
-		JPopupMenu menu = new JPopupMenu();
-		menu.add(kAnonymityItem);
-		menu.add(dPresenceItem);
-		menu.add(lDiversityItem);
-		JButton bAdd = new PopupMenuButton("Add", menu);
+		JButton bAdd = new PopupMenuButton("Add", createDropdownMenu());
 
 		bEdit = new JButton("Edit");
 		bEdit.addActionListener(e -> onEdit());
@@ -158,6 +149,22 @@ public class PrivacyModelsPane {
 		panel.setBorder(BorderFactory.createTitledBorder("Privacy Models"));
 
 		return panel;
+	}
+
+	private JPopupMenu createDropdownMenu() {
+		JPopupMenu menu = new JPopupMenu();
+		menu.add(createMenuItem("KAnonymity", new KAnonymityConfig()));
+		menu.add(createMenuItem("DPresence", new DPresenceConfig()));
+		menu.addSeparator();
+		menu.add(createMenuItem("LDiversity", new LDiversityConfig()));
+		menu.add(createMenuItem("TCloseness", new TClosenessConfig()));
+		return menu;
+	}
+
+	private JMenuItem createMenuItem(String title, PrivacyModelConfig instance) {
+		JMenuItem item = new JMenuItem(title);
+		item.addActionListener(e -> edit(instance, true));
+		return item;
 	}
 
 	private void onSelectionChanged() {
