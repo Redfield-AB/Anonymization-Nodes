@@ -36,6 +36,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	private Config config;
 	private JPanel columnsPanel;
 	private PrivacyModelsPane privacyPanel;
+	private AnonymizationConfigPanel anonConfigPanel;
 
 	protected ArxNodeNodeDialog() {
 		super();
@@ -50,9 +51,10 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 
 		columnsPanel = new JPanel();
 		privacyPanel = new PrivacyModelsPane(config);
+		anonConfigPanel = new AnonymizationConfigPanel(config.getAnonymizationConfig());
 		addTab("Columns", columnsPanel);
 		addTab(PRIVACY_MODELS_TAB_TITLE, privacyPanel.getComponent(), false);
-		addTab("Anonymization Config", new AnonymizationConfigPanel(config.getAnonymizationConfig()).getComponent());
+		addTab("Anonymization Config", anonConfigPanel.getComponent());
 		selectTab("Columns");
 		removeTab("Options");
 
@@ -65,6 +67,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		config.load(settings);
 		config.initColumns(specs[0]);
 		initColumnsPanel(settings, specs[0]);
+		anonConfigPanel.load(settings, specs);
 	}
 
 	private void initColumnsPanel(NodeSettingsRO settings, DataTableSpec spec) {

@@ -3,7 +3,13 @@ package se.redfield.arxnode.ui;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
+import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.StringValue;
+import org.knime.core.node.NodeLogger;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
+import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 
 import com.jgoodies.forms.layout.CellConstraints;
@@ -12,10 +18,13 @@ import com.jgoodies.forms.layout.FormLayout;
 import se.redfield.arxnode.config.AnonymizationConfig;
 
 public class AnonymizationConfigPanel {
+	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfigPanel.class);
 
 	private AnonymizationConfig config;
 	private JPanel component;
 	private CellConstraints cc;
+
+	private DialogComponentColumnNameSelection columnSelection;
 
 	public AnonymizationConfigPanel(AnonymizationConfig config) {
 		this.config = config;
@@ -30,12 +39,21 @@ public class AnonymizationConfigPanel {
 		component.add(createSearchStrategyPanel(), cc.rc(5, 1));
 	}
 
+	@SuppressWarnings("unchecked")
 	private JPanel createPartitioningPanel() {
-		JPanel panel = new JPanel(new FormLayout("l:p:n, p:g", "p:n, 5:n, p:n"));
+		columnSelection = new DialogComponentColumnNameSelection(config.getPartitionsGroupByColumn(), "Group by column",
+				0, StringValue.class);
+
+		JPanel panel = new JPanel(new FormLayout("l:p:n, 5:n, l:p:g, p:g", "p:n, 5:n, p:n, 5:n, p:n"));
 		panel.add(new DialogComponentNumber(config.getNumOfThreads(), "# of threads", 1).getComponentPanel(),
-				cc.rc(1, 1));
-		panel.add(new DialogComponentBoolean(config.getPartitionsSingleOptimum(),
-				"Try to use single transformation for all partitions").getComponentPanel(), cc.rc(3, 1));
+				cc.rcw(1, 1, 3, "d,l"));
+		panel.add(
+				new DialogComponentBoolean(config.getPartitionsSingleOptimum(),
+						"Try to use single transformation for all partitions").getComponentPanel(),
+				cc.rcw(3, 1, 3, "d,l"));
+		panel.add(new DialogComponentBoolean(config.getPartitionsGroupByEnabled(), "").getComponentPanel(),
+				cc.rc(5, 1));
+		panel.add(columnSelection.getComponentPanel(), cc.rc(5, 3));
 		panel.setBorder(BorderFactory.createTitledBorder("Partitioning"));
 		return panel;
 	}
@@ -73,5 +91,13 @@ public class AnonymizationConfigPanel {
 
 	public JPanel getComponent() {
 		return component;
+	}
+
+	public void load(NodeSettingsRO settings, DataTableSpec[] specs) {
+		try {
+			columnSelection.loadSettingsFrom(settings, specs);
+		} catch (NotConfigurableException e) {
+			logger.error(e.getMessage(), e);
+		}
 	}
 }

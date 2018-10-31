@@ -32,7 +32,8 @@ public class ArxNodeNodeModel extends NodeModel {
 	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
 			throws Exception {
 		try {
-			return anonymizer.process(inData[0], exec, config.getAnonymizationConfig().getNumOfThreads().getIntValue());
+			return anonymizer.process(inData[0], exec);
+			// return Partitioner.test(inData[0], config, exec);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 			throw e;

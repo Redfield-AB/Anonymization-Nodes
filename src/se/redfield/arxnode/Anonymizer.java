@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.ARXAnonymizer;
@@ -28,20 +27,23 @@ import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.DataType;
 import org.knime.core.data.RowKey;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.util.Pair;
 
 import se.redfield.arxnode.config.AnonymizationConfig;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.config.TransformationConfig;
 import se.redfield.arxnode.config.TransformationConfig.Mode;
+import se.redfield.arxnode.partiton.PartitionInfo;
+import se.redfield.arxnode.partiton.Partitioner;
 
 public class Anonymizer {
 
@@ -54,22 +56,28 @@ public class Anonymizer {
 		this.config = config;
 	}
 
-	public BufferedDataTable[] process(BufferedDataTable inTable, ExecutionContext exec, int threadsNum)
-			throws Exception {
-		List<Data> arxData = read(inTable, threadsNum);
+	public BufferedDataTable[] process(BufferedDataTable inTable, ExecutionContext exec) throws Exception {
+		AnonymizationConfig anonConfig = config.getAnonymizationConfig();
+		Partitioner partitioner = Partitioner.createPartitioner(anonConfig.getNumOfThreads().getIntValue(),
+				anonConfig.getPartitionsGroupByEnabled().getBooleanValue()
+						? anonConfig.getPartitionsGroupByColumn().getStringValue()
+						: "",
+				inTable);
+		List<Pair<DefaultData, PartitionInfo>> parts = partitioner.partition(inTable);
 
-		ExecutorService executor = Executors.newFixedThreadPool(arxData.size());
-		CompletionService<ARXResult> service = new ExecutorCompletionService<>(executor);
-		for (Data data : arxData) {
+		ExecutorService executor = Executors.newFixedThreadPool(parts.size());
+		CompletionService<Pair<ARXResult, PartitionInfo>> service = new ExecutorCompletionService<>(executor);
+		for (Pair<DefaultData, PartitionInfo> pair : parts) {
 			service.submit(() -> {
 				ARXAnonymizer anonymizer = new ARXAnonymizer();
-				logger.info("data:" + data.getHandle().getNumRows());
-				return anonymizer.anonymize(data, configure(data));
+				logger.info("data:" + pair.getFirst().getHandle().getNumRows());
+				ARXResult result = anonymizer.anonymize(pair.getFirst(), configure(pair.getFirst()));
+				return new Pair<ARXResult, PartitionInfo>(result, pair.getSecond());
 			});
 		}
 		int received = 0;
-		List<ARXResult> results = new ArrayList<>();
-		while (received++ < arxData.size()) {
+		List<Pair<ARXResult, PartitionInfo>> results = new ArrayList<>();
+		while (received++ < parts.size()) {
 			try {
 				logger.info("take");
 				results.add(service.take().get());
@@ -83,25 +91,28 @@ public class Anonymizer {
 		return new BufferedDataTable[] { createDataTable(results, exec), createStatsTable(results, exec) };
 	}
 
-	private ARXNode findSingleOptimum(List<ARXResult> results) {
+	private ARXNode findSingleOptimum(List<Pair<ARXResult, PartitionInfo>> results) {
 		if (config.getAnonymizationConfig().getPartitionsSingleOptimum().getBooleanValue()) {
-			return results.stream().filter(ARXResult::isResultAvailable).map(ARXResult::getGlobalOptimum).findFirst()
-					.get();
+			return results.stream().map(Pair::getFirst).filter(ARXResult::isResultAvailable)
+					.map(ARXResult::getGlobalOptimum).findFirst().get();
 		}
 		return null;
 	}
 
-	private BufferedDataTable createStatsTable(List<ARXResult> results, ExecutionContext exec) {
+	private BufferedDataTable createStatsTable(List<Pair<ARXResult, PartitionInfo>> results, ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(createStatsTableSpec());
 		int row = 0;
-		for (ARXResult res : results) {
+		for (Pair<ARXResult, PartitionInfo> pair : results) {
+			ARXResult res = pair.getFirst();
 			ARXNode opt = findOptimumNode(res);
-			DataCell[] cells = new DataCell[4];
+			DataCell[] cells = new DataCell[6];
 
 			cells[0] = new DoubleCell(Double.valueOf(opt.getHighestScore().toString()));
 			cells[1] = new StringCell(Arrays.toString(opt.getQuasiIdentifyingAttributes()));
 			cells[2] = new StringCell(Arrays.toString(opt.getTransformation()));
 			cells[3] = new StringCell(opt.getAnonymity().toString());
+			cells[4] = new LongCell(pair.getSecond().getRows());
+			cells[5] = new StringCell(pair.getSecond().getCriteria());
 
 			RowKey key = new RowKey("Row" + row++);
 			DataRow datarow = new DefaultRow(key, cells);
@@ -113,18 +124,21 @@ public class Anonymizer {
 	}
 
 	public DataTableSpec createStatsTableSpec() {
-		DataColumnSpec[] outColSpecs = new DataColumnSpec[4];
+		DataColumnSpec[] outColSpecs = new DataColumnSpec[6];
 		outColSpecs[0] = new DataColumnSpecCreator("Information Loss", DoubleCell.TYPE).createSpec();
 		outColSpecs[1] = new DataColumnSpecCreator("Headers", StringCell.TYPE).createSpec();
 		outColSpecs[2] = new DataColumnSpecCreator("Transformation", StringCell.TYPE).createSpec();
 		outColSpecs[3] = new DataColumnSpecCreator("Anonymity", StringCell.TYPE).createSpec();
+		outColSpecs[4] = new DataColumnSpecCreator("Row count", LongCell.TYPE).createSpec();
+		outColSpecs[5] = new DataColumnSpecCreator("Partition criteria", StringCell.TYPE).createSpec();
 		return new DataTableSpec(outColSpecs);
 	}
 
-	private BufferedDataTable createDataTable(List<ARXResult> results, ExecutionContext exec) {
+	private BufferedDataTable createDataTable(List<Pair<ARXResult, PartitionInfo>> results, ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(this.config.createOutDataTableSpec());
 		int rowIdx = 0;
-		for (ARXResult res : results) {
+		for (Pair<ARXResult, PartitionInfo> pair : results) {
+			ARXResult res = pair.getFirst();
 			if (res.isResultAvailable()) {
 				Iterator<String[]> iter = res.getOutput(findOptimumNode(res)).iterator();
 				iter.next();
@@ -161,36 +175,6 @@ public class Anonymizer {
 			}
 		}
 		return opt;
-	}
-
-	private List<Data> read(BufferedDataTable inTable, int parts) {
-		List<Data> result = new ArrayList<>();
-		long partitionSize = inTable.size() / parts;
-		long index = 0;
-		DefaultData current = createData(inTable);
-		result.add(current);
-		for (DataRow row : inTable) {
-			current.add(
-					row.stream().map(cell -> cell.toString()).collect(Collectors.toList()).toArray(new String[] {}));
-			if (++index >= partitionSize && result.size() < parts) {
-				current = createData(inTable);
-				result.add(current);
-				index = 0;
-			}
-		}
-		return result;
-	}
-
-	private DefaultData createData(BufferedDataTable inTable) {
-		DefaultData defData = Data.create();
-		String[] columnNames = inTable.getDataTableSpec().getColumnNames();
-		defData.add(columnNames);
-		for (int i = 0; i < columnNames.length; i++) {
-			DataType type = inTable.getDataTableSpec().getColumnSpec(columnNames[i]).getType();
-			defData.getDefinition().setDataType(columnNames[i], Utils.knimeToArxType(type));
-		}
-
-		return defData;
 	}
 
 	private ARXConfiguration configure(Data defData) {

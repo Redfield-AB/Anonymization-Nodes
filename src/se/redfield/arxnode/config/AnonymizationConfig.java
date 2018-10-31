@@ -12,21 +12,24 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 public class AnonymizationConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfig.class);
 
-	private static String CONFIG_HEURISTIC_SEARCH_ENABLED = "CONFIG_HEURISTIC_SEARCH_ENABLED";
-	private static String CONFIG_SEARCH_STEPS_LIMIT_ENABLED = "CONFIG_SEARCH_STEPS_LIMIT_ENABLED";
-	private static String CONFIG_SEARCH_TIME_LIMIT_ENABLED = "CONFIG_SEARCH_TIME_LIMIT_ENABLED";
-	private static String CONFIG_SEARCH_STEPS_LIMIT = "CONFIG_SEARCH_STEPS_LIMIT";
-	private static String CONFIG_SEARCH_TIME_LIMIT = "CONFIG_SEARCH_TIME_LIMIT";
-	private static String CONFIG_SUPPRESSION_LIMIT = "CONFIG_SUPPRESSION_LIMIT";
-	private static String CONFIG_PRACTIVAL_MONOTONICITY = "CONFIG_PRACTIVAL_MONOTONICITY";
-	private static String CONFIG_PRECOMPUTATION_ENABLED = "CONFIG_PRECOMPUTATION_ENABLED";
-	private static String CONFIG_PRECOMPUTATION_THRESHOLD = "CONFIG_PRECOMPUTATION_THRESHOLD";
-	private static String CONFIG_NUM_OF_THREADS = "CONFIG_NUM_OF_THREADS";
-	private static String CONFIG_PARTITIONS_SINGLE_OPTIMUM = "CONFIG_PARTITIONS_SINGLE_OPTIMUM";
+	private static final String CONFIG_HEURISTIC_SEARCH_ENABLED = "CONFIG_HEURISTIC_SEARCH_ENABLED";
+	private static final String CONFIG_SEARCH_STEPS_LIMIT_ENABLED = "CONFIG_SEARCH_STEPS_LIMIT_ENABLED";
+	private static final String CONFIG_SEARCH_TIME_LIMIT_ENABLED = "CONFIG_SEARCH_TIME_LIMIT_ENABLED";
+	private static final String CONFIG_SEARCH_STEPS_LIMIT = "CONFIG_SEARCH_STEPS_LIMIT";
+	private static final String CONFIG_SEARCH_TIME_LIMIT = "CONFIG_SEARCH_TIME_LIMIT";
+	private static final String CONFIG_SUPPRESSION_LIMIT = "CONFIG_SUPPRESSION_LIMIT";
+	private static final String CONFIG_PRACTIVAL_MONOTONICITY = "CONFIG_PRACTIVAL_MONOTONICITY";
+	private static final String CONFIG_PRECOMPUTATION_ENABLED = "CONFIG_PRECOMPUTATION_ENABLED";
+	private static final String CONFIG_PRECOMPUTATION_THRESHOLD = "CONFIG_PRECOMPUTATION_THRESHOLD";
+	private static final String CONFIG_NUM_OF_THREADS = "CONFIG_NUM_OF_THREADS";
+	private static final String CONFIG_PARTITIONS_SINGLE_OPTIMUM = "CONFIG_PARTITIONS_SINGLE_OPTIMUM";
+	private static final String CONFIG_PARTITIONS_GROUP_BY_ENABLED = "CONFIG_PARTITIONS_GROUP_BY_ENABLED";
+	private static final String CONFIG_PARTITIONS_GROUP_BY_COLUMN = "CONFIG_PARTITIONS_GROUP_BY_COLUMN";
 
 	private SettingsModelBoolean heuristicSearchEnabled;
 	private SettingsModelBoolean limitSearchSteps;
@@ -43,6 +46,8 @@ public class AnonymizationConfig {
 
 	private SettingsModelIntegerBounded numOfThreads;
 	private SettingsModelBoolean partitionsSingleOptimum;
+	private SettingsModelBoolean partitionsGroupByEnabled;
+	private SettingsModelString partitionsGroupByColumn;
 
 	private List<SettingsModel> settingsModels;
 
@@ -64,9 +69,13 @@ public class AnonymizationConfig {
 		numOfThreads = new SettingsModelIntegerBounded(CONFIG_NUM_OF_THREADS, 1, 1, 20);
 		partitionsSingleOptimum = new SettingsModelBoolean(CONFIG_PARTITIONS_SINGLE_OPTIMUM, true);
 
+		partitionsGroupByEnabled = new SettingsModelBoolean(CONFIG_PARTITIONS_GROUP_BY_ENABLED, false);
+		partitionsGroupByColumn = new SettingsModelString(CONFIG_PARTITIONS_GROUP_BY_COLUMN, "");
+
 		settingsModels = new ArrayList<>(Arrays.asList(heuristicSearchEnabled, limitSearchSteps, limitSearchTime,
 				searchStepsLimit, searchTimeLimit, suppresionLimit, practivalMonotonicity, precomputationEnabled,
-				precomputationThreshold, numOfThreads, partitionsSingleOptimum));
+				precomputationThreshold, numOfThreads, partitionsSingleOptimum, partitionsGroupByEnabled,
+				partitionsGroupByColumn));
 
 		limitSearchSteps.setEnabled(false);
 		limitSearchTime.setEnabled(false);
@@ -75,11 +84,14 @@ public class AnonymizationConfig {
 		practivalMonotonicity.setEnabled(false);
 		precomputationThreshold.setEnabled(false);
 		partitionsSingleOptimum.setEnabled(false);
+		partitionsGroupByEnabled.setEnabled(false);
+		partitionsGroupByColumn.setEnabled(false);
 
 		addEnabledListener(heuristicSearchEnabled, limitSearchSteps, limitSearchTime);
 		addEnabledListener(limitSearchSteps, searchStepsLimit);
 		addEnabledListener(limitSearchTime, searchTimeLimit);
 		addEnabledListener(precomputationEnabled, precomputationThreshold);
+		addEnabledListener(partitionsGroupByEnabled, partitionsGroupByColumn);
 		suppresionLimit.addChangeListener(e -> {
 			practivalMonotonicity.setEnabled(suppresionLimit.getDoubleValue() > 0);
 			if (!practivalMonotonicity.isEnabled()) {
@@ -87,7 +99,9 @@ public class AnonymizationConfig {
 			}
 		});
 		numOfThreads.addChangeListener(e -> {
-			partitionsSingleOptimum.setEnabled(numOfThreads.getIntValue() > 1);
+			boolean enabled = numOfThreads.getIntValue() > 1;
+			partitionsSingleOptimum.setEnabled(enabled);
+			partitionsGroupByEnabled.setEnabled(enabled);
 		});
 	}
 
@@ -156,5 +170,13 @@ public class AnonymizationConfig {
 
 	public SettingsModelBoolean getPartitionsSingleOptimum() {
 		return partitionsSingleOptimum;
+	}
+
+	public SettingsModelBoolean getPartitionsGroupByEnabled() {
+		return partitionsGroupByEnabled;
+	}
+
+	public SettingsModelString getPartitionsGroupByColumn() {
+		return partitionsGroupByColumn;
 	}
 }
