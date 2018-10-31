@@ -70,7 +70,6 @@ public class Anonymizer {
 		for (Pair<DefaultData, PartitionInfo> pair : parts) {
 			service.submit(() -> {
 				ARXAnonymizer anonymizer = new ARXAnonymizer();
-				logger.info("data:" + pair.getFirst().getHandle().getNumRows());
 				ARXResult result = anonymizer.anonymize(pair.getFirst(), configure(pair.getFirst()));
 				return new Pair<ARXResult, PartitionInfo>(result, pair.getSecond());
 			});
@@ -79,7 +78,6 @@ public class Anonymizer {
 		List<Pair<ARXResult, PartitionInfo>> results = new ArrayList<>();
 		while (received++ < parts.size()) {
 			try {
-				logger.info("take");
 				results.add(service.take().get());
 			} catch (InterruptedException | ExecutionException e) {
 				executor.shutdownNow();

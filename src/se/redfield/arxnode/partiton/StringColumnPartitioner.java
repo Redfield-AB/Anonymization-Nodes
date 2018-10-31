@@ -7,24 +7,25 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.deidentifier.arx.Data.DefaultData;
+import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
+import org.knime.core.data.StringValue;
 import org.knime.core.node.BufferedDataTable;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.util.Pair;
 
-public class StringColumnPartitioner extends Partitioner {
+public class StringColumnPartitioner extends ColumnPartitioner {
+	private static final NodeLogger logger = NodeLogger.getLogger(StringColumnPartitioner.class);
 
-	private String column;
-	private int columnIndex;
 	private Map<String, DefaultData> partitions;
 
 	public StringColumnPartitioner(String column, int partsNum) {
-		super(partsNum);
-		this.column = column;
+		super(column, partsNum);
 	}
 
 	@Override
 	protected void init(BufferedDataTable source) {
-		columnIndex = source.getDataTableSpec().findColumnIndex(column);
+		super.init(source);
 		partitions = new HashMap<>();
 		for (DataRow r : source) {
 			String val = getValue(r);
@@ -40,7 +41,11 @@ public class StringColumnPartitioner extends Partitioner {
 	}
 
 	private String getValue(DataRow row) {
-		return row.getCell(columnIndex).toString();
+		DataCell cell = row.getCell(columnIndex);
+		if (cell.isMissing()) {
+			return "?";
+		}
+		return ((StringValue) row.getCell(columnIndex)).getStringValue();
 	}
 
 	@Override

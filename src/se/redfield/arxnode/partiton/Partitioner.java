@@ -1,5 +1,6 @@
 package se.redfield.arxnode.partiton;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +10,7 @@ import org.deidentifier.arx.Data.DefaultData;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
+import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
@@ -67,6 +69,8 @@ public abstract class Partitioner {
 					.getCellClass();
 			if (StringValue.class.isAssignableFrom(cellClass)) {
 				return new StringColumnPartitioner(column, partsNum);
+			} else if (DoubleValue.class.isAssignableFrom(cellClass)) {
+				return new DoubleColumnPartitioner(column, partsNum);
 			} else {
 				logger.warn("Unknown cell class: " + cellClass.getName());
 			}
@@ -75,12 +79,18 @@ public abstract class Partitioner {
 	}
 
 	public static BufferedDataTable[] test(BufferedDataTable table, Config config, ExecutionContext exec) {
-		Partitioner p = Partitioner.createPartitioner(5, "familystate", table);
+		Partitioner p = Partitioner.createPartitioner(5, "age", table);
 		Utils.time();
 		List<Pair<DefaultData, PartitionInfo>> list = p.partition(table);
 		Utils.time("partition");
 		for (Pair<DefaultData, PartitionInfo> pair : list) {
 			logger.info(pair.getSecond().getRows() + " " + pair.getSecond().getCriteria());
+			Iterator<String[]> iterator = pair.getFirst().getHandle().iterator();
+			while (iterator.hasNext()) {
+				String[] strings = (String[]) iterator.next();
+				logger.info(strings[pair.getFirst().getHandle().getColumnIndexOf("age")]);
+			}
+
 		}
 		return null;
 	}

@@ -4,6 +4,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
@@ -42,7 +43,7 @@ public class AnonymizationConfigPanel {
 	@SuppressWarnings("unchecked")
 	private JPanel createPartitioningPanel() {
 		columnSelection = new DialogComponentColumnNameSelection(config.getPartitionsGroupByColumn(), "Group by column",
-				0, StringValue.class);
+				0, StringValue.class, DoubleValue.class);
 
 		JPanel panel = new JPanel(new FormLayout("l:p:n, 5:n, l:p:g, p:g", "p:n, 5:n, p:n, 5:n, p:n"));
 		panel.add(new DialogComponentNumber(config.getNumOfThreads(), "# of threads", 1).getComponentPanel(),
