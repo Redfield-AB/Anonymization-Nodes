@@ -14,9 +14,9 @@ import org.knime.core.util.Pair;
 public class DoubleColumnPartitioner extends ColumnPartitioner {
 	private static final NodeLogger logger = NodeLogger.getLogger(DoubleColumnPartitioner.class);
 
-	private Double min;
-	private Double max;
-	private double intervalLength;
+	protected Double min;
+	protected Double max;
+	protected double intervalLength;
 	private List<DefaultData> partitions;
 
 	public DoubleColumnPartitioner(String column, int partsNum) {
@@ -47,7 +47,7 @@ public class DoubleColumnPartitioner extends ColumnPartitioner {
 		}
 	}
 
-	private Double getValue(DataRow row) {
+	protected Double getValue(DataRow row) {
 		DataCell cell = row.getCell(columnIndex);
 		if (cell.isMissing()) {
 			return null;
@@ -70,12 +70,16 @@ public class DoubleColumnPartitioner extends ColumnPartitioner {
 		List<Pair<DefaultData, PartitionInfo>> result = new ArrayList<>();
 		int index = 0;
 		for (DefaultData data : partitions) {
-			String criteria = String.format("%s in [%.2f, %.2f%s", column, (min + intervalLength * index),
-					(min + intervalLength * (index + 1)), index < partsNum - 1 ? ")" : "]");
+			String criteria = createCriteria(index);
 			PartitionInfo info = new PartitionInfo(data.getHandle().getNumRows(), criteria);
 			result.add(new Pair<DefaultData, PartitionInfo>(data, info));
 			index++;
 		}
 		return result;
+	}
+
+	protected String createCriteria(int index) {
+		return String.format("%s in [%.2f, %.2f%s", column, (min + intervalLength * index),
+				(min + intervalLength * (index + 1)), index < partsNum - 1 ? ")" : "]");
 	}
 }

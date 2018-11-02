@@ -35,6 +35,7 @@ public class Utils {
 		case "Number (long)":
 			return DataType.INTEGER;
 		case "Date and Time":
+		case "Local Date Time":
 			return DataType.DATE;
 		case "Number (double)":
 			return DataType.DECIMAL;

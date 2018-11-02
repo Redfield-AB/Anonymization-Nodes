@@ -34,7 +34,7 @@ public class StringColumnPartitioner extends ColumnPartitioner {
 			}
 			if (partitions.size() > partsNum) {
 				throw new IllegalArgumentException(
-						String.format("Unable to partition table by [%s]. Column has more that %d distinct values",
+						String.format("Unable to partition table by [%s]. Column has more than %d distinct values",
 								column, partsNum));
 			}
 		}

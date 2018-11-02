@@ -12,6 +12,7 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataType;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
+import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
@@ -34,7 +35,6 @@ public abstract class Partitioner {
 		long index = 0;
 		for (DataRow row : source) {
 			DefaultData current = findTarget(row, index++);
-			// logger.info("adding row");
 			current.add(
 					row.stream().map(cell -> cell.toString()).collect(Collectors.toList()).toArray(new String[] {}));
 		}
@@ -67,13 +67,17 @@ public abstract class Partitioner {
 
 			Class<? extends DataCell> cellClass = table.getDataTableSpec().getColumnSpec(column).getType()
 					.getCellClass();
+			if (LocalDateTimeValue.class.isAssignableFrom(cellClass)) {
+				return new LocalDateTimeColumnPartitioner(column, partsNum);
+			}
 			if (StringValue.class.isAssignableFrom(cellClass)) {
 				return new StringColumnPartitioner(column, partsNum);
-			} else if (DoubleValue.class.isAssignableFrom(cellClass)) {
-				return new DoubleColumnPartitioner(column, partsNum);
-			} else {
-				logger.warn("Unknown cell class: " + cellClass.getName());
 			}
+			if (DoubleValue.class.isAssignableFrom(cellClass)) {
+				return new DoubleColumnPartitioner(column, partsNum);
+			}
+			logger.warn("Unknown cell class: " + cellClass.getName());
+
 		}
 		return new SingleTablePartitoner();
 	}
