@@ -106,7 +106,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		CellConstraints cc = new CellConstraints();
 		JPanel row = new JPanel(new FormLayout("l:p:n, 5:n, r:p:g", "p:n, 5:n, p:n, 5:n, p:n"));
 		row.add(columnLabel, cc.rc(1, 1));
-		row.add(new DialogComponentStringSelection(attrTypeModel, "", AttributeTypeOptions.stringValues())
+		row.add(new DialogComponentStringSelection(attrTypeModel, "Type:", AttributeTypeOptions.stringValues())
 				.getComponentPanel(), cc.rc(1, 3));
 		row.add(fileChooser.getComponentPanel(), cc.rcw(3, 1, 3));
 		row.add(transformationPanel, cc.rcw(5, 1, 3));

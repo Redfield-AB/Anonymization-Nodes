@@ -80,20 +80,22 @@ public class LDiversityConfig extends ColumnPrivacyModelConfig {
 	}
 
 	@Override
-	public String toString() {
-		String suffix = "";
+	public String getName() {
+		return '\u2113' + "-Diversity";
+	}
+
+	@Override
+	protected String getToStringPrefix() {
 		switch (variant) {
 		case DISTINCT:
-			suffix = "l=" + intL;
-			break;
+			return String.format("Distinct-%d--diversity", intL);
 		case GRASSBERGER_ENTROPY:
+			return String.format("Grassberger-entropy-%d-diversity", (int) doubleL);
 		case SHANNON_ENTROPY:
-			suffix = String.format("l=%.2f", doubleL);
-			break;
+			return String.format("Shannon-entropy-%d-diversity", (int) doubleL);
 		case RECURSIVE:
-			suffix = String.format("l=%d, c=%.3f", intL, c);
-			break;
+			return String.format("Recursive-(%.3f, %d)-diversity", c, intL);
 		}
-		return variant.toString() + " for [" + getColumn() + "] with " + suffix;
+		return getName();
 	}
 }

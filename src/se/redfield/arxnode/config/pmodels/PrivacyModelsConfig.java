@@ -51,8 +51,9 @@ public class PrivacyModelsConfig {
 
 	private static Gson createGson() {
 		GsonBuilder builder = new GsonBuilder();
-		builder.registerTypeAdapter(PrivacyModelConfig.class, new InterfaceAdapter<PrivacyModelConfig>(
-				KAnonymityConfig.class, DPresenceConfig.class, LDiversityConfig.class, TClosenessConfig.class));
+		builder.registerTypeAdapter(PrivacyModelConfig.class,
+				new InterfaceAdapter<PrivacyModelConfig>(KAnonymityConfig.class, DPresenceConfig.class,
+						LDiversityConfig.class, TClosenessConfig.class, KMapConfig.class));
 		return builder.create();
 	}
 

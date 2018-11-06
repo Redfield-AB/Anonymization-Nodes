@@ -11,4 +11,12 @@ public abstract class ColumnPrivacyModelConfig implements PrivacyModelConfig {
 	public void setColumn(String column) {
 		this.column = column;
 	}
+
+	protected abstract String getToStringPrefix();
+
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return getToStringPrefix() + " for [" + column + "]";
+	}
 }

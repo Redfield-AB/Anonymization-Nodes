@@ -156,7 +156,7 @@ public class Config {
 	private void readAttType(ColumnConfig c) {
 		try {
 			AttributeTypeOptions option = AttributeTypeOptions
-					.valueOf(attrTypeSettings.get(c.getName()).getStringValue());
+					.fromName(attrTypeSettings.get(c.getName()).getStringValue());
 			c.setAttrType(option.getType());
 		} catch (Exception e) {
 			// ignore
@@ -185,7 +185,7 @@ public class Config {
 				}
 			}
 			if (key.startsWith(CONFIG_HIERARCHY_ATTR_TYPE_PREFIX)) {
-				AttributeTypeOptions opt = AttributeTypeOptions.valueOf(settings.getString(key));
+				AttributeTypeOptions opt = AttributeTypeOptions.fromName(settings.getString(key));
 				if (opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE) {
 					String name = extractColumnName(key, CONFIG_HIERARCHY_ATTR_TYPE_PREFIX);
 					String hierarchyFile = settings.getString(CONFIG_HIERARCHY_FILE_PREFIX + name, "");

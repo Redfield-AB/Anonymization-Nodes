@@ -153,16 +153,17 @@ public class PrivacyModelsPane {
 
 	private JPopupMenu createDropdownMenu() {
 		JPopupMenu menu = new JPopupMenu();
-		menu.add(createMenuItem("KAnonymity", new KAnonymityConfig()));
-		menu.add(createMenuItem("DPresence", new DPresenceConfig()));
+		menu.add(createMenuItem(new KAnonymityConfig()));
+		// menu.add(createMenuItem(new KMapConfig()));
+		menu.add(createMenuItem(new DPresenceConfig()));
 		menu.addSeparator();
-		menu.add(createMenuItem("LDiversity", new LDiversityConfig()));
-		menu.add(createMenuItem("TCloseness", new TClosenessConfig()));
+		menu.add(createMenuItem(new LDiversityConfig()));
+		menu.add(createMenuItem(new TClosenessConfig()));
 		return menu;
 	}
 
-	private JMenuItem createMenuItem(String title, PrivacyModelConfig instance) {
-		JMenuItem item = new JMenuItem(title);
+	private JMenuItem createMenuItem(PrivacyModelConfig instance) {
+		JMenuItem item = new JMenuItem(instance.getName());
 		item.addActionListener(e -> edit(instance, true));
 		return item;
 	}

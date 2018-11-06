@@ -27,15 +27,15 @@ public class DPresenceEditor implements PrivacyModelEditor {
 
 		CellConstraints cc = new CellConstraints();
 		panel = new JPanel(new FormLayout("p:n, 5:n, f:70:n, p:g", "p:n, 5:n, p:n"));
-		panel.add(new JLabel("D-Min"), cc.rc(1, 1));
+		panel.add(new JLabel("Lower"), cc.rc(1, 1));
 		panel.add(dMinInput, cc.rc(1, 3));
-		panel.add(new JLabel("D-Max"), cc.rc(3, 1));
+		panel.add(new JLabel("Upper"), cc.rc(3, 1));
 		panel.add(dMaxInput, cc.rc(3, 3));
 
 	}
 
 	private SpinnerModel createSpinnerModel() {
-		return new SpinnerNumberModel(0.0, 0.0, 1.0, 0.01);
+		return new SpinnerNumberModel(0.0, 0.0, 1.0, 0.001);
 	}
 
 	@Override

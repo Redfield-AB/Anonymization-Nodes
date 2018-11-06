@@ -3,46 +3,46 @@ package se.redfield.arxnode.config.pmodels;
 import java.util.Collection;
 
 import org.deidentifier.arx.Data;
-import org.deidentifier.arx.criteria.KAnonymity;
+import org.deidentifier.arx.criteria.KMap;
 import org.deidentifier.arx.criteria.PrivacyCriterion;
 
 import se.redfield.arxnode.config.ColumnConfig;
-import se.redfield.arxnode.ui.pmodels.KAnonymityEditor;
+import se.redfield.arxnode.ui.pmodels.KMapEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
-public class KAnonymityConfig implements PrivacyModelConfig {
+public class KMapConfig implements PrivacyModelConfig {
 
-	private int factor;
+	private int k;
 
-	public KAnonymityConfig() {
-		factor = 1;
+	public KMapConfig() {
+		k = 2;
 	}
 
-	public int getFactor() {
-		return factor;
+	public int getK() {
+		return k;
 	}
 
-	public void setFactor(int factor) {
-		this.factor = factor;
+	public void setK(int k) {
+		this.k = k;
 	}
 
 	@Override
 	public PrivacyModelEditor createEditor(Collection<ColumnConfig> columns) {
-		return new KAnonymityEditor(this);
+		return new KMapEditor(this);
 	}
 
 	@Override
 	public PrivacyCriterion createCriterion(Data data) {
-		return new KAnonymity(factor);
+		return new KMap(k, null);
 	}
 
 	@Override
 	public String getName() {
-		return "k-Anonymity";
+		return "k-Map";
 	}
 
 	@Override
 	public String toString() {
-		return factor + "-Anonymity";
+		return String.format("%d-Map", k);
 	}
 }

@@ -18,7 +18,7 @@ public class KAnonymityEditor implements PrivacyModelEditor {
 		factorInput = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
 
 		editPanel = new JPanel();
-		editPanel.add(new JLabel("K-Anonymity factor"));
+		editPanel.add(new JLabel("K:"));
 		editPanel.add(factorInput);
 
 		factorInput.setValue(source.getFactor());

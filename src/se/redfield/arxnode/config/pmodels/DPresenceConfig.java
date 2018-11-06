@@ -47,8 +47,13 @@ public class DPresenceConfig implements PrivacyModelConfig {
 	}
 
 	@Override
+	public String getName() {
+		return '\u03B4' + "-Presence";
+	}
+
+	@Override
 	public String toString() {
-		return String.format("D-Presence [dMin=%.2f, dMax=%.2f]", dMin, dMax);
+		return String.format("(%.3f, %.3f)-Presence", dMin, dMax);
 	}
 
 }

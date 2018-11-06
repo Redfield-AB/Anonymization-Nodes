@@ -14,4 +14,5 @@ public interface PrivacyModelConfig {
 
 	public PrivacyCriterion createCriterion(Data data);
 
+	public String getName();
 }

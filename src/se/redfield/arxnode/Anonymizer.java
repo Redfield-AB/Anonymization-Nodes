@@ -92,7 +92,7 @@ public class Anonymizer {
 	private ARXNode findSingleOptimum(List<Pair<ARXResult, PartitionInfo>> results) {
 		if (config.getAnonymizationConfig().getPartitionsSingleOptimum().getBooleanValue()) {
 			return results.stream().map(Pair::getFirst).filter(ARXResult::isResultAvailable)
-					.map(ARXResult::getGlobalOptimum).findFirst().get();
+					.map(ARXResult::getGlobalOptimum).findFirst().orElse(null);
 		}
 		return null;
 	}
@@ -102,19 +102,21 @@ public class Anonymizer {
 		int row = 0;
 		for (Pair<ARXResult, PartitionInfo> pair : results) {
 			ARXResult res = pair.getFirst();
-			ARXNode opt = findOptimumNode(res);
-			DataCell[] cells = new DataCell[6];
+			if (res.isResultAvailable()) {
+				ARXNode opt = findOptimumNode(res);
+				DataCell[] cells = new DataCell[6];
 
-			cells[0] = new DoubleCell(Double.valueOf(opt.getHighestScore().toString()));
-			cells[1] = new StringCell(Arrays.toString(opt.getQuasiIdentifyingAttributes()));
-			cells[2] = new StringCell(Arrays.toString(opt.getTransformation()));
-			cells[3] = new StringCell(opt.getAnonymity().toString());
-			cells[4] = new LongCell(pair.getSecond().getRows());
-			cells[5] = new StringCell(pair.getSecond().getCriteria());
+				cells[0] = new DoubleCell(Double.valueOf(opt.getHighestScore().toString()));
+				cells[1] = new StringCell(Arrays.toString(opt.getQuasiIdentifyingAttributes()));
+				cells[2] = new StringCell(Arrays.toString(opt.getTransformation()));
+				cells[3] = new StringCell(opt.getAnonymity().toString());
+				cells[4] = new LongCell(pair.getSecond().getRows());
+				cells[5] = new StringCell(pair.getSecond().getCriteria());
 
-			RowKey key = new RowKey("Row" + row++);
-			DataRow datarow = new DefaultRow(key, cells);
-			container.addRowToTable(datarow);
+				RowKey key = new RowKey("Row" + row++);
+				DataRow datarow = new DefaultRow(key, cells);
+				container.addRowToTable(datarow);
+			}
 		}
 
 		container.close();

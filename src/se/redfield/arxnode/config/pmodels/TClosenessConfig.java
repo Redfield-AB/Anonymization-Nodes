@@ -78,23 +78,31 @@ public class TClosenessConfig extends ColumnPrivacyModelConfig {
 	}
 
 	@Override
-	public String toString() {
-		return String.format("TCloseness for [%s] with t=%.3f and %s", getColumn(), t, measure);
+	public String getName() {
+		return "t-Closeness";
+	}
+
+	@Override
+	protected String getToStringPrefix() {
+		return String.format("%.3f-Closeness (%s)", t, measure.suffix);
 	}
 
 	public static enum TClosenessMeasure {
-		EQUAL("EMD with equal ground-distance"), //
-		HIERARCHICAL("EMD with hierarchical ground-distance"), //
-		ORDERED("EMD with ordered ground-distance");
+		EQUAL("EMD with equal ground-distance", "equal ground-distance"), //
+		HIERARCHICAL("EMD with hierarchical ground-distance", "hierarchical ground-distance"), //
+		ORDERED("EMD with ordered distance", "ordered distance");
 		private String title;
+		private String suffix;
 
-		private TClosenessMeasure(String title) {
+		private TClosenessMeasure(String title, String suffix) {
 			this.title = title;
+			this.suffix = suffix;
 		}
 
 		@Override
 		public String toString() {
 			return title;
 		}
+
 	}
 }
