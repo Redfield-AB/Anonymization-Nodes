@@ -1,5 +1,6 @@
 package se.redfield.arxnode;
 
+import org.deidentifier.arx.ARXPopulationModel.Region;
 import org.deidentifier.arx.DataType;
 import org.knime.core.node.NodeLogger;
 
@@ -42,6 +43,15 @@ public class Utils {
 		}
 		logger.warn("Unknown DataType: " + type.getName());
 		return DataType.STRING;
+	}
+
+	public static Region regionByName(String name) {
+		for (Region region : Region.values()) {
+			if (region.getName().equals(name)) {
+				return region;
+			}
+		}
+		return Region.NONE;
 	}
 
 }

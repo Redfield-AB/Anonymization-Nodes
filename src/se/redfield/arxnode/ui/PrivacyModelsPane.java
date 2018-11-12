@@ -25,6 +25,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.config.pmodels.DPresenceConfig;
 import se.redfield.arxnode.config.pmodels.KAnonymityConfig;
+import se.redfield.arxnode.config.pmodels.KMapConfig;
 import se.redfield.arxnode.config.pmodels.LDiversityConfig;
 import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.TClosenessConfig;
@@ -154,7 +155,7 @@ public class PrivacyModelsPane {
 	private JPopupMenu createDropdownMenu() {
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createMenuItem(new KAnonymityConfig()));
-		// menu.add(createMenuItem(new KMapConfig()));
+		menu.add(createMenuItem(new KMapConfig()));
 		menu.add(createMenuItem(new DPresenceConfig()));
 		menu.addSeparator();
 		menu.add(createMenuItem(new LDiversityConfig()));

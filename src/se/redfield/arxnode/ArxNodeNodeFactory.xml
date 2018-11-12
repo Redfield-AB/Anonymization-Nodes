@@ -10,50 +10,58 @@
         <intro>
         	Node for anonymizing sensitive personal data using <a href="https://arx.deidentifier.org">ARX Data Anonymization Tool</a>
         	<br></br>
+        	<sub>
+        		Developed by Alex Bondaletov
+        	</sub>
         	<sup>
-        		Developed by Alex Bondaletov &lt;alex.bondaletov@yahoo.com&gt;
+        		<br></br>
+        		&lt;alex.bondaletov@yahoo.com&gt;
         	</sup>
+        	
         </intro>
         
         <tab name="Columns">
-        	<option name="Type">Attribute type. Possible options: Identifying, Quasi-identifying, Sensitive, Insensitive</option>
-        	<option name="File">Hierarchy file (*.ahs)</option>
-        	<option name="Mode">Transformation mode</option>
-        	<option name="Weight">Attribute weight. Value in range [0.0, 1.0]. Default is 0.5</option>
-        	<option name="Minimum">Minimum generalization level</option>
-        	<option name="Maximum">Maximum generalization level</option>
-        	<option name="Functon">Microaggregation function</option>
-        	<option name="Ignore Missing Data"></option>
+        	<option name="Type">Attribute type. Possible options: Identifying, Quasi-identifying, Sensitive, Insensitive.</option>
+        	<option name="File">Hierarchy file (*.ahs).</option>
+        	<option name="Mode">Transformation mode.</option>
+        	<option name="Weight">Attribute weight. Value in range [0.0, 1.0]. Default is 0.5.</option>
+        	<option name="Minimum">Minimum generalization level.</option>
+        	<option name="Maximum">Maximum generalization level.</option>
+        	<option name="Function">Attribute processing function.</option>
+        	<option name="Ignore Missing Data">Should the function ignore missing data.</option>
         </tab>
         <tab name="Anonymization Config">
-        	<option name="# of threads">Number of partitions (threads). Input data will be split into # partitions to run in different threads simultaneously</option>
+        	<option name="Number of threads">Number of partitions (threads). Input data will be split into # partitions to run in different threads simultaneously.</option>
         	<option name="Try to use single transformation for all partitions">
         		Make an attempt to use the same transformation for all partitions.
         		If unchecked - optimal transformation for each partition will be used.
         	</option>
         	<option name="Group by column">
-        		Partition table by specified column. When unchecked - table will be partitioned into # parts of equal size.
+        		Partition table by specified column. When unchecked - table will be partitioned into <b>Number of threads</b> parts of equal size.
         		For string columns - table will be partitioned by distinct values for this column, raising an error in case there are more
-        		distinct values than specified # of threads
-        		For decimal and data/time columns - range of possible values will be split into # of equal length intervals.
+        		distinct values than specified number of threads.
+        		For decimal and data/time columns - range of possible values will be split into <b>Number of threads</b> of equal length intervals.
         	</option>
         	<option name="Suppression limit">
-        		Define the suppression limit, which is the maximal number of records that can be removed from the input dataset (in faction). Value between 0.0 and 1.0
+        		Define the suppression limit, which is the maximal number of records that can be removed from the input dataset (in fraction). Value between 0.0 and 1.0.
         	</option>
         	<option name="Approximate: assume practical monotonicity">
         		The option "Approximate" can be enabled to compute an approximate solution with potentially significantly reduce execution times. 
-        		The solution is guaranteed to fulfill the given privacy settings, but it might not be optimal regarding the data utility model specified
+        		The solution is guaranteed to fulfill the given privacy settings, but it might not be optimal regarding the data utility model specified.
         	</option>
-        	<option name="Enable precomputation"></option>
-        	<option name="Precomputation threshold">Value between 0.0 and 1.0</option>
+        	<option name="Enable precomputation">
+        		Precomputation is switched on when, for each quasi-identifier, 
+        		the number of distinct data values divided by the total number of records in the dataset is lower than the configured <b>Precomputation threshold</b>.
+        	</option>
+        	<option name="Precomputation threshold">Value between 0.0 and 1.0.</option>
         	<option name="Heuristic Search Enabled">
-        		Sets whether ARX will use a heuristic search strategy
+        		Sets whether ARX will use a heuristic search strategy.
         	</option>
         	<option name="Limited number of steps">
-        		The heuristic search algorithm will terminate after the given number of transformations have been checked
+        		The heuristic search algorithm will terminate after the given number of transformations have been checked.
         	</option>
         	<option name="Limited time [ms]">
-        		The heuristic search algorithm will terminate after the given number of milliseconds
+        		The heuristic search algorithm will terminate after the given number of milliseconds.
         	</option>
         </tab>
         <tab name="Privacy Models">
@@ -66,6 +74,6 @@
     <ports>
         <inPort index="0" name="In-Port name">Input table</inPort>
         <outPort index="0" name="Anonymized Data">Result table with anonymized data</outPort>
-        <outPort index="1" name="Stats">Anonymization stats</outPort>
+        <outPort index="1" name="Stats">Statistics table</outPort>
     </ports>
 </knimeNode>
