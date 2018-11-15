@@ -10,6 +10,7 @@ import org.deidentifier.arx.criteria.PrivacyCriterion;
 import org.deidentifier.arx.criteria.RecursiveCLDiversity;
 
 import se.redfield.arxnode.config.ColumnConfig;
+import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.ui.pmodels.LDiversityEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
@@ -65,7 +66,7 @@ public class LDiversityConfig extends ColumnPrivacyModelConfig {
 	}
 
 	@Override
-	public PrivacyCriterion createCriterion(Data data) {
+	public PrivacyCriterion createCriterion(Data data, Config config) {
 		switch (variant) {
 		case DISTINCT:
 			return new DistinctLDiversity(getColumn(), intL);

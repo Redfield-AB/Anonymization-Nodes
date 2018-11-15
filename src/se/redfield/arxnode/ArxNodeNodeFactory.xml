@@ -13,8 +13,8 @@
         	<sub>
         		Developed by Alex Bondaletov
         	</sub>
+        	<br></br>
         	<sup>
-        		<br></br>
         		&lt;alex.bondaletov@yahoo.com&gt;
         	</sup>
         	
@@ -67,6 +67,28 @@
         <tab name="Privacy Models">
         	<option name="Privacy Models">
         	 Configure privacy models. Refer <a href="https://arx.deidentifier.org/overview/privacy-criteria/">documentation</a> for details.
+        	</option>
+        </tab>
+        <tab name="Research sample">
+        	<option name="None">
+        		Do not specify research sample. Research sample can be used by δ-presence and k-map privacy models.
+        	</option>
+        	<option name="All">
+        		Use entire input table as sample subset.
+        	</option>
+        	<option name="Random selection">
+        		Selecting records by random sampling.
+        	</option>
+        	<option name="Probability">
+        		Random sampling probability. Value between 0.0 and 1.0.
+        	</option>
+        	<option name="Query selection">
+        		Selecting records by querying the dataset
+        	</option>
+        	<option name="Query">
+        		 The query syntax is as follows: fields and constants must be enclosed in single quotes.
+        		 The following operators are supported: &gt;, &gt;=, &lt;, &lt;=, =, or, and, ( and ).
+        		 Example: <pre>'age'&lt;'40' and 'gender'='M'</pre>
         	</option>
         </tab>
     </fullDescription>

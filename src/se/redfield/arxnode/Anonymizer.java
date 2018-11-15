@@ -205,7 +205,7 @@ public class Anonymizer {
 			}
 		});
 		ARXConfiguration arxConfig = ARXConfiguration.create();
-		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion(defData)));
+		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion(defData, config)));
 		config.getColumns().values().forEach(c -> arxConfig.setAttributeWeight(c.getName(), c.getWeight()));
 
 		AnonymizationConfig aConfig = config.getAnonymizationConfig();

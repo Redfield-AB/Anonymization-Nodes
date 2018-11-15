@@ -13,7 +13,7 @@ public class ArxNodeNodeFactory extends NodeFactory<ArxNodeNodeModel> {
 
 	@Override
 	public int getNrNodeViews() {
-		return 1;
+		return 0;
 	}
 
 	@Override

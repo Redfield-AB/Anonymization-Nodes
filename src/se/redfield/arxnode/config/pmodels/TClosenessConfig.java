@@ -13,6 +13,7 @@ import org.deidentifier.arx.criteria.PrivacyCriterion;
 import org.knime.core.node.NodeLogger;
 
 import se.redfield.arxnode.config.ColumnConfig;
+import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 import se.redfield.arxnode.ui.pmodels.TClosenessEditor;
 
@@ -59,7 +60,7 @@ public class TClosenessConfig extends ColumnPrivacyModelConfig {
 	}
 
 	@Override
-	public PrivacyCriterion createCriterion(Data data) {
+	public PrivacyCriterion createCriterion(Data data, Config config) {
 		switch (measure) {
 		case EQUAL:
 			return new EqualDistanceTCloseness(getColumn(), t);

@@ -1,20 +1,13 @@
 package se.redfield.arxnode.config;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-public class AnonymizationConfig {
+public class AnonymizationConfig extends SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfig.class);
 
 	private static final String CONFIG_HEURISTIC_SEARCH_ENABLED = "CONFIG_HEURISTIC_SEARCH_ENABLED";
@@ -49,8 +42,6 @@ public class AnonymizationConfig {
 	private SettingsModelBoolean partitionsGroupByEnabled;
 	private SettingsModelString partitionsGroupByColumn;
 
-	private List<SettingsModel> settingsModels;
-
 	public AnonymizationConfig() {
 		heuristicSearchEnabled = new SettingsModelBoolean(CONFIG_HEURISTIC_SEARCH_ENABLED, false);
 
@@ -72,10 +63,9 @@ public class AnonymizationConfig {
 		partitionsGroupByEnabled = new SettingsModelBoolean(CONFIG_PARTITIONS_GROUP_BY_ENABLED, false);
 		partitionsGroupByColumn = new SettingsModelString(CONFIG_PARTITIONS_GROUP_BY_COLUMN, "");
 
-		settingsModels = new ArrayList<>(Arrays.asList(heuristicSearchEnabled, limitSearchSteps, limitSearchTime,
-				searchStepsLimit, searchTimeLimit, suppresionLimit, practivalMonotonicity, precomputationEnabled,
-				precomputationThreshold, numOfThreads, partitionsSingleOptimum, partitionsGroupByEnabled,
-				partitionsGroupByColumn));
+		addModels(heuristicSearchEnabled, limitSearchSteps, limitSearchTime, searchStepsLimit, searchTimeLimit,
+				suppresionLimit, practivalMonotonicity, precomputationEnabled, precomputationThreshold, numOfThreads,
+				partitionsSingleOptimum, partitionsGroupByEnabled, partitionsGroupByColumn);
 
 		limitSearchSteps.setEnabled(false);
 		limitSearchTime.setEnabled(false);
@@ -110,20 +100,6 @@ public class AnonymizationConfig {
 			boolean enabled = source.getBooleanValue();
 			for (int i = 0; i < targets.length; i++) {
 				targets[i].setEnabled(enabled);
-			}
-		});
-	}
-
-	public void save(NodeSettingsWO settings) {
-		settingsModels.forEach(s -> s.saveSettingsTo(settings));
-	}
-
-	public void load(NodeSettingsRO settings) {
-		settingsModels.forEach(s -> {
-			try {
-				s.loadSettingsFrom(settings);
-			} catch (InvalidSettingsException e) {
-				logger.debug(e.getMessage(), e);
 			}
 		});
 	}

@@ -26,6 +26,7 @@ import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.ui.AnonymizationConfigPanel;
 import se.redfield.arxnode.ui.PrivacyModelsPane;
+import se.redfield.arxnode.ui.SubsetConfigPanel;
 import se.redfield.arxnode.ui.TransformationConfigPanel;
 
 public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
@@ -55,6 +56,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		addTab("Columns", columnsPanel);
 		addTab(PRIVACY_MODELS_TAB_TITLE, privacyPanel.getComponent(), false);
 		addTab("Anonymization Config", anonConfigPanel.getComponent());
+		addTab("Research sample", new SubsetConfigPanel(config.getSubsetConfig()));
 		selectTab("Columns");
 		removeTab("Options");
 

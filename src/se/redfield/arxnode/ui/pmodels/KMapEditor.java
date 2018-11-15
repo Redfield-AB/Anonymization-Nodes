@@ -7,6 +7,8 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+import org.knime.core.node.NodeLogger;
+
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -14,8 +16,10 @@ import se.redfield.arxnode.config.pmodels.KMapConfig;
 import se.redfield.arxnode.config.pmodels.KMapConfig.EstimatorOption;
 import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
 import se.redfield.arxnode.ui.PopulationConfigPanel;
+import se.redfield.arxnode.ui.PrivacyModelsPane;
 
 public class KMapEditor implements PrivacyModelEditor {
+	private static final NodeLogger logger = NodeLogger.getLogger(PrivacyModelsPane.class);
 
 	private JPanel panel;
 	private JSpinner kInput;

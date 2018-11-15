@@ -41,12 +41,10 @@ public class Config {
 	private Map<String, SettingsModelString> attrTypeSettings;
 	private Map<String, SettingsModelDoubleBounded> weightSettings;
 	private Map<String, TransformationConfig> transformationSettings;
-	// private SettingsModelIntegerBounded kAnonymityFactorSetting = new
-	// SettingsModelIntegerBounded(
-	// CONFIG_KANONYMITY_FACTOR_KEY, DEFAULT_KANONYMITY_FACTOR, 1,
-	// Integer.MAX_VALUE);;
+
 	private PrivacyModelsConfig privacyModelConfig;
 	private AnonymizationConfig anonymizationConfig;
+	private SubsetConfig subsetConfig;
 
 	public Config() {
 		this(null);
@@ -59,6 +57,7 @@ public class Config {
 		transformationSettings = new HashMap<>();
 		privacyModelConfig = new PrivacyModelsConfig();
 		anonymizationConfig = new AnonymizationConfig();
+		subsetConfig = new SubsetConfig();
 		this.columns = new HashMap<>();
 		if (columns != null) {
 			columns.values().forEach(c -> {
@@ -100,12 +99,8 @@ public class Config {
 		});
 		privacyModelConfig = PrivacyModelsConfig.load(settings);
 		anonymizationConfig.load(settings);
+		subsetConfig.load(settings);
 
-		// try {
-		// kAnonymityFactorSetting.loadSettingsFrom(settings);
-		// } catch (InvalidSettingsException e) {
-		// logger.error(e.getMessage(), e);
-		// }
 		columns.values().forEach(c -> readColumnSettings(c));
 	}
 
@@ -121,6 +116,7 @@ public class Config {
 
 		privacyModelConfig.save(settings);
 		anonymizationConfig.save(settings);
+		subsetConfig.save(settings);
 
 		transformationSettings
 				.forEach((key, config) -> config.save(settings, CONFIG_TRANSFORMATION_SETTINGS_PREFIX + key));
@@ -197,16 +193,11 @@ public class Config {
 			}
 		}
 		PrivacyModelsConfig.load(settings).validate();
-		// kAnonymityFactorSetting.validateSettings(settings);
 	}
 
 	public Map<String, ColumnConfig> getColumns() {
 		return columns;
 	}
-
-	// public int getKAnonymityFactor() {
-	// return kAnonymityFactorSetting.getIntValue();
-	// }
 
 	public List<PrivacyModelConfig> getPrivacyModels() {
 		return privacyModelConfig.getModels();
@@ -246,6 +237,10 @@ public class Config {
 
 	public AnonymizationConfig getAnonymizationConfig() {
 		return anonymizationConfig;
+	}
+
+	public SubsetConfig getSubsetConfig() {
+		return subsetConfig;
 	}
 
 	public TransformationConfig getTransformationConfig(String name) {

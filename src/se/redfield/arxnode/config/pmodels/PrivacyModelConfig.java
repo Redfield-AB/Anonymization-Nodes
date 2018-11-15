@@ -6,13 +6,14 @@ import org.deidentifier.arx.Data;
 import org.deidentifier.arx.criteria.PrivacyCriterion;
 
 import se.redfield.arxnode.config.ColumnConfig;
+import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
 public interface PrivacyModelConfig {
 
 	public PrivacyModelEditor createEditor(Collection<ColumnConfig> columns);
 
-	public PrivacyCriterion createCriterion(Data data);
+	public PrivacyCriterion createCriterion(Data data, Config config);
 
 	public String getName();
 }

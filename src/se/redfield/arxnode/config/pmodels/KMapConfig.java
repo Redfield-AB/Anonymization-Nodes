@@ -8,6 +8,7 @@ import org.deidentifier.arx.criteria.KMap.CellSizeEstimator;
 import org.deidentifier.arx.criteria.PrivacyCriterion;
 
 import se.redfield.arxnode.config.ColumnConfig;
+import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.ui.pmodels.KMapEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
@@ -63,9 +64,9 @@ public class KMapConfig implements PrivacyModelConfig {
 	}
 
 	@Override
-	public PrivacyCriterion createCriterion(Data data) {
+	public PrivacyCriterion createCriterion(Data data, Config config) {
 		if (estimator == EstimatorOption.NONE) {
-			throw new RuntimeException("KMap without estimator is not implemented yet");
+			return new KMap(k, config.getSubsetConfig().createDataSubset(data));
 		}
 		return new KMap(k, significanceLevel, population.getPopulationModel(), estimator.getEstimator());
 	}
