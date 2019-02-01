@@ -84,6 +84,7 @@ public class Anonymizer {
 				throw e;
 			}
 		}
+		executor.shutdown();
 
 		optimum = findSingleOptimum(results);
 		return new BufferedDataTable[] { createDataTable(results, exec), createStatsTable(results, exec) };
