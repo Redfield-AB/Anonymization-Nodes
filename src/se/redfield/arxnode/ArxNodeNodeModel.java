@@ -24,7 +24,7 @@ public class ArxNodeNodeModel extends NodeModel {
 	private Anonymizer anonymizer;
 
 	protected ArxNodeNodeModel() {
-		super(1, 2);
+		super(1, 3);
 		config = new Config();
 	}
 

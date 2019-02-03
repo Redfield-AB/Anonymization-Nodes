@@ -3,8 +3,10 @@ package se.redfield.arxnode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -22,6 +24,7 @@ import org.deidentifier.arx.Data;
 import org.deidentifier.arx.Data.DefaultData;
 import org.deidentifier.arx.DataDefinition;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
+import org.knime.base.node.preproc.filter.row.RowFilterIterator;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -44,6 +47,7 @@ import se.redfield.arxnode.config.TransformationConfig;
 import se.redfield.arxnode.config.TransformationConfig.Mode;
 import se.redfield.arxnode.partiton.PartitionInfo;
 import se.redfield.arxnode.partiton.Partitioner;
+import se.redfield.arxnode.util.IndexesRowFilter;
 
 public class Anonymizer {
 
@@ -87,7 +91,32 @@ public class Anonymizer {
 		executor.shutdown();
 
 		optimum = findSingleOptimum(results);
-		return new BufferedDataTable[] { createDataTable(results, exec), createStatsTable(results, exec) };
+		BufferedDataTable anonTable = createDataTable(results, exec);
+		return new BufferedDataTable[] { anonTable, createStatsTable(results, exec),
+				createExceptionsTable(inTable, anonTable, exec) };
+	}
+
+	private BufferedDataTable createExceptionsTable(BufferedDataTable inTable, BufferedDataTable outTable,
+			ExecutionContext exec) {
+		Set<Long> indexes = new HashSet<>();
+		long index = 0;
+		for (DataRow r : outTable) {
+			if (r.stream().allMatch(cell -> "*".equals(cell.toString()))) {
+				indexes.add(index);
+			}
+			index++;
+		}
+
+		BufferedDataContainer container = exec.createDataContainer(inTable.getDataTableSpec());
+
+		RowFilterIterator iter = new RowFilterIterator(inTable, new IndexesRowFilter(indexes), exec);
+		while (iter.hasNext()) {
+			DataRow row = (DataRow) iter.next();
+			container.addRowToTable(row);
+		}
+
+		container.close();
+		return container.getTable();
 	}
 
 	private ARXNode findSingleOptimum(List<Pair<ARXResult, PartitionInfo>> results) {
