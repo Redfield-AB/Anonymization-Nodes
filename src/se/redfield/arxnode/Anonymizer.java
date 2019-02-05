@@ -3,10 +3,8 @@ package se.redfield.arxnode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -24,13 +22,13 @@ import org.deidentifier.arx.Data;
 import org.deidentifier.arx.Data.DefaultData;
 import org.deidentifier.arx.DataDefinition;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
-import org.knime.base.node.preproc.filter.row.RowFilterIterator;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.RowKey;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.LongCell;
@@ -47,7 +45,6 @@ import se.redfield.arxnode.config.TransformationConfig;
 import se.redfield.arxnode.config.TransformationConfig.Mode;
 import se.redfield.arxnode.partiton.PartitionInfo;
 import se.redfield.arxnode.partiton.Partitioner;
-import se.redfield.arxnode.util.IndexesRowFilter;
 
 public class Anonymizer {
 
@@ -98,24 +95,26 @@ public class Anonymizer {
 
 	private BufferedDataTable createExceptionsTable(BufferedDataTable inTable, BufferedDataTable outTable,
 			ExecutionContext exec) {
-		Set<Long> indexes = new HashSet<>();
-		long index = 0;
-		for (DataRow r : outTable) {
-			if (r.stream().allMatch(cell -> "*".equals(cell.toString()))) {
-				indexes.add(index);
-			}
-			index++;
-		}
-
 		BufferedDataContainer container = exec.createDataContainer(inTable.getDataTableSpec());
+		CloseableRowIterator outIter = outTable.iterator();
+		CloseableRowIterator inIter = inTable.iterator();
+		while (outIter.hasNext()) {
+			DataRow outRow = outIter.next();
+			DataRow inRow = inIter.next();
 
-		RowFilterIterator iter = new RowFilterIterator(inTable, new IndexesRowFilter(indexes), exec);
-		while (iter.hasNext()) {
-			DataRow row = (DataRow) iter.next();
-			container.addRowToTable(row);
+			boolean sameOrErased = true;
+			for (int i = 0; i < outRow.getNumCells() && sameOrErased; i++) {
+				String val = outRow.getCell(i).toString();
+				sameOrErased = val.equals("*") || val.equals(inRow.getCell(i).toString());
+			}
+
+			if (sameOrErased) {
+				container.addRowToTable(inRow);
+			}
 		}
-
 		container.close();
+		inIter.close();
+		outIter.close();
 		return container.getTable();
 	}
 
