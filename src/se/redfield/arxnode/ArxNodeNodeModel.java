@@ -92,7 +92,7 @@ public class ArxNodeNodeModel extends NodeModel {
 		config.initColumns(inSpecs[0]);
 		anonymizer = new Anonymizer(config);
 
-		return new DataTableSpec[] { config.createOutDataTableSpec(), anonymizer.createStatsTableSpec() };
+		return new DataTableSpec[] { config.createOutDataTableSpec(), anonymizer.createStatsTableSpec(), inSpecs[0] };
 	}
 
 	@Override

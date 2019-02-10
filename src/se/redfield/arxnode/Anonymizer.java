@@ -21,6 +21,7 @@ import org.deidentifier.arx.AttributeType.MicroAggregationFunction;
 import org.deidentifier.arx.Data;
 import org.deidentifier.arx.Data.DefaultData;
 import org.deidentifier.arx.DataDefinition;
+import org.deidentifier.arx.DataHandle;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
@@ -133,7 +134,16 @@ public class Anonymizer {
 			ARXResult res = pair.getFirst();
 			if (res.isResultAvailable()) {
 				ARXNode opt = findOptimumNode(res);
-				DataCell[] cells = new DataCell[6];
+
+				DataHandle handle = res.getOutput(opt);
+				int suppresedRowsNum = 0;
+				for (int i = 0; i < handle.getNumRows(); i++) {
+					if (handle.isOutlier(i)) {
+						suppresedRowsNum++;
+					}
+				}
+
+				DataCell[] cells = new DataCell[7];
 
 				cells[0] = new DoubleCell(Double.valueOf(opt.getHighestScore().toString()));
 				cells[1] = new StringCell(Arrays.toString(opt.getQuasiIdentifyingAttributes()));
@@ -141,6 +151,7 @@ public class Anonymizer {
 				cells[3] = new StringCell(opt.getAnonymity().toString());
 				cells[4] = new LongCell(pair.getSecond().getRows());
 				cells[5] = new StringCell(pair.getSecond().getCriteria());
+				cells[6] = new LongCell(suppresedRowsNum);
 
 				RowKey key = new RowKey("Row" + row++);
 				DataRow datarow = new DefaultRow(key, cells);
@@ -153,13 +164,14 @@ public class Anonymizer {
 	}
 
 	public DataTableSpec createStatsTableSpec() {
-		DataColumnSpec[] outColSpecs = new DataColumnSpec[6];
+		DataColumnSpec[] outColSpecs = new DataColumnSpec[7];
 		outColSpecs[0] = new DataColumnSpecCreator("Information Loss", DoubleCell.TYPE).createSpec();
 		outColSpecs[1] = new DataColumnSpecCreator("Headers", StringCell.TYPE).createSpec();
 		outColSpecs[2] = new DataColumnSpecCreator("Transformation", StringCell.TYPE).createSpec();
 		outColSpecs[3] = new DataColumnSpecCreator("Anonymity", StringCell.TYPE).createSpec();
 		outColSpecs[4] = new DataColumnSpecCreator("Row count", LongCell.TYPE).createSpec();
 		outColSpecs[5] = new DataColumnSpecCreator("Partition criteria", StringCell.TYPE).createSpec();
+		outColSpecs[6] = new DataColumnSpecCreator("Suppressed records", LongCell.TYPE).createSpec();
 		return new DataTableSpec(outColSpecs);
 	}
 
@@ -173,7 +185,6 @@ public class Anonymizer {
 				iter.next();
 				while (iter.hasNext()) {
 					String[] row = iter.next();
-					// logger.warn("row" + Arrays.toString(row));
 
 					DataCell[] cells = new DataCell[row.length];
 					for (int i = 0; i < cells.length; i++) {
