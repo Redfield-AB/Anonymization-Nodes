@@ -200,7 +200,7 @@ public class PrivacyModelsPane {
 			list.clearSelection();
 		}
 
-		currentEditor = config.createEditor(this.config.getColumns().values());
+		currentEditor = config.createEditor(this.config.getColumns());
 
 		editComponentContainer.removeAll();
 		editComponentContainer.add(currentEditor.getComponent());

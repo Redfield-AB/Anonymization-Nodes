@@ -15,9 +15,10 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 public class SubsetConfig extends SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(SubsetConfig.class);
 
-	private static final String CONFIG_MODE = "sampling.mode";
-	private static final String CONFIG_PROBABILITY = "sampling.probability";
-	private static final String CONFIG_QUERY = "sampling.query";
+	private static final String CONFIG_KEY = "subset";
+	private static final String CONFIG_MODE = "mode";
+	private static final String CONFIG_PROBABILITY = "probability";
+	private static final String CONFIG_QUERY = "query";
 
 	private SettingsModelString mode;
 	private SettingsModelDouble probability;
@@ -80,6 +81,11 @@ public class SubsetConfig extends SettingsModelConfig {
 			break;
 		}
 		return null;
+	}
+
+	@Override
+	public String getKey() {
+		return CONFIG_KEY;
 	}
 
 	public enum SamplingMode {

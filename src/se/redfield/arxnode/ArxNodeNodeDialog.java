@@ -66,7 +66,15 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	public void loadAdditionalSettingsFrom(NodeSettingsRO settings, DataTableSpec[] specs)
 			throws NotConfigurableException {
 		logger.info("Dialog.loadSettings");
-		config.load(settings);
+		if ((specs[0] == null) || (specs[0].getNumColumns() < 1)) {
+			throw new NotConfigurableException("Cannot be configured without" + " input table");
+		}
+
+		try {
+			config.load(settings);
+		} catch (InvalidSettingsException e) {
+			logger.debug(e.getMessage(), e);
+		}
 		config.initColumns(specs[0]);
 		initColumnsPanel(settings, specs[0]);
 		anonConfigPanel.load(settings, specs);
@@ -84,16 +92,16 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		columnsPanel.setLayout(new FormLayout("15:n, f:p:g, 15:n", rowSpec));
 
 		ColumnConfig[] columns = new ColumnConfig[config.getColumns().size()];
-		config.getColumns().values().forEach(c -> columns[c.getIndex()] = c);
+		config.getColumns().forEach(c -> columns[c.getIndex()] = c);
 		for (int i = 0; i < columns.length; i++) {
 			columnsPanel.add(createColumnRow(columns[i]), cc.rc(i * 2 + 2, 2));
 		}
 	}
 
 	private JPanel createColumnRow(ColumnConfig c) {
-		SettingsModelString fileModel = config.getHierarchySetting(c.getName());
-		SettingsModelString attrTypeModel = config.getAttrTypeSetting(c.getName());
-		SettingsModelDoubleBounded weightModel = config.getWeightSetting(c.getName());
+		SettingsModelString fileModel = c.getHierarchyFileModel();
+		SettingsModelString attrTypeModel = c.getAttrTypeModel();
+		SettingsModelDoubleBounded weightModel = c.getWeightModel();
 		DialogComponentFileChooser fileChooser = new DialogComponentFileChooser(fileModel, "ArxNode", "ahs");
 		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(c, weightModel);
 

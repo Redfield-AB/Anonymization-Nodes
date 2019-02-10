@@ -90,9 +90,11 @@ public class ArxNodeNodeModel extends NodeModel {
 		logger.debug("configure");
 
 		config.initColumns(inSpecs[0]);
+		config.validate();
 		anonymizer = new Anonymizer(config);
 
-		return new DataTableSpec[] { config.createOutDataTableSpec(), anonymizer.createStatsTableSpec(), inSpecs[0] };
+		return new DataTableSpec[] { anonymizer.createOutDataTableSpec(), anonymizer.createStatsTableSpec(),
+				inSpecs[0] };
 	}
 
 	@Override
@@ -103,11 +105,13 @@ public class ArxNodeNodeModel extends NodeModel {
 
 	@Override
 	protected void loadValidatedSettingsFrom(final NodeSettingsRO settings) throws InvalidSettingsException {
+		logger.debug("loadValidatedSettingsFrom");
 		config.load(settings);
 	}
 
 	@Override
 	protected void validateSettings(final NodeSettingsRO settings) throws InvalidSettingsException {
+		logger.debug("validateSettings");
 		config.validate(settings);
 	}
 

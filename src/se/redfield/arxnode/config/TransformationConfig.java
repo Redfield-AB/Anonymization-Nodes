@@ -2,12 +2,19 @@ package se.redfield.arxnode.config;
 
 import org.deidentifier.arx.AttributeType.MicroAggregationFunction;
 import org.deidentifier.arx.DataType;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
-import com.google.gson.Gson;
-
-public class TransformationConfig {
+public class TransformationConfig extends SettingsModelConfig {
+	private static final NodeLogger logger = NodeLogger.getLogger(TransformationConfig.class);
+	private static final String CONFIG_KEY = "transformation";
+	private static final String CONFIG_MODE = "mode";
+	private static final String CONFIG_MIN_LEVEL = "minLevel";
+	private static final String CONFIG_MAX_LEVEL = "maxLevel";
+	private static final String CONFIG_MA_FUNC = "microaggregationFunction";
+	private static final String CONFIG_IGNORE_MISSING = "ignoreMissingData";
 
 	private Mode mode;
 	private Integer minGeneralization;
@@ -21,22 +28,6 @@ public class TransformationConfig {
 		maxGeneralization = null;
 		microaggregationFunc = MicroaggregationFunction.ARITHMETIC_MEAN;
 		ignoreMissingData = true;
-	}
-
-	public void save(NodeSettingsWO settings, String key) {
-		String json = new Gson().toJson(this);
-		settings.addString(key, json);
-	}
-
-	public void load(NodeSettingsRO settings, String key) {
-		TransformationConfig config = new Gson().fromJson(settings.getString(key, null), TransformationConfig.class);
-		if (config != null) {
-			mode = config.mode;
-			minGeneralization = config.minGeneralization;
-			maxGeneralization = config.maxGeneralization;
-			microaggregationFunc = config.microaggregationFunc;
-			ignoreMissingData = config.ignoreMissingData;
-		}
 	}
 
 	public Mode getMode() {
@@ -79,6 +70,37 @@ public class TransformationConfig {
 		this.ignoreMissingData = ignoreMissingData;
 	}
 
+	@Override
+	public String getKey() {
+		return CONFIG_KEY;
+	}
+
+	@Override
+	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
+		mode = Mode.fromName(settings.getString(CONFIG_MODE, null));
+		microaggregationFunc = MicroaggregationFunction.fromName(settings.getString(CONFIG_MA_FUNC, null));
+		ignoreMissingData = settings.getBoolean(CONFIG_IGNORE_MISSING, true);
+		if (settings.containsKey(CONFIG_MIN_LEVEL)) {
+			minGeneralization = settings.getInt(CONFIG_MIN_LEVEL);
+		}
+		if (settings.containsKey(CONFIG_MAX_LEVEL)) {
+			maxGeneralization = settings.getInt(CONFIG_MAX_LEVEL);
+		}
+	}
+
+	@Override
+	public void save(NodeSettingsWO settings) {
+		settings.addString(CONFIG_MODE, mode.title);
+		settings.addString(CONFIG_MA_FUNC, microaggregationFunc.title);
+		settings.addBoolean(CONFIG_IGNORE_MISSING, ignoreMissingData);
+		if (minGeneralization != null) {
+			settings.addInt(CONFIG_MIN_LEVEL, minGeneralization);
+		}
+		if (maxGeneralization != null) {
+			settings.addInt(CONFIG_MAX_LEVEL, maxGeneralization);
+		}
+	}
+
 	public static enum Mode {
 		GENERALIZATION("Generalization"), //
 		MICROAGGREGATION("Microaggregation"), //
@@ -93,6 +115,19 @@ public class TransformationConfig {
 		@Override
 		public String toString() {
 			return title;
+		}
+
+		public static Mode fromName(String name) {
+			try {
+				return valueOf(name);
+			} catch (IllegalArgumentException e) {
+				for (Mode opt : values()) {
+					if (opt.title.equalsIgnoreCase(name)) {
+						return opt;
+					}
+				}
+			}
+			return GENERALIZATION;
 		}
 	}
 
@@ -135,6 +170,19 @@ public class TransformationConfig {
 				return new MicroaggregationFunction[] { MODE };
 			}
 			return values();
+		}
+
+		public static MicroaggregationFunction fromName(String name) {
+			try {
+				return valueOf(name);
+			} catch (IllegalArgumentException e) {
+				for (MicroaggregationFunction opt : values()) {
+					if (opt.title.equalsIgnoreCase(name)) {
+						return opt;
+					}
+				}
+			}
+			return ARITHMETIC_MEAN;
 		}
 	}
 }

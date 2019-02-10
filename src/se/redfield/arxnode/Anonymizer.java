@@ -176,7 +176,7 @@ public class Anonymizer {
 	}
 
 	private BufferedDataTable createDataTable(List<Pair<ARXResult, PartitionInfo>> results, ExecutionContext exec) {
-		BufferedDataContainer container = exec.createDataContainer(this.config.createOutDataTableSpec());
+		BufferedDataContainer container = exec.createDataContainer(createOutDataTableSpec());
 		int rowIdx = 0;
 		for (Pair<ARXResult, PartitionInfo> pair : results) {
 			ARXResult res = pair.getFirst();
@@ -201,6 +201,14 @@ public class Anonymizer {
 		return container.getTable();
 	}
 
+	public DataTableSpec createOutDataTableSpec() {
+		DataColumnSpec[] outColSpecs = new DataColumnSpec[config.getColumns().size()];
+		config.getColumns().forEach(c -> {
+			outColSpecs[c.getIndex()] = new DataColumnSpecCreator(c.getName(), StringCell.TYPE).createSpec();
+		});
+		return new DataTableSpec(outColSpecs);
+	}
+
 	private ARXNode findOptimumNode(ARXResult res) {
 		if (optimum == null) {
 			return res.getGlobalOptimum();
@@ -218,16 +226,14 @@ public class Anonymizer {
 	}
 
 	private ARXConfiguration configure(Data defData) {
-		config.getColumns().values().forEach(c -> {
+		config.getColumns().forEach(c -> {
 			DataDefinition def = defData.getDefinition();
-			HierarchyBuilder<?> hierarchy = getHierarchy(c.getHierarchyFile());
-			if (hierarchy != null) {
-				def.setAttributeType(c.getName(), hierarchy);
-			} else {
-				def.setAttributeType(c.getName(), c.getAttrType());
-			}
+			def.setAttributeType(c.getName(), c.getAttrType());
 
 			if (c.getAttrType() == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
+				HierarchyBuilder<?> hierarchy = getHierarchy(c.getHierarchyFile());
+				def.setAttributeType(c.getName(), hierarchy);
+
 				TransformationConfig tc = c.getTransformationConfig();
 				if (tc.getMode() == Mode.GENERALIZATION) {
 					if (tc.getMinGeneralization() != null) {
@@ -246,7 +252,7 @@ public class Anonymizer {
 		});
 		ARXConfiguration arxConfig = ARXConfiguration.create();
 		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion(defData, config)));
-		config.getColumns().values().forEach(c -> arxConfig.setAttributeWeight(c.getName(), c.getWeight()));
+		config.getColumns().forEach(c -> arxConfig.setAttributeWeight(c.getName(), c.getWeight()));
 
 		AnonymizationConfig aConfig = config.getAnonymizationConfig();
 		if (aConfig.getHeuristicSearchEnabled().getBooleanValue()) {

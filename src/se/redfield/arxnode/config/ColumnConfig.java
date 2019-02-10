@@ -1,32 +1,54 @@
 package se.redfield.arxnode.config;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+
+import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.DataType;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-import se.redfield.arxnode.Utils;
+public class ColumnConfig extends SettingsModelConfig {
 
-public class ColumnConfig {
+	private static final String CONFIG_HIERARCHY_FILE = "hierarchyFile";
+	private static final String CONFIG_ATTR_TYPE = "type";
+	private static final String CONFIG_WEIGHT = "weight";
 
 	private String name;
 	private int index;
 	private DataType<?> dataType;
-	private String hierarchyFile;
 	private AttributeType attrType;
-	private double weight;
 	private TransformationConfig transformationConfig;
 
-	public ColumnConfig(String name, int index, org.knime.core.data.DataType dataType) {
-		this(name, index, Utils.knimeToArxType(dataType));
+	private SettingsModelString hierarchyFileModel;
+	private SettingsModelString attrTypeModel;
+	private SettingsModelDoubleBounded weightModel;
+
+	public ColumnConfig(String name) {
+		this(name, 0, null);
 	}
 
 	public ColumnConfig(String name, int index, DataType<?> dataType) {
 		this.name = name;
 		this.index = index;
 		this.dataType = dataType;
-		this.hierarchyFile = "";
 		this.attrType = AttributeType.IDENTIFYING_ATTRIBUTE;
-		this.weight = 0.5;
 		this.transformationConfig = new TransformationConfig();
+
+		hierarchyFileModel = new SettingsModelString(CONFIG_HIERARCHY_FILE, "");
+		attrTypeModel = new SettingsModelString(CONFIG_ATTR_TYPE,
+				AttributeTypeOptions.IDENTIFYING_ATTRIBUTE.getTitle());
+		weightModel = new SettingsModelDoubleBounded(CONFIG_WEIGHT, 0.5, 0, 1);
+
+		attrTypeModel.addChangeListener(l -> {
+			AttributeTypeOptions option = AttributeTypeOptions.fromName(attrTypeModel.getStringValue());
+			attrType = option.getType();
+		});
+
+		addModels(hierarchyFileModel, attrTypeModel, weightModel);
 	}
 
 	public String getName() {
@@ -37,41 +59,70 @@ public class ColumnConfig {
 		return index;
 	}
 
+	public void setIndex(int index) {
+		this.index = index;
+	}
+
 	public DataType<?> getDataType() {
 		return dataType;
 	}
 
-	public void setHierarchyFile(String hierarchyFile) {
-		this.hierarchyFile = hierarchyFile;
+	public void setDataType(DataType<?> dataType) {
+		this.dataType = dataType;
 	}
 
 	public String getHierarchyFile() {
-		return hierarchyFile;
+		return hierarchyFileModel.getStringValue();
+	}
+
+	public SettingsModelString getHierarchyFileModel() {
+		return hierarchyFileModel;
 	}
 
 	public AttributeType getAttrType() {
 		return attrType;
 	}
 
-	public void setAttrType(AttributeType attrType) {
-		this.attrType = attrType;
+	public SettingsModelString getAttrTypeModel() {
+		return attrTypeModel;
 	}
 
 	public double getWeight() {
-		return weight;
+		return weightModel.getDoubleValue();
 	}
 
-	public void setWeight(double weight) {
-		this.weight = weight;
+	public SettingsModelDoubleBounded getWeightModel() {
+		return weightModel;
 	}
 
 	public TransformationConfig getTransformationConfig() {
 		return transformationConfig;
 	}
 
-	public void setTransformationConfig(TransformationConfig transformationConfig) {
-		if (transformationConfig != null) {
-			this.transformationConfig = transformationConfig;
+	@Override
+	public String getKey() {
+		return name;
+	}
+
+	@Override
+	protected Collection<? extends SettingsModelConfig> getChildred() {
+		return Arrays.asList(transformationConfig);
+	}
+
+	@Override
+	public void validate() throws InvalidSettingsException {
+		super.validate();
+
+		if (attrType == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
+			String path = getHierarchyFile();
+			if (StringUtils.isEmpty(path)) {
+				throw new InvalidSettingsException(
+						"Hierarcy file not set for quasi-identifying attribute '" + name + "'");
+			}
+			if (!new File(path).exists()) {
+				throw new InvalidSettingsException("File " + path + " not found");
+			}
 		}
+
 	}
 }

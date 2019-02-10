@@ -10,19 +10,21 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 public class AnonymizationConfig extends SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfig.class);
 
-	private static final String CONFIG_HEURISTIC_SEARCH_ENABLED = "CONFIG_HEURISTIC_SEARCH_ENABLED";
-	private static final String CONFIG_SEARCH_STEPS_LIMIT_ENABLED = "CONFIG_SEARCH_STEPS_LIMIT_ENABLED";
-	private static final String CONFIG_SEARCH_TIME_LIMIT_ENABLED = "CONFIG_SEARCH_TIME_LIMIT_ENABLED";
-	private static final String CONFIG_SEARCH_STEPS_LIMIT = "CONFIG_SEARCH_STEPS_LIMIT";
-	private static final String CONFIG_SEARCH_TIME_LIMIT = "CONFIG_SEARCH_TIME_LIMIT";
-	private static final String CONFIG_SUPPRESSION_LIMIT = "CONFIG_SUPPRESSION_LIMIT";
-	private static final String CONFIG_PRACTIVAL_MONOTONICITY = "CONFIG_PRACTIVAL_MONOTONICITY";
-	private static final String CONFIG_PRECOMPUTATION_ENABLED = "CONFIG_PRECOMPUTATION_ENABLED";
-	private static final String CONFIG_PRECOMPUTATION_THRESHOLD = "CONFIG_PRECOMPUTATION_THRESHOLD";
-	private static final String CONFIG_NUM_OF_THREADS = "CONFIG_NUM_OF_THREADS";
-	private static final String CONFIG_PARTITIONS_SINGLE_OPTIMUM = "CONFIG_PARTITIONS_SINGLE_OPTIMUM";
-	private static final String CONFIG_PARTITIONS_GROUP_BY_ENABLED = "CONFIG_PARTITIONS_GROUP_BY_ENABLED";
-	private static final String CONFIG_PARTITIONS_GROUP_BY_COLUMN = "CONFIG_PARTITIONS_GROUP_BY_COLUMN";
+	private static final String CONFIG_KEY = "anonymization";
+
+	private static final String CONFIG_HEURISTIC_SEARCH_ENABLED = "search.heuristicEnabled";
+	private static final String CONFIG_SEARCH_STEPS_LIMIT_ENABLED = "search.limitSteps";
+	private static final String CONFIG_SEARCH_TIME_LIMIT_ENABLED = "search.limitTime";
+	private static final String CONFIG_SEARCH_STEPS_LIMIT = "search.stepsLimit";
+	private static final String CONFIG_SEARCH_TIME_LIMIT = "search.timeLimit";
+	private static final String CONFIG_SUPPRESSION_LIMIT = "suppressionLimit";
+	private static final String CONFIG_PRACTIVAL_MONOTONICITY = "assumeMonotonicity";
+	private static final String CONFIG_PRECOMPUTATION_ENABLED = "precomputationEnabled";
+	private static final String CONFIG_PRECOMPUTATION_THRESHOLD = "precomputationThreshold";
+	private static final String CONFIG_NUM_OF_THREADS = "partition.numOfThreads";
+	private static final String CONFIG_PARTITIONS_SINGLE_OPTIMUM = "partition.singleOptimum";
+	private static final String CONFIG_PARTITIONS_GROUP_BY_ENABLED = "partition.group";
+	private static final String CONFIG_PARTITIONS_GROUP_BY_COLUMN = "partition.groupBy";
 
 	private SettingsModelBoolean heuristicSearchEnabled;
 	private SettingsModelBoolean limitSearchSteps;
@@ -154,5 +156,10 @@ public class AnonymizationConfig extends SettingsModelConfig {
 
 	public SettingsModelString getPartitionsGroupByColumn() {
 		return partitionsGroupByColumn;
+	}
+
+	@Override
+	public String getKey() {
+		return CONFIG_KEY;
 	}
 }
