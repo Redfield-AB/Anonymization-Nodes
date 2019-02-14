@@ -1,5 +1,8 @@
 package se.redfield.arxnode.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
@@ -7,7 +10,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-public class AnonymizationConfig extends SettingsModelConfig {
+public class AnonymizationConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfig.class);
 
 	private static final String CONFIG_KEY = "anonymization";
@@ -65,10 +68,6 @@ public class AnonymizationConfig extends SettingsModelConfig {
 		partitionsGroupByEnabled = new SettingsModelBoolean(CONFIG_PARTITIONS_GROUP_BY_ENABLED, false);
 		partitionsGroupByColumn = new SettingsModelString(CONFIG_PARTITIONS_GROUP_BY_COLUMN, "");
 
-		addModels(heuristicSearchEnabled, limitSearchSteps, limitSearchTime, searchStepsLimit, searchTimeLimit,
-				suppresionLimit, practivalMonotonicity, precomputationEnabled, precomputationThreshold, numOfThreads,
-				partitionsSingleOptimum, partitionsGroupByEnabled, partitionsGroupByColumn);
-
 		limitSearchSteps.setEnabled(false);
 		limitSearchTime.setEnabled(false);
 		searchStepsLimit.setEnabled(false);
@@ -95,6 +94,13 @@ public class AnonymizationConfig extends SettingsModelConfig {
 			partitionsSingleOptimum.setEnabled(enabled);
 			partitionsGroupByEnabled.setEnabled(enabled);
 		});
+	}
+
+	@Override
+	public List<SettingsModel> getModels() {
+		return Arrays.asList(heuristicSearchEnabled, limitSearchSteps, limitSearchTime, searchStepsLimit,
+				searchTimeLimit, suppresionLimit, practivalMonotonicity, precomputationEnabled, precomputationThreshold,
+				numOfThreads, partitionsSingleOptimum, partitionsGroupByEnabled, partitionsGroupByColumn);
 	}
 
 	private void addEnabledListener(SettingsModelBoolean source, SettingsModel... targets) {

@@ -7,7 +7,7 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
-public class TransformationConfig extends SettingsModelConfig {
+public class TransformationConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationConfig.class);
 	private static final String CONFIG_KEY = "transformation";
 	private static final String CONFIG_MODE = "mode";

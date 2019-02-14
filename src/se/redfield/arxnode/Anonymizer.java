@@ -130,6 +130,7 @@ public class Anonymizer {
 	private BufferedDataTable createStatsTable(List<Pair<ARXResult, PartitionInfo>> results, ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(createStatsTableSpec());
 		int row = 0;
+		int totalSuppressedCount = 0;
 		for (Pair<ARXResult, PartitionInfo> pair : results) {
 			ARXResult res = pair.getFirst();
 			if (res.isResultAvailable()) {
@@ -142,6 +143,7 @@ public class Anonymizer {
 						suppresedRowsNum++;
 					}
 				}
+				totalSuppressedCount += suppresedRowsNum;
 
 				DataCell[] cells = new DataCell[7];
 
@@ -157,6 +159,10 @@ public class Anonymizer {
 				DataRow datarow = new DefaultRow(key, cells);
 				container.addRowToTable(datarow);
 			}
+		}
+
+		if (totalSuppressedCount > 0) {
+			logger.warn("Some records were suppressed");
 		}
 
 		container.close();

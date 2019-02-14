@@ -1,7 +1,9 @@
 package se.redfield.arxnode.config;
 
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -9,10 +11,11 @@ import org.deidentifier.arx.Data;
 import org.deidentifier.arx.DataSelector;
 import org.deidentifier.arx.DataSubset;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-public class SubsetConfig extends SettingsModelConfig {
+public class SubsetConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(SubsetConfig.class);
 
 	private static final String CONFIG_KEY = "subset";
@@ -29,8 +32,6 @@ public class SubsetConfig extends SettingsModelConfig {
 		probability = new SettingsModelDouble(CONFIG_PROBABILITY, 0.1);
 		query = new SettingsModelString(CONFIG_QUERY, "");
 
-		addModels(mode, probability, query);
-
 		probability.setEnabled(false);
 		query.setEnabled(false);
 
@@ -39,6 +40,11 @@ public class SubsetConfig extends SettingsModelConfig {
 			probability.setEnabled(m == SamplingMode.RANDOM);
 			query.setEnabled(m == SamplingMode.QUERY);
 		});
+	}
+
+	@Override
+	public List<SettingsModel> getModels() {
+		return Arrays.asList(mode, probability, query);
 	}
 
 	public SettingsModelString getMode() {

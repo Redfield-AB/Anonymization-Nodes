@@ -10,11 +10,10 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
-import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.PrivacyModelsConfig;
 
-public class Config extends SettingsModelConfig {
+public class Config implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(Config.class);
 
 	public static final String CONFIG_PRIVACY_MODELS = "privacy_models";
@@ -35,24 +34,19 @@ public class Config extends SettingsModelConfig {
 
 	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
 		logger.debug("Config.load");
-		super.load(settings);
+		SettingsModelConfig.super.load(settings);
 		privacyModelConfig = PrivacyModelsConfig.load(settings);
 	}
 
 	public void save(NodeSettingsWO settings) {
 		logger.debug("Config.save");
-		super.save(settings);
+		SettingsModelConfig.super.save(settings);
 		privacyModelConfig.save(settings);
 	}
 
 	public void initColumns(DataTableSpec spec) {
 		logger.debug("Config.initColumns");
-		for (int j = 0; j < spec.getColumnNames().length; j++) {
-			String name = spec.getColumnNames()[j];
-			ColumnConfig c = columnsConfig.getColumn(name);
-			c.setIndex(j);
-			c.setDataType(Utils.knimeToArxType(spec.getColumnSpec(j).getType()));
-		}
+		columnsConfig.configure(spec);
 	}
 
 	public void validate(NodeSettingsRO settings) throws InvalidSettingsException {
@@ -64,7 +58,7 @@ public class Config extends SettingsModelConfig {
 
 	@Override
 	public void validate() throws InvalidSettingsException {
-		super.validate();
+		SettingsModelConfig.super.validate();
 		privacyModelConfig.validate();
 	}
 
@@ -94,7 +88,7 @@ public class Config extends SettingsModelConfig {
 	}
 
 	@Override
-	protected Collection<SettingsModelConfig> getChildred() {
+	public Collection<SettingsModelConfig> getChildred() {
 		return Arrays.asList(columnsConfig, anonymizationConfig, subsetConfig);
 	}
 }

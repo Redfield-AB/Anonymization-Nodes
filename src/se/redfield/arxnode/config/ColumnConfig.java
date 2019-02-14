@@ -3,15 +3,17 @@ package se.redfield.arxnode.config;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.DataType;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
-public class ColumnConfig extends SettingsModelConfig {
+public class ColumnConfig implements SettingsModelConfig {
 
 	private static final String CONFIG_HIERARCHY_FILE = "hierarchyFile";
 	private static final String CONFIG_ATTR_TYPE = "type";
@@ -47,8 +49,11 @@ public class ColumnConfig extends SettingsModelConfig {
 			AttributeTypeOptions option = AttributeTypeOptions.fromName(attrTypeModel.getStringValue());
 			attrType = option.getType();
 		});
+	}
 
-		addModels(hierarchyFileModel, attrTypeModel, weightModel);
+	@Override
+	public List<SettingsModel> getModels() {
+		return Arrays.asList(hierarchyFileModel, attrTypeModel, weightModel);
 	}
 
 	public String getName() {
@@ -105,13 +110,13 @@ public class ColumnConfig extends SettingsModelConfig {
 	}
 
 	@Override
-	protected Collection<? extends SettingsModelConfig> getChildred() {
+	public Collection<? extends SettingsModelConfig> getChildred() {
 		return Arrays.asList(transformationConfig);
 	}
 
 	@Override
 	public void validate() throws InvalidSettingsException {
-		super.validate();
+		SettingsModelConfig.super.validate();
 
 		if (attrType == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
 			String path = getHierarchyFile();

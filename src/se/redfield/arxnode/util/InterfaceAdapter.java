@@ -39,7 +39,7 @@ public class InterfaceAdapter<T> implements JsonSerializer<T>, JsonDeserializer<
 
 	public JsonElement serialize(T jsonElement, Type type, JsonSerializationContext jsonSerializationContext) {
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.addProperty(CLASSNAME, jsonElement.getClass().getName());
+		jsonObject.addProperty(CLASSNAME, jsonElement.getClass().getSimpleName());
 		jsonObject.add(DATA, jsonSerializationContext.serialize(jsonElement));
 		return jsonObject;
 	}
