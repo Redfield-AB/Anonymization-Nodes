@@ -9,12 +9,12 @@ import org.knime.core.node.NodeSettingsWO;
 
 public class TransformationConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationConfig.class);
-	private static final String CONFIG_KEY = "transformation";
-	private static final String CONFIG_MODE = "mode";
-	private static final String CONFIG_MIN_LEVEL = "minLevel";
-	private static final String CONFIG_MAX_LEVEL = "maxLevel";
-	private static final String CONFIG_MA_FUNC = "microaggregationFunction";
-	private static final String CONFIG_IGNORE_MISSING = "ignoreMissingData";
+	public static final String CONFIG_KEY = "transformation";
+	public static final String CONFIG_MODE = "mode";
+	public static final String CONFIG_MIN_LEVEL = "minLevel";
+	public static final String CONFIG_MAX_LEVEL = "maxLevel";
+	public static final String CONFIG_MA_FUNC = "microaggregationFunction";
+	public static final String CONFIG_IGNORE_MISSING = "ignoreMissingData";
 
 	private Mode mode;
 	private Integer minGeneralization;

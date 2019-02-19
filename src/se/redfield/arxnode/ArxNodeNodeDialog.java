@@ -15,7 +15,6 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
-import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 import com.jgoodies.forms.layout.CellConstraints;
@@ -101,9 +100,8 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	private JPanel createColumnRow(ColumnConfig c) {
 		SettingsModelString fileModel = c.getHierarchyFileModel();
 		SettingsModelString attrTypeModel = c.getAttrTypeModel();
-		SettingsModelDoubleBounded weightModel = c.getWeightModel();
 		DialogComponentFileChooser fileChooser = new DialogComponentFileChooser(fileModel, "ArxNode", "ahs");
-		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(c, weightModel);
+		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(this, c);
 
 		attrTypeModel.addChangeListener(
 				e -> onAttrTypeChanged(fileModel, attrTypeModel, fileChooser, transformationPanel, false));

@@ -17,7 +17,7 @@ import se.redfield.arxnode.Utils;
 public class ColumnsConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(ColumnsConfig.class);
 
-	private static final String CONFIG_KEY = "columns";
+	public static final String CONFIG_KEY = "columns";
 
 	private Map<String, ColumnConfig> columns;
 

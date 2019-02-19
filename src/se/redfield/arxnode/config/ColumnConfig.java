@@ -17,7 +17,7 @@ public class ColumnConfig implements SettingsModelConfig {
 
 	private static final String CONFIG_HIERARCHY_FILE = "hierarchyFile";
 	private static final String CONFIG_ATTR_TYPE = "type";
-	private static final String CONFIG_WEIGHT = "weight";
+	public static final String CONFIG_WEIGHT = "weight";
 
 	private String name;
 	private int index;
