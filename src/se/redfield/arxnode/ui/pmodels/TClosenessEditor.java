@@ -16,7 +16,7 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.config.ColumnConfig;
-import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
+import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.TClosenessConfig;
 import se.redfield.arxnode.config.pmodels.TClosenessConfig.TClosenessMeasure;
 
@@ -59,7 +59,7 @@ public class TClosenessEditor extends ColumnPrivacyModelEditor {
 	}
 
 	@Override
-	public void readFromComponent(PrivacyModelConfig target) {
+	public void readFromComponent(AbstractPrivacyModelConfig target) {
 		super.readFromComponent(target);
 		TClosenessConfig c = (TClosenessConfig) target;
 		c.setMeasure((TClosenessMeasure) cbMesasure.getSelectedItem());

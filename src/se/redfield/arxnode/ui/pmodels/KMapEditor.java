@@ -12,9 +12,9 @@ import org.knime.core.node.NodeLogger;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.KMapConfig;
 import se.redfield.arxnode.config.pmodels.KMapConfig.EstimatorOption;
-import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
 import se.redfield.arxnode.ui.PopulationConfigPanel;
 import se.redfield.arxnode.ui.PrivacyModelsPane;
 
@@ -64,7 +64,7 @@ public class KMapEditor implements PrivacyModelEditor {
 	}
 
 	@Override
-	public void readFromComponent(PrivacyModelConfig target) {
+	public void readFromComponent(AbstractPrivacyModelConfig target) {
 		KMapConfig c = (KMapConfig) target;
 		c.setK((int) kInput.getValue());
 		c.setEstimator((EstimatorOption) cbEstimator.getSelectedItem());

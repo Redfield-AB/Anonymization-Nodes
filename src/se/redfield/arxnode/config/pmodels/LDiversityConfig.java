@@ -8,6 +8,9 @@ import org.deidentifier.arx.criteria.EntropyLDiversity;
 import org.deidentifier.arx.criteria.EntropyLDiversity.EntropyEstimator;
 import org.deidentifier.arx.criteria.PrivacyCriterion;
 import org.deidentifier.arx.criteria.RecursiveCLDiversity;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
@@ -15,6 +18,11 @@ import se.redfield.arxnode.ui.pmodels.LDiversityEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
 public class LDiversityConfig extends ColumnPrivacyModelConfig {
+
+	public static final String CONFIG_INT_L = "intL";
+	public static final String CONFIG_DOUBLE_L = "doubleL";
+	public static final String CONFIG_C = "c";
+	public static final String CONFIG_VARIANT = "variant";
 
 	private int intL;
 	private double doubleL;
@@ -98,5 +106,23 @@ public class LDiversityConfig extends ColumnPrivacyModelConfig {
 			return String.format("Recursive-(%.3f, %d)-diversity", c, intL);
 		}
 		return getName();
+	}
+
+	@Override
+	public void save(NodeSettingsWO settings) {
+		super.save(settings);
+		settings.addInt(CONFIG_INT_L, intL);
+		settings.addDouble(CONFIG_DOUBLE_L, doubleL);
+		settings.addDouble(CONFIG_C, c);
+		settings.addString(CONFIG_VARIANT, variant.getTitle());
+	}
+
+	@Override
+	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
+		super.load(settings);
+		intL = settings.getInt(CONFIG_INT_L);
+		doubleL = settings.getDouble(CONFIG_DOUBLE_L);
+		c = settings.getDouble(CONFIG_C);
+		variant = LDiversityVariant.fromString(settings.getString(CONFIG_VARIANT));
 	}
 }

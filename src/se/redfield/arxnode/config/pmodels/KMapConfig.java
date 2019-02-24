@@ -1,18 +1,28 @@
 package se.redfield.arxnode.config.pmodels;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.deidentifier.arx.Data;
 import org.deidentifier.arx.criteria.KMap;
 import org.deidentifier.arx.criteria.KMap.CellSizeEstimator;
 import org.deidentifier.arx.criteria.PrivacyCriterion;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
+import se.redfield.arxnode.config.SettingsModelConfig;
 import se.redfield.arxnode.ui.pmodels.KMapEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
+import se.redfield.arxnode.util.TitledEnum;
 
-public class KMapConfig implements PrivacyModelConfig {
+public class KMapConfig extends AbstractPrivacyModelConfig {
+
+	public static final String CONFIG_K = "k";
+	public static final String CONFIG_ESTIMATOR = "estimator";
+	public static final String CONFIG_SIGNIFICANCE_LEVEL = "significanceLevel";
 
 	private int k;
 	private EstimatorOption estimator;
@@ -85,7 +95,28 @@ public class KMapConfig implements PrivacyModelConfig {
 		return result;
 	}
 
-	public enum EstimatorOption {
+	@Override
+	public Collection<? extends SettingsModelConfig> getChildred() {
+		return Arrays.asList(population);
+	}
+
+	@Override
+	public void save(NodeSettingsWO settings) {
+		super.save(settings);
+		settings.addInt(CONFIG_K, k);
+		settings.addDouble(CONFIG_SIGNIFICANCE_LEVEL, significanceLevel);
+		settings.addString(CONFIG_ESTIMATOR, estimator.getTitle());
+	}
+
+	@Override
+	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
+		super.load(settings);
+		k = settings.getInt(CONFIG_K);
+		significanceLevel = settings.getDouble(CONFIG_SIGNIFICANCE_LEVEL);
+		estimator = EstimatorOption.fromString(settings.getString(CONFIG_ESTIMATOR));
+	}
+
+	public enum EstimatorOption implements TitledEnum {
 		NONE("None"), //
 		POISSON(CellSizeEstimator.POISSON), //
 		ZERO_TRUNCATED_POISSON(CellSizeEstimator.ZERO_TRUNCATED_POISSON);
@@ -110,6 +141,15 @@ public class KMapConfig implements PrivacyModelConfig {
 		@Override
 		public String toString() {
 			return title;
+		}
+
+		@Override
+		public String getTitle() {
+			return title;
+		}
+
+		public static EstimatorOption fromString(String str) {
+			return TitledEnum.fromString(values(), str, NONE);
 		}
 	}
 }

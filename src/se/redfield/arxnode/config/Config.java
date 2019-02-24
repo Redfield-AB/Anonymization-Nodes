@@ -8,40 +8,23 @@ import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
-import org.knime.core.node.NodeSettingsWO;
 
-import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
+import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.PrivacyModelsConfig;
 
 public class Config implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(Config.class);
 
-	public static final String CONFIG_PRIVACY_MODELS = "privacy_models";
-
 	private PrivacyModelsConfig privacyModelConfig;
 	private AnonymizationConfig anonymizationConfig;
 	private SubsetConfig subsetConfig;
-
 	private ColumnsConfig columnsConfig;
 
 	public Config() {
 		privacyModelConfig = new PrivacyModelsConfig();
 		anonymizationConfig = new AnonymizationConfig();
 		subsetConfig = new SubsetConfig();
-
 		columnsConfig = new ColumnsConfig();
-	}
-
-	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
-		logger.debug("Config.load");
-		SettingsModelConfig.super.load(settings);
-		privacyModelConfig = PrivacyModelsConfig.load(settings);
-	}
-
-	public void save(NodeSettingsWO settings) {
-		logger.debug("Config.save");
-		SettingsModelConfig.super.save(settings);
-		privacyModelConfig.save(settings);
 	}
 
 	public void initColumns(DataTableSpec spec) {
@@ -56,18 +39,12 @@ public class Config implements SettingsModelConfig {
 		tmp.validate();
 	}
 
-	@Override
-	public void validate() throws InvalidSettingsException {
-		SettingsModelConfig.super.validate();
-		privacyModelConfig.validate();
-	}
-
 	public Collection<ColumnConfig> getColumns() {
 		return columnsConfig.getColumns().values();
 	}
 
-	public List<PrivacyModelConfig> getPrivacyModels() {
-		return privacyModelConfig.getModels();
+	public List<AbstractPrivacyModelConfig> getPrivacyModels() {
+		return privacyModelConfig.getPrivacyModels();
 	}
 
 	public PrivacyModelsConfig getPrivacyModelConfig() {
@@ -89,6 +66,6 @@ public class Config implements SettingsModelConfig {
 
 	@Override
 	public Collection<SettingsModelConfig> getChildred() {
-		return Arrays.asList(columnsConfig, anonymizationConfig, subsetConfig);
+		return Arrays.asList(columnsConfig, anonymizationConfig, subsetConfig, privacyModelConfig);
 	}
 }

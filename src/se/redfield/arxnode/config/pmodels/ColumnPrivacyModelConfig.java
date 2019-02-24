@@ -1,6 +1,12 @@
 package se.redfield.arxnode.config.pmodels;
 
-public abstract class ColumnPrivacyModelConfig implements PrivacyModelConfig {
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
+
+public abstract class ColumnPrivacyModelConfig extends AbstractPrivacyModelConfig {
+
+	public static final String CONFIG_COLUMN = "column";
 
 	private String column;
 
@@ -16,7 +22,18 @@ public abstract class ColumnPrivacyModelConfig implements PrivacyModelConfig {
 
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
 		return getToStringPrefix() + " for [" + column + "]";
+	}
+
+	@Override
+	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
+		super.load(settings);
+		column = settings.getString(CONFIG_COLUMN);
+	}
+
+	@Override
+	public void save(NodeSettingsWO settings) {
+		super.save(settings);
+		settings.addString(CONFIG_COLUMN, column);
 	}
 }

@@ -14,8 +14,8 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.config.ColumnConfig;
+import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.ColumnPrivacyModelConfig;
-import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
 
 public abstract class ColumnPrivacyModelEditor implements PrivacyModelEditor {
 
@@ -38,7 +38,7 @@ public abstract class ColumnPrivacyModelEditor implements PrivacyModelEditor {
 	}
 
 	@Override
-	public void readFromComponent(PrivacyModelConfig target) {
+	public void readFromComponent(AbstractPrivacyModelConfig target) {
 		((ColumnPrivacyModelConfig) target).setColumn((String) cbColumn.getSelectedItem());
 	}
 }

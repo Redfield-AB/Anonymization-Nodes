@@ -15,9 +15,9 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.config.ColumnConfig;
+import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.LDiversityConfig;
 import se.redfield.arxnode.config.pmodels.LDiversityVariant;
-import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
 
 public class LDiversityEditor extends ColumnPrivacyModelEditor {
 	private static final NodeLogger logger = NodeLogger.getLogger(LDiversityEditor.class);
@@ -66,7 +66,7 @@ public class LDiversityEditor extends ColumnPrivacyModelEditor {
 	}
 
 	@Override
-	public void readFromComponent(PrivacyModelConfig target) {
+	public void readFromComponent(AbstractPrivacyModelConfig target) {
 		super.readFromComponent(target);
 		LDiversityConfig c = (LDiversityConfig) target;
 		c.setVariant((LDiversityVariant) cbVariant.getSelectedItem());

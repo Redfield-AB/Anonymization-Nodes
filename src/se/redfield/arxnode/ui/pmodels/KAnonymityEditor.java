@@ -6,8 +6,8 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.KAnonymityConfig;
-import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
 
 public class KAnonymityEditor implements PrivacyModelEditor {
 
@@ -30,7 +30,7 @@ public class KAnonymityEditor implements PrivacyModelEditor {
 	}
 
 	@Override
-	public void readFromComponent(PrivacyModelConfig target) {
+	public void readFromComponent(AbstractPrivacyModelConfig target) {
 		((KAnonymityConfig) target).setFactor((int) factorInput.getValue());
 	}
 

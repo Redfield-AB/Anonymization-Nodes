@@ -2,10 +2,18 @@ package se.redfield.arxnode.config.pmodels;
 
 import org.deidentifier.arx.ARXPopulationModel;
 import org.deidentifier.arx.ARXPopulationModel.Region;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 import se.redfield.arxnode.Utils;
+import se.redfield.arxnode.config.SettingsModelConfig;
 
-public class PopulationConfig {
+public class PopulationConfig implements SettingsModelConfig {
+
+	public static final String CONFIG_KEY = "population";
+	public static final String CONFIG_REGION = "region";
+	public static final String CONFIG_POPULATION_SIZE = "size";
 
 	private String region;
 	private long populationSize;
@@ -37,5 +45,24 @@ public class PopulationConfig {
 			return ARXPopulationModel.create(populationSize);
 		}
 		return ARXPopulationModel.create(r);
+	}
+
+	@Override
+	public String getKey() {
+		return CONFIG_KEY;
+	}
+
+	@Override
+	public void save(NodeSettingsWO settings) {
+		SettingsModelConfig.super.save(settings);
+		settings.addString(CONFIG_REGION, region);
+		settings.addLong(CONFIG_POPULATION_SIZE, populationSize);
+	}
+
+	@Override
+	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
+		SettingsModelConfig.super.load(settings);
+		region = settings.getString(CONFIG_REGION);
+		populationSize = settings.getLong(CONFIG_POPULATION_SIZE);
 	}
 }

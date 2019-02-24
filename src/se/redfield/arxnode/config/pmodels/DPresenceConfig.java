@@ -5,13 +5,19 @@ import java.util.Collection;
 import org.deidentifier.arx.Data;
 import org.deidentifier.arx.criteria.DPresence;
 import org.deidentifier.arx.criteria.PrivacyCriterion;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeSettingsRO;
+import org.knime.core.node.NodeSettingsWO;
 
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.ui.pmodels.DPresenceEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
-public class DPresenceConfig implements PrivacyModelConfig {
+public class DPresenceConfig extends AbstractPrivacyModelConfig {
+
+	public static final String CONFIG_D_MIN = "dMin";
+	public static final String CONFIG_D_MAX = "dMax";
 
 	private double dMin;
 	private double dMax;
@@ -57,4 +63,17 @@ public class DPresenceConfig implements PrivacyModelConfig {
 		return String.format("(%.3f, %.3f)-Presence", dMin, dMax);
 	}
 
+	@Override
+	public void save(NodeSettingsWO settings) {
+		super.save(settings);
+		settings.addDouble(CONFIG_D_MIN, dMin);
+		settings.addDouble(CONFIG_D_MAX, dMax);
+	}
+
+	@Override
+	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
+		super.load(settings);
+		dMin = settings.getDouble(CONFIG_D_MIN);
+		dMax = settings.getDouble(CONFIG_D_MAX);
+	}
 }

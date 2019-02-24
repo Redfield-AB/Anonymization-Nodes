@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -23,11 +24,11 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.config.Config;
+import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.DPresenceConfig;
 import se.redfield.arxnode.config.pmodels.KAnonymityConfig;
 import se.redfield.arxnode.config.pmodels.KMapConfig;
 import se.redfield.arxnode.config.pmodels.LDiversityConfig;
-import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.TClosenessConfig;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 import se.redfield.arxnode.util.PopupMenuButton;
@@ -41,13 +42,14 @@ public class PrivacyModelsPane {
 	private JPanel editPanel;
 	private JPanel editComponentContainer;
 
-	private JList<PrivacyModelConfig> list;
+	private JList<AbstractPrivacyModelConfig> list;
 	private PrivacyListModel model;
 
+	private JCheckBox cbSplit;
 	private JButton bEdit;
 	private JButton bRemove;
 
-	private PrivacyModelConfig currentConfig;
+	private AbstractPrivacyModelConfig currentConfig;
 	private PrivacyModelEditor currentEditor;
 	private boolean isNew;
 
@@ -79,6 +81,7 @@ public class PrivacyModelsPane {
 	}
 
 	private JPanel createEditPanel() {
+		cbSplit = new JCheckBox("Split flow variables");
 		JButton bSave = new JButton("Save");
 		bSave.addActionListener(e -> onSave());
 		JButton bCancel = new JButton("Cancel");
@@ -87,10 +90,11 @@ public class PrivacyModelsPane {
 		editComponentContainer = new JPanel();
 
 		CellConstraints cc = new CellConstraints();
-		editPanel = new JPanel(new FormLayout("f:p:g, p:n, 5:n, p:n, f:p:g", "f:p:g, 5:n, p:n"));
+		editPanel = new JPanel(new FormLayout("f:p:g, p:n, 5:n, p:n, f:p:g", "f:p:g, 5:n, p:n, 5:n, p:n"));
 		editPanel.add(editComponentContainer, cc.rcw(1, 1, 5));
-		editPanel.add(bSave, cc.rc(3, 2));
-		editPanel.add(bCancel, cc.rc(3, 4));
+		editPanel.add(cbSplit, cc.rcw(3, 2, 3));
+		editPanel.add(bSave, cc.rc(5, 2));
+		editPanel.add(bCancel, cc.rc(5, 4));
 
 		editPanel.setVisible(false);
 		return editPanel;
@@ -98,6 +102,13 @@ public class PrivacyModelsPane {
 
 	private void onSave() {
 		currentEditor.readFromComponent(currentConfig);
+		if (cbSplit.isSelected()) {
+			if (currentConfig.getIndex() == -1) {
+				currentConfig.assignIndex(config.getPrivacyModels());
+			}
+		} else {
+			currentConfig.setIndex(-1);
+		}
 		if (isNew) {
 			config.getPrivacyModels().add(currentConfig);
 		}
@@ -163,7 +174,7 @@ public class PrivacyModelsPane {
 		return menu;
 	}
 
-	private JMenuItem createMenuItem(PrivacyModelConfig instance) {
+	private JMenuItem createMenuItem(AbstractPrivacyModelConfig instance) {
 		JMenuItem item = new JMenuItem(instance.getName());
 		item.addActionListener(e -> edit(instance, true));
 		return item;
@@ -176,14 +187,14 @@ public class PrivacyModelsPane {
 	}
 
 	private void onEdit() {
-		PrivacyModelConfig selected = list.getSelectedValue();
+		AbstractPrivacyModelConfig selected = list.getSelectedValue();
 		if (selected != null) {
 			edit(selected, false);
 		}
 	}
 
 	private void onRemove() {
-		PrivacyModelConfig selected = list.getSelectedValue();
+		AbstractPrivacyModelConfig selected = list.getSelectedValue();
 		if (selected != null) {
 			cancelEdit();
 			config.getPrivacyModels().remove(selected);
@@ -192,7 +203,7 @@ public class PrivacyModelsPane {
 		}
 	}
 
-	private void edit(PrivacyModelConfig config, boolean isNew) {
+	private void edit(AbstractPrivacyModelConfig config, boolean isNew) {
 		currentConfig = config;
 		this.isNew = isNew;
 
@@ -204,11 +215,12 @@ public class PrivacyModelsPane {
 
 		editComponentContainer.removeAll();
 		editComponentContainer.add(currentEditor.getComponent());
+		cbSplit.setSelected(currentConfig.getIndex() > -1);
 		editPanel.updateUI();
 		editPanel.setVisible(true);
 	}
 
-	private class PrivacyListModel implements ListModel<PrivacyModelConfig> {
+	private class PrivacyListModel implements ListModel<AbstractPrivacyModelConfig> {
 		private List<ListDataListener> listeners = new ArrayList<>();
 
 		@Override
@@ -220,7 +232,7 @@ public class PrivacyModelsPane {
 		}
 
 		@Override
-		public PrivacyModelConfig getElementAt(int index) {
+		public AbstractPrivacyModelConfig getElementAt(int index) {
 			return config.getPrivacyModels().get(index);
 		}
 

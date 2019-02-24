@@ -10,8 +10,8 @@ import javax.swing.SpinnerNumberModel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.DPresenceConfig;
-import se.redfield.arxnode.config.pmodels.PrivacyModelConfig;
 
 public class DPresenceEditor implements PrivacyModelEditor {
 
@@ -44,7 +44,7 @@ public class DPresenceEditor implements PrivacyModelEditor {
 	}
 
 	@Override
-	public void readFromComponent(PrivacyModelConfig target) {
+	public void readFromComponent(AbstractPrivacyModelConfig target) {
 		DPresenceConfig c = (DPresenceConfig) target;
 		c.setdMin((double) dMinInput.getValue());
 		c.setdMax((double) dMaxInput.getValue());
