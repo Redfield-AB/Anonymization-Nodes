@@ -2,7 +2,9 @@ package se.redfield.arxnode.config;
 
 import org.deidentifier.arx.AttributeType;
 
-public enum AttributeTypeOptions {
+import se.redfield.arxnode.util.TitledEnum;
+
+public enum AttributeTypeOptions implements TitledEnum {
 	IDENTIFYING_ATTRIBUTE(AttributeType.IDENTIFYING_ATTRIBUTE, "Identifying"), //
 	QUASI_IDENTIFYING_ATTRIBUTE(AttributeType.QUASI_IDENTIFYING_ATTRIBUTE, "Quasi-identifying"), //
 	SENSITIVE_ATTRIBUTE(AttributeType.SENSITIVE_ATTRIBUTE, "Sensitive"), //
@@ -33,15 +35,6 @@ public enum AttributeTypeOptions {
 	}
 
 	public static AttributeTypeOptions fromName(String name) {
-		try {
-			return valueOf(name);
-		} catch (IllegalArgumentException e) {
-			for (AttributeTypeOptions opt : values()) {
-				if (opt.title.equalsIgnoreCase(name)) {
-					return opt;
-				}
-			}
-		}
-		return AttributeTypeOptions.IDENTIFYING_ATTRIBUTE;
+		return TitledEnum.fromString(values(), name, IDENTIFYING_ATTRIBUTE);
 	}
 }

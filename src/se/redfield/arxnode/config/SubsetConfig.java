@@ -15,6 +15,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelDouble;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import se.redfield.arxnode.util.TitledEnum;
+
 public class SubsetConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(SubsetConfig.class);
 
@@ -94,15 +96,23 @@ public class SubsetConfig implements SettingsModelConfig {
 		return CONFIG_KEY;
 	}
 
-	public enum SamplingMode {
-		NONE, ALL, RANDOM, QUERY;
-		public static SamplingMode fromString(String str) {
-			try {
-				return SamplingMode.valueOf(str);
-			} catch (Exception e) {
+	public enum SamplingMode implements TitledEnum {
+		NONE("None"), ALL("All"), RANDOM("Random selection"), QUERY("Query selection");
 
-			}
-			return SamplingMode.NONE;
+		private String title;
+
+		private SamplingMode(String title) {
+			this.title = title;
 		}
+
+		@Override
+		public String getTitle() {
+			return title;
+		}
+
+		public static SamplingMode fromString(String str) {
+			return TitledEnum.fromString(values(), str, NONE);
+		}
+
 	}
 }

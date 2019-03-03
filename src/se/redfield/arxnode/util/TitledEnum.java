@@ -12,6 +12,12 @@ public interface TitledEnum {
 
 	static <E extends TitledEnum> E fromString(E[] values, String str, E def) {
 		if (!StringUtils.isEmpty(str)) {
+			try {
+				int index = Integer.parseInt(str);
+				return values[index];
+			} catch (Throwable e) {
+
+			}
 			for (E val : values) {
 				if (str.equals(val.name()) || str.equals(val.getTitle())) {
 					return val;

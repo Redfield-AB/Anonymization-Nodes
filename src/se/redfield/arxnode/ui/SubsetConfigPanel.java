@@ -32,10 +32,10 @@ public class SubsetConfigPanel extends JPanel {
 		SamplingMode mode = SamplingMode.fromString(config.getMode().getStringValue());
 		ButtonGroup group = new ButtonGroup();
 		radionButtons = new HashMap<>();
-		JRadioButton bNone = createRadioButton("None", SamplingMode.NONE, mode, group);
-		JRadioButton bAll = createRadioButton("All", SamplingMode.ALL, mode, group);
-		JRadioButton bRandom = createRadioButton("Random selection", SamplingMode.RANDOM, mode, group);
-		JRadioButton bQuery = createRadioButton("Query selection", SamplingMode.QUERY, mode, group);
+		JRadioButton bNone = createRadioButton(SamplingMode.NONE, mode, group);
+		JRadioButton bAll = createRadioButton(SamplingMode.ALL, mode, group);
+		JRadioButton bRandom = createRadioButton(SamplingMode.RANDOM, mode, group);
+		JRadioButton bQuery = createRadioButton(SamplingMode.QUERY, mode, group);
 
 		probabilityInput = new DialogComponentNumber(config.getProbability(), "Probability:", 0.1);
 		queryInput = new DialogComponentMultiLineString(config.getQuery(), "Query:");
@@ -56,8 +56,8 @@ public class SubsetConfigPanel extends JPanel {
 		});
 	}
 
-	private JRadioButton createRadioButton(String title, SamplingMode mode, SamplingMode current, ButtonGroup group) {
-		JRadioButton button = new JRadioButton(title, mode == current);
+	private JRadioButton createRadioButton(SamplingMode mode, SamplingMode current, ButtonGroup group) {
+		JRadioButton button = new JRadioButton(mode.getTitle(), mode == current);
 		button.addActionListener(e -> onModeSelected(mode));
 		group.add(button);
 		radionButtons.put(mode, button);

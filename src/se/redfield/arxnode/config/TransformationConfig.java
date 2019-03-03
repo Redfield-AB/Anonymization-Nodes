@@ -7,6 +7,8 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
+import se.redfield.arxnode.util.TitledEnum;
+
 public class TransformationConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationConfig.class);
 	public static final String CONFIG_KEY = "transformation";
@@ -77,8 +79,9 @@ public class TransformationConfig implements SettingsModelConfig {
 
 	@Override
 	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
-		mode = Mode.fromName(settings.getString(CONFIG_MODE, null));
-		microaggregationFunc = MicroaggregationFunction.fromName(settings.getString(CONFIG_MA_FUNC, null));
+		mode = Mode.fromName(settings.getString(CONFIG_MODE));
+		microaggregationFunc = MicroaggregationFunction
+				.fromName(settings.getString(CONFIG_MA_FUNC, MicroaggregationFunction.ARITHMETIC_MEAN.name()));
 		ignoreMissingData = settings.getBoolean(CONFIG_IGNORE_MISSING, true);
 		if (settings.containsKey(CONFIG_MIN_LEVEL)) {
 			minGeneralization = settings.getInt(CONFIG_MIN_LEVEL);
@@ -101,7 +104,7 @@ public class TransformationConfig implements SettingsModelConfig {
 		}
 	}
 
-	public static enum Mode {
+	public static enum Mode implements TitledEnum {
 		GENERALIZATION("Generalization"), //
 		MICROAGGREGATION("Microaggregation"), //
 		CLUSTERING_AND_MICROAGGREGATION("Clustering and microaggregation");
@@ -118,20 +121,16 @@ public class TransformationConfig implements SettingsModelConfig {
 		}
 
 		public static Mode fromName(String name) {
-			try {
-				return valueOf(name);
-			} catch (IllegalArgumentException e) {
-				for (Mode opt : values()) {
-					if (opt.title.equalsIgnoreCase(name)) {
-						return opt;
-					}
-				}
-			}
-			return GENERALIZATION;
+			return TitledEnum.fromString(values(), name, GENERALIZATION);
+		}
+
+		@Override
+		public String getTitle() {
+			return title;
 		}
 	}
 
-	public static enum MicroaggregationFunction {
+	public static enum MicroaggregationFunction implements TitledEnum {
 		ARITHMETIC_MEAN("Arithmetic mean"), //
 		GEOMETRIC_MEAN("Geometric mean"), //
 		MEDIAN("Median"), //
@@ -146,6 +145,11 @@ public class TransformationConfig implements SettingsModelConfig {
 
 		@Override
 		public String toString() {
+			return title;
+		}
+
+		@Override
+		public String getTitle() {
 			return title;
 		}
 
@@ -173,16 +177,8 @@ public class TransformationConfig implements SettingsModelConfig {
 		}
 
 		public static MicroaggregationFunction fromName(String name) {
-			try {
-				return valueOf(name);
-			} catch (IllegalArgumentException e) {
-				for (MicroaggregationFunction opt : values()) {
-					if (opt.title.equalsIgnoreCase(name)) {
-						return opt;
-					}
-				}
-			}
-			return ARITHMETIC_MEAN;
+			return TitledEnum.fromString(values(), name, ARITHMETIC_MEAN);
 		}
+
 	}
 }

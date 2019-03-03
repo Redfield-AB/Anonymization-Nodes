@@ -63,7 +63,6 @@ public class PrivacyModelsConfig implements SettingsModelConfig {
 
 	private void loadJson(NodeSettingsRO settings) {
 		String json = settings.getString(CONFIG_JSON, null);
-		logger.debug("json: " + json);
 		AbstractPrivacyModelConfig[] result = createGson().fromJson(json, AbstractPrivacyModelConfig[].class);
 		if (result != null) {
 			for (AbstractPrivacyModelConfig m : result) {

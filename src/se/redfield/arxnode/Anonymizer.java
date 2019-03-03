@@ -38,6 +38,8 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.util.Pair;
 
 import se.redfield.arxnode.config.AnonymizationConfig;
@@ -52,13 +54,15 @@ public class Anonymizer {
 	private static final NodeLogger logger = NodeLogger.getLogger(Anonymizer.class);
 
 	private Config config;
+	private ArxNodeNodeModel model;
 	private ARXNode optimum;
 
-	public Anonymizer(Config config) {
+	public Anonymizer(Config config, ArxNodeNodeModel model) {
 		this.config = config;
+		this.model = model;
 	}
 
-	public BufferedDataTable[] process(BufferedDataTable inTable, ExecutionContext exec) throws Exception {
+	public PortObject[] process(BufferedDataTable inTable, ExecutionContext exec) throws Exception {
 		AnonymizationConfig anonConfig = config.getAnonymizationConfig();
 		Partitioner partitioner = Partitioner.createPartitioner(anonConfig.getNumOfThreads().getIntValue(),
 				anonConfig.getPartitionsGroupByEnabled().getBooleanValue()
@@ -90,8 +94,8 @@ public class Anonymizer {
 
 		optimum = findSingleOptimum(results);
 		BufferedDataTable anonTable = createDataTable(results, exec);
-		return new BufferedDataTable[] { anonTable, createStatsTable(results, exec),
-				createExceptionsTable(inTable, anonTable, exec) };
+		return new PortObject[] { anonTable, createStatsTable(results, exec),
+				createExceptionsTable(inTable, anonTable, exec), FlowVariablePortObject.INSTANCE };
 	}
 
 	private BufferedDataTable createExceptionsTable(BufferedDataTable inTable, BufferedDataTable outTable,
@@ -131,6 +135,7 @@ public class Anonymizer {
 		BufferedDataContainer container = exec.createDataContainer(createStatsTableSpec());
 		int row = 0;
 		int totalSuppressedCount = 0;
+		boolean flowVarsPushed = false;
 		for (Pair<ARXResult, PartitionInfo> pair : results) {
 			ARXResult res = pair.getFirst();
 			if (res.isResultAvailable()) {
@@ -144,14 +149,23 @@ public class Anonymizer {
 					}
 				}
 				totalSuppressedCount += suppresedRowsNum;
+				double informationLoss = Double.valueOf(opt.getHighestScore().toString());
+				String headers = Arrays.toString(opt.getQuasiIdentifyingAttributes());
+				String transformation = Arrays.toString(opt.getTransformation());
+				String anonymity = opt.getAnonymity().toString();
+				long rowCount = pair.getSecond().getRows();
+
+				if (!flowVarsPushed) {
+					flowVarsPushed = true;
+					model.putVariables(informationLoss, headers, transformation, anonymity, rowCount, suppresedRowsNum);
+				}
 
 				DataCell[] cells = new DataCell[7];
-
-				cells[0] = new DoubleCell(Double.valueOf(opt.getHighestScore().toString()));
-				cells[1] = new StringCell(Arrays.toString(opt.getQuasiIdentifyingAttributes()));
-				cells[2] = new StringCell(Arrays.toString(opt.getTransformation()));
-				cells[3] = new StringCell(opt.getAnonymity().toString());
-				cells[4] = new LongCell(pair.getSecond().getRows());
+				cells[0] = new DoubleCell(informationLoss);
+				cells[1] = new StringCell(headers);
+				cells[2] = new StringCell(transformation);
+				cells[3] = new StringCell(anonymity);
+				cells[4] = new LongCell(rowCount);
 				cells[5] = new StringCell(pair.getSecond().getCriteria());
 				cells[6] = new LongCell(suppresedRowsNum);
 

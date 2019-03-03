@@ -13,6 +13,11 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.port.PortObject;
+import org.knime.core.node.port.PortObjectSpec;
+import org.knime.core.node.port.PortType;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
+import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 
 import se.redfield.arxnode.config.Config;
 
@@ -24,15 +29,15 @@ public class ArxNodeNodeModel extends NodeModel {
 	private Anonymizer anonymizer;
 
 	protected ArxNodeNodeModel() {
-		super(1, 3);
+		super(new PortType[] { BufferedDataTable.TYPE }, new PortType[] { BufferedDataTable.TYPE,
+				BufferedDataTable.TYPE, BufferedDataTable.TYPE, FlowVariablePortObject.TYPE });
 		config = new Config();
 	}
 
 	@Override
-	protected BufferedDataTable[] execute(final BufferedDataTable[] inData, final ExecutionContext exec)
-			throws Exception {
+	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 		try {
-			return anonymizer.process(inData[0], exec);
+			return anonymizer.process((BufferedDataTable) inData[0], exec);
 			// return Partitioner.test(inData[0], config, exec);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
@@ -86,15 +91,15 @@ public class ArxNodeNodeModel extends NodeModel {
 	}
 
 	@Override
-	protected DataTableSpec[] configure(final DataTableSpec[] inSpecs) throws InvalidSettingsException {
+	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		logger.debug("configure");
 
-		config.initColumns(inSpecs[0]);
+		config.initColumns((DataTableSpec) inSpecs[0]);
 		config.validate();
-		anonymizer = new Anonymizer(config);
+		anonymizer = new Anonymizer(config, this);
 
-		return new DataTableSpec[] { anonymizer.createOutDataTableSpec(), anonymizer.createStatsTableSpec(),
-				inSpecs[0] };
+		return new PortObjectSpec[] { anonymizer.createOutDataTableSpec(), anonymizer.createStatsTableSpec(),
+				inSpecs[0], FlowVariablePortObjectSpec.INSTANCE };
 	}
 
 	@Override
@@ -141,4 +146,13 @@ public class ArxNodeNodeModel extends NodeModel {
 
 	}
 
+	public void putVariables(double informationLoss, String headers, String transformation, String anonymity,
+			long rowCount, long suppresedRecords) {
+		pushFlowVariableDouble("informationLoss", informationLoss);
+		pushFlowVariableString("headers", headers);
+		pushFlowVariableString("transformation", transformation);
+		pushFlowVariableString("anonymity", anonymity);
+		pushFlowVariableDouble("rowCount", rowCount);
+		pushFlowVariableDouble("suppresedRecords", suppresedRecords);
+	}
 }
