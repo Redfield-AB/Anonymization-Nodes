@@ -13,21 +13,21 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 public class AnonymizationConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfig.class);
 
-	private static final String CONFIG_KEY = "anonymization";
+	public static final String CONFIG_KEY = "anonymization";
 
-	private static final String CONFIG_HEURISTIC_SEARCH_ENABLED = "search.heuristicEnabled";
-	private static final String CONFIG_SEARCH_STEPS_LIMIT_ENABLED = "search.limitSteps";
-	private static final String CONFIG_SEARCH_TIME_LIMIT_ENABLED = "search.limitTime";
-	private static final String CONFIG_SEARCH_STEPS_LIMIT = "search.stepsLimit";
-	private static final String CONFIG_SEARCH_TIME_LIMIT = "search.timeLimit";
-	private static final String CONFIG_SUPPRESSION_LIMIT = "suppressionLimit";
-	private static final String CONFIG_PRACTIVAL_MONOTONICITY = "assumeMonotonicity";
-	private static final String CONFIG_PRECOMPUTATION_ENABLED = "precomputationEnabled";
-	private static final String CONFIG_PRECOMPUTATION_THRESHOLD = "precomputationThreshold";
-	private static final String CONFIG_NUM_OF_THREADS = "partition.numOfThreads";
-	private static final String CONFIG_PARTITIONS_SINGLE_OPTIMUM = "partition.singleOptimum";
-	private static final String CONFIG_PARTITIONS_GROUP_BY_ENABLED = "partition.group";
-	private static final String CONFIG_PARTITIONS_GROUP_BY_COLUMN = "partition.groupBy";
+	public static final String CONFIG_HEURISTIC_SEARCH_ENABLED = "search.heuristicEnabled";
+	public static final String CONFIG_SEARCH_STEPS_LIMIT_ENABLED = "search.limitSteps";
+	public static final String CONFIG_SEARCH_TIME_LIMIT_ENABLED = "search.limitTime";
+	public static final String CONFIG_SEARCH_STEPS_LIMIT = "search.stepsLimit";
+	public static final String CONFIG_SEARCH_TIME_LIMIT = "search.timeLimit";
+	public static final String CONFIG_SUPPRESSION_LIMIT = "suppressionLimit";
+	public static final String CONFIG_PRACTIVAL_MONOTONICITY = "assumeMonotonicity";
+	public static final String CONFIG_PRECOMPUTATION_ENABLED = "precomputationEnabled";
+	public static final String CONFIG_PRECOMPUTATION_THRESHOLD = "precomputationThreshold";
+	public static final String CONFIG_NUM_OF_THREADS = "partition.numOfThreads";
+	public static final String CONFIG_PARTITIONS_SINGLE_OPTIMUM = "partition.singleOptimum";
+	public static final String CONFIG_PARTITIONS_GROUP_BY_ENABLED = "partition.group";
+	public static final String CONFIG_PARTITIONS_GROUP_BY_COLUMN = "partition.groupBy";
 
 	private SettingsModelBoolean heuristicSearchEnabled;
 	private SettingsModelBoolean limitSearchSteps;

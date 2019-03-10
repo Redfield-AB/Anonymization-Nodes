@@ -9,14 +9,16 @@ import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.FlowVariablesButton;
-import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
@@ -25,6 +27,7 @@ import org.knime.core.node.workflow.FlowVariable.Type;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import se.redfield.arxnode.ArxNodeNodeDialog;
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.ColumnsConfig;
 import se.redfield.arxnode.config.TransformationConfig;
@@ -35,7 +38,7 @@ public class TransformationConfigPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationConfigPanel.class);
 
-	private NodeDialogPane dlg;
+	private ArxNodeNodeDialog dlg;
 	private ColumnConfig columnConfig;
 	private TransformationConfig transformationConfig;
 	private MicroaggregationFunction[] microaggregationOptions;
@@ -52,8 +55,9 @@ public class TransformationConfigPanel extends JPanel {
 	private FlowVariableModel fwMaxLevel;
 	private FlowVariableModel fwMAFunc;
 	private FlowVariableModel fwIgnoreMissing;
+	private FlowVariableModel fwMode;
 
-	public TransformationConfigPanel(NodeDialogPane dlg, ColumnConfig config) {
+	public TransformationConfigPanel(ArxNodeNodeDialog dlg, ColumnConfig config) {
 		this.dlg = dlg;
 		this.columnConfig = config;
 		this.transformationConfig = config.getTransformationConfig();
@@ -61,13 +65,12 @@ public class TransformationConfigPanel extends JPanel {
 		this.weightSetting = config.getWeightModel();
 		initFw();
 		initUI();
-
 	}
 
 	private void initFw() {
 		fwWeight = dlg.createFlowVariableModel(
 				new String[] { ColumnsConfig.CONFIG_KEY, columnConfig.getName(), ColumnConfig.CONFIG_WEIGHT },
-				Type.DOUBLE);
+				Type.DOUBLE, weightSetting);
 		fwMinLevel = dlg.createFlowVariableModel(new String[] { ColumnsConfig.CONFIG_KEY, columnConfig.getName(),
 				TransformationConfig.CONFIG_KEY, TransformationConfig.CONFIG_MIN_LEVEL }, Type.INTEGER);
 		fwMaxLevel = dlg.createFlowVariableModel(new String[] { ColumnsConfig.CONFIG_KEY, columnConfig.getName(),
@@ -79,6 +82,8 @@ public class TransformationConfigPanel extends JPanel {
 						new String[] { ColumnsConfig.CONFIG_KEY, columnConfig.getName(),
 								TransformationConfig.CONFIG_KEY, TransformationConfig.CONFIG_IGNORE_MISSING },
 						Type.STRING);
+		fwMode = dlg.createFlowVariableModel(new String[] { ColumnsConfig.CONFIG_KEY, columnConfig.getName(),
+				TransformationConfig.CONFIG_KEY, TransformationConfig.CONFIG_MODE }, Type.STRING);
 	}
 
 	private void initUI() {
@@ -91,6 +96,7 @@ public class TransformationConfigPanel extends JPanel {
 			onModeSelected((Mode) cbMode.getSelectedItem());
 		});
 		cbMode.setSelectedItem(transformationConfig.getMode());
+		setupFwListener(fwMode, cbMode);
 
 		setLayout(new FormLayout("p:n, 5:n, p:n, 5:n, p:n, f:p:g, p:n", "p:n, 5:n, f:p:n, 5:n, f:p:n"));
 		CellConstraints cc = new CellConstraints();
@@ -140,8 +146,10 @@ public class TransformationConfigPanel extends JPanel {
 		JSpinner minInput = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
 		JSpinner maxInput = new JSpinner(new SpinnerNumberModel(0, 0, Integer.MAX_VALUE, 1));
 
-		cbMin.addActionListener(new MinMaxCheckboxListener(minInput, transformationConfig::setMinGeneralization));
-		cbMax.addActionListener(new MinMaxCheckboxListener(maxInput, transformationConfig::setMaxGeneralization));
+		cbMin.addActionListener(
+				new MinMaxCheckboxListener(cbMin, minInput, transformationConfig::setMinGeneralization, fwMinLevel));
+		cbMax.addActionListener(
+				new MinMaxCheckboxListener(cbMax, maxInput, transformationConfig::setMaxGeneralization, fwMaxLevel));
 		minInput.addChangeListener(e -> transformationConfig.setMinGeneralization((Integer) minInput.getValue()));
 		maxInput.addChangeListener(e -> transformationConfig.setMaxGeneralization((Integer) maxInput.getValue()));
 
@@ -173,10 +181,12 @@ public class TransformationConfigPanel extends JPanel {
 		cbFunc.setSelectedItem(transformationConfig.getMicroaggregationFunc());
 		cbFunc.addActionListener(
 				e -> transformationConfig.setMicroaggregationFunc((MicroaggregationFunction) cbFunc.getSelectedItem()));
+		setupFwListener(fwMAFunc, cbFunc);
 
 		JCheckBox cbIgnore = new JCheckBox("Ignore missing data");
 		cbIgnore.setSelected(transformationConfig.isIgnoreMissingData());
 		cbIgnore.addActionListener(e -> transformationConfig.setIgnoreMissingData(cbIgnore.isSelected()));
+		setupFwListener(fwIgnoreMissing, cbIgnore);
 
 		CellConstraints cc = new CellConstraints();
 		JPanel panel = new JPanel(new FormLayout("p:n, 5:n, p:n, 5:n, p:n", "p:n"));
@@ -186,22 +196,39 @@ public class TransformationConfigPanel extends JPanel {
 		return panel;
 	}
 
-	private class MinMaxCheckboxListener implements ActionListener {
+	private void setupFwListener(FlowVariableModel fv, JComponent comp) {
+		fv.addChangeListener(e -> comp.setEnabled(!fv.isVariableReplacementEnabled()));
+	}
 
+	private class MinMaxCheckboxListener implements ActionListener, ChangeListener {
+
+		private JCheckBox cbEnabled;
 		private JSpinner input;
 		private Consumer<Integer> setter;
+		private FlowVariableModel fvModel;
 
-		public MinMaxCheckboxListener(JSpinner input, Consumer<Integer> setter) {
+		public MinMaxCheckboxListener(JCheckBox cbEnabled, JSpinner input, Consumer<Integer> setter,
+				FlowVariableModel fvModel) {
+			this.cbEnabled = cbEnabled;
 			this.input = input;
 			this.setter = setter;
+			this.fvModel = fvModel;
+			fvModel.addChangeListener(this);
 		}
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			boolean selected = ((JCheckBox) e.getSource()).isSelected();
-			input.setEnabled(selected);
+			boolean selected = cbEnabled.isSelected();
+			input.setEnabled(selected && !fvModel.isVariableReplacementEnabled());
 			setter.accept(selected ? (Integer) input.getValue() : null);
 			updateFwButton();
+		}
+
+		@Override
+		public void stateChanged(ChangeEvent e) {
+			boolean enabled = !fvModel.isVariableReplacementEnabled();
+			cbEnabled.setEnabled(enabled);
+			actionPerformed(null);
 		}
 
 	}

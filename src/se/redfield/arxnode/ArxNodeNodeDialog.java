@@ -1,12 +1,15 @@
 package se.redfield.arxnode;
 
 import java.awt.Font;
+import java.util.Arrays;
 
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 
 import org.knime.core.data.DataTableSpec;
+import org.knime.core.node.FlowVariableModel;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
@@ -15,13 +18,17 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
 import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
+import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.workflow.FlowVariable;
+import org.knime.core.node.workflow.FlowVariable.Type;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.config.AttributeTypeOptions;
 import se.redfield.arxnode.config.ColumnConfig;
+import se.redfield.arxnode.config.ColumnsConfig;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.ui.AnonymizationConfigPanel;
 import se.redfield.arxnode.ui.PrivacyModelsPane;
@@ -41,17 +48,12 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	protected ArxNodeNodeDialog() {
 		super();
 		logger.info("Dialog.constructor");
-		// addDialogComponent(
-		// new DialogComponentNumber(new
-		// SettingsModelIntegerBounded(Config.CONFIG_KANONYMITY_FACTOR_KEY,
-		// Config.DEFAULT_KANONYMITY_FACTOR, 1, Integer.MAX_VALUE), "K-Anonymity
-		// factor:", 1, 5));
 
 		config = new Config();
 
 		columnsPanel = new JPanel();
 		privacyPanel = new PrivacyModelsPane(config);
-		anonConfigPanel = new AnonymizationConfigPanel(config.getAnonymizationConfig());
+		anonConfigPanel = new AnonymizationConfigPanel(config.getAnonymizationConfig(), this);
 		addTab("Columns", columnsPanel);
 		addTab(PRIVACY_MODELS_TAB_TITLE, privacyPanel.getComponent(), false);
 		addTab("Anonymization Config", anonConfigPanel.getComponent());
@@ -98,9 +100,18 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	}
 
 	private JPanel createColumnRow(ColumnConfig c) {
-		SettingsModelString fileModel = c.getHierarchyFileModel();
 		SettingsModelString attrTypeModel = c.getAttrTypeModel();
-		DialogComponentFileChooser fileChooser = new DialogComponentFileChooser(fileModel, "ArxNode", "ahs");
+		createFlowVariableModel(new String[] { ColumnsConfig.CONFIG_KEY, c.getName(), ColumnConfig.CONFIG_ATTR_TYPE },
+				FlowVariable.Type.STRING, attrTypeModel);
+
+		SettingsModelString fileModel = c.getHierarchyFileModel();
+		DialogComponentFileChooser fileChooser = new DialogComponentFileChooser(fileModel, "ArxNode",
+				JFileChooser.OPEN_DIALOG, false,
+				createFlowVariableModel(
+						new String[] { ColumnsConfig.CONFIG_KEY, c.getName(), ColumnConfig.CONFIG_ATTR_TYPE },
+						Type.STRING),
+				"ahs");
+
 		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(this, c);
 
 		attrTypeModel.addChangeListener(
@@ -124,12 +135,9 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	private void onAttrTypeChanged(SettingsModelString fileModel, SettingsModelString attrTypeModel,
 			DialogComponentFileChooser fileChooser, TransformationConfigPanel transformationConfig, boolean init) {
 		AttributeTypeOptions opt = AttributeTypeOptions.fromName(attrTypeModel.getStringValue());
-		fileModel.setEnabled(opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE);
-		if (!fileModel.isEnabled()) {
-			fileModel.setStringValue("");
-		}
-		fileChooser.getComponentPanel().setVisible(fileModel.isEnabled());
-		transformationConfig.setVisible(fileModel.isEnabled());
+		boolean qiAttr = opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE;
+		fileChooser.getComponentPanel().setVisible(qiAttr);
+		transformationConfig.setVisible(qiAttr);
 
 		if (!init && opt == AttributeTypeOptions.SENSITIVE_ATTRIBUTE) {
 			setSelected(PRIVACY_MODELS_TAB_TITLE);
@@ -141,6 +149,14 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		logger.info("Dialog.saveSettings");
 		super.saveAdditionalSettingsTo(settings);
 		config.save(settings);
+	}
+
+	public FlowVariableModel createFlowVariableModel(String[] keys, FlowVariable.Type type, SettingsModel model) {
+		FlowVariableModel fvm = createFlowVariableModel(keys, type);
+		if (model != null) {
+			fvm.addChangeListener(e -> model.setEnabled(!fvm.isVariableReplacementEnabled()));
+		}
+		return fvm;
 	}
 
 }

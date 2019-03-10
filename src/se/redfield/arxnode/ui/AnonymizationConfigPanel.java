@@ -12,23 +12,27 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.workflow.FlowVariable.Type;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
+import se.redfield.arxnode.ArxNodeNodeDialog;
 import se.redfield.arxnode.config.AnonymizationConfig;
 
 public class AnonymizationConfigPanel {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfigPanel.class);
 
+	private ArxNodeNodeDialog dlg;
 	private AnonymizationConfig config;
 	private JPanel component;
 	private CellConstraints cc;
 
 	private DialogComponentColumnNameSelection columnSelection;
 
-	public AnonymizationConfigPanel(AnonymizationConfig config) {
+	public AnonymizationConfigPanel(AnonymizationConfig config, ArxNodeNodeDialog dlg) {
 		this.config = config;
+		this.dlg = dlg;
 		initUi();
 	}
 
@@ -46,7 +50,10 @@ public class AnonymizationConfigPanel {
 				0, StringValue.class, DoubleValue.class);
 
 		JPanel panel = new JPanel(new FormLayout("l:p:n, 5:n, l:p:g, p:g", "p:n, 5:n, p:n, 5:n, p:n"));
-		panel.add(new DialogComponentNumber(config.getNumOfThreads(), "# of threads", 1).getComponentPanel(),
+		panel.add(
+				new DialogComponentNumber(config.getNumOfThreads(), "# of threads", 1,
+						dlg.createFlowVariableModel(new String[] { AnonymizationConfig.CONFIG_KEY,
+								AnonymizationConfig.CONFIG_NUM_OF_THREADS }, Type.INTEGER)).getComponentPanel(),
 				cc.rcw(1, 1, 3, "d,l"));
 		panel.add(
 				new DialogComponentBoolean(config.getPartitionsSingleOptimum(),
@@ -61,7 +68,10 @@ public class AnonymizationConfigPanel {
 
 	private JPanel createGeneralPanel() {
 		JPanel panel = new JPanel(new FormLayout("l:p:n, p:g", "p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n"));
-		panel.add(new DialogComponentNumber(config.getSuppresionLimit(), "Suppression limit", 0.01).getComponentPanel(),
+		panel.add(
+				new DialogComponentNumber(config.getSuppresionLimit(), "Suppression limit", 0.01,
+						dlg.createFlowVariableModel(new String[] { AnonymizationConfig.CONFIG_KEY,
+								AnonymizationConfig.CONFIG_SUPPRESSION_LIMIT }, Type.INTEGER)).getComponentPanel(),
 				cc.rc(1, 1));
 		panel.add(new DialogComponentBoolean(config.getPractivalMonotonicity(),
 				"Approximate: assume practical monotonicity").getComponentPanel(), cc.rc(3, 1));

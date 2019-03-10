@@ -15,8 +15,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 public class ColumnConfig implements SettingsModelConfig {
 
-	private static final String CONFIG_HIERARCHY_FILE = "hierarchyFile";
-	private static final String CONFIG_ATTR_TYPE = "type";
+	public static final String CONFIG_HIERARCHY_FILE = "hierarchyFile";
+	public static final String CONFIG_ATTR_TYPE = "type";
 	public static final String CONFIG_WEIGHT = "weight";
 
 	private String name;
