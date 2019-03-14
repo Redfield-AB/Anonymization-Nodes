@@ -93,7 +93,7 @@ public class Anonymizer {
 		executor.shutdown();
 
 		optimum = findSingleOptimum(results);
-		BufferedDataTable anonTable = createDataTable(results, exec);
+		BufferedDataTable anonTable = createDataTable(inTable, results, exec);
 		return new PortObject[] { anonTable, createStatsTable(results, exec),
 				createExceptionsTable(inTable, anonTable, exec), FlowVariablePortObject.INSTANCE };
 	}
@@ -195,9 +195,10 @@ public class Anonymizer {
 		return new DataTableSpec(outColSpecs);
 	}
 
-	private BufferedDataTable createDataTable(List<Pair<ARXResult, PartitionInfo>> results, ExecutionContext exec) {
+	private BufferedDataTable createDataTable(BufferedDataTable inTable, List<Pair<ARXResult, PartitionInfo>> results,
+			ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(createOutDataTableSpec());
-		int rowIdx = 0;
+		CloseableRowIterator inIterator = inTable.iterator();
 		for (Pair<ARXResult, PartitionInfo> pair : results) {
 			ARXResult res = pair.getFirst();
 			if (res.isResultAvailable()) {
@@ -211,13 +212,18 @@ public class Anonymizer {
 						cells[i] = new StringCell(row[i]);
 					}
 
-					RowKey key = new RowKey("Row " + rowIdx++);
-					DataRow datarow = new DefaultRow(key, cells);
+					DataRow inRow = inIterator.next();
+					DataRow datarow = new DefaultRow(inRow.getKey(), cells);
 					container.addRowToTable(datarow);
+				}
+			} else {
+				for (int i = 0; i < pair.getSecond().getRows(); i++) {
+					inIterator.next();
 				}
 			}
 		}
 		container.close();
+		inIterator.close();
 		return container.getTable();
 	}
 
