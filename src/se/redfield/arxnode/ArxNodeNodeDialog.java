@@ -1,7 +1,6 @@
 package se.redfield.arxnode;
 
 import java.awt.Font;
-import java.util.Arrays;
 
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -20,6 +19,7 @@ import org.knime.core.node.defaultnodesettings.DialogComponentFileChooser;
 import org.knime.core.node.defaultnodesettings.DialogComponentStringSelection;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable;
 import org.knime.core.node.workflow.FlowVariable.Type;
 
@@ -30,6 +30,7 @@ import se.redfield.arxnode.config.AttributeTypeOptions;
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.ColumnsConfig;
 import se.redfield.arxnode.config.Config;
+import se.redfield.arxnode.nodes.ArxPortObjectSpec;
 import se.redfield.arxnode.ui.AnonymizationConfigPanel;
 import se.redfield.arxnode.ui.PrivacyModelsPane;
 import se.redfield.arxnode.ui.SubsetConfigPanel;
@@ -64,10 +65,11 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	}
 
 	@Override
-	public void loadAdditionalSettingsFrom(NodeSettingsRO settings, DataTableSpec[] specs)
+	public void loadAdditionalSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs)
 			throws NotConfigurableException {
 		logger.info("Dialog.loadSettings");
-		if ((specs[0] == null) || (specs[0].getNumColumns() < 1)) {
+		DataTableSpec inTableSpec = (DataTableSpec) specs[ArxNodeNodeModel.PORT_DATA_TABLE];
+		if ((inTableSpec == null) || (inTableSpec.getNumColumns() < 1)) {
 			throw new NotConfigurableException("Cannot be configured without" + " input table");
 		}
 
@@ -76,8 +78,8 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		} catch (InvalidSettingsException e) {
 			logger.debug(e.getMessage(), e);
 		}
-		config.initColumns(specs[0]);
-		initColumnsPanel(settings, specs[0]);
+		config.configure(inTableSpec, (ArxPortObjectSpec) specs[ArxNodeNodeModel.PORT_ARX]);
+		initColumnsPanel(settings, inTableSpec);
 		anonConfigPanel.load(settings, specs);
 	}
 

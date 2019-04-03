@@ -29,6 +29,8 @@ public class ColumnConfig implements SettingsModelConfig {
 	private SettingsModelString attrTypeModel;
 	private SettingsModelDoubleBounded weightModel;
 
+	private boolean hierarchyOverriden;
+
 	public ColumnConfig(String name) {
 		this(name, 0, null);
 	}
@@ -49,11 +51,42 @@ public class ColumnConfig implements SettingsModelConfig {
 			AttributeTypeOptions option = AttributeTypeOptions.fromName(attrTypeModel.getStringValue());
 			attrType = option.getType();
 		});
+
+		this.hierarchyOverriden = false;
 	}
 
 	@Override
 	public List<SettingsModel> getModels() {
 		return Arrays.asList(hierarchyFileModel, attrTypeModel, weightModel);
+	}
+
+	@Override
+	public String getKey() {
+		return name;
+	}
+
+	@Override
+	public Collection<? extends SettingsModelConfig> getChildred() {
+		return Arrays.asList(transformationConfig);
+	}
+
+	@Override
+	public void validate() throws InvalidSettingsException {
+		SettingsModelConfig.super.validate();
+
+		if (attrType == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
+			if (!hierarchyOverriden) {
+				String path = getHierarchyFile();
+				if (StringUtils.isEmpty(path)) {
+					throw new InvalidSettingsException(
+							"Hierarcy file not set for quasi-identifying attribute '" + name + "'");
+				}
+				if (!new File(path).exists()) {
+					throw new InvalidSettingsException("File " + path + " not found");
+				}
+			}
+		}
+
 	}
 
 	public String getName() {
@@ -104,30 +137,12 @@ public class ColumnConfig implements SettingsModelConfig {
 		return transformationConfig;
 	}
 
-	@Override
-	public String getKey() {
-		return name;
+	public boolean isHierarchyOverriden() {
+		return hierarchyOverriden;
 	}
 
-	@Override
-	public Collection<? extends SettingsModelConfig> getChildred() {
-		return Arrays.asList(transformationConfig);
-	}
-
-	@Override
-	public void validate() throws InvalidSettingsException {
-		SettingsModelConfig.super.validate();
-
-		if (attrType == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
-			String path = getHierarchyFile();
-			if (StringUtils.isEmpty(path)) {
-				throw new InvalidSettingsException(
-						"Hierarcy file not set for quasi-identifying attribute '" + name + "'");
-			}
-			if (!new File(path).exists()) {
-				throw new InvalidSettingsException("File " + path + " not found");
-			}
-		}
-
+	public void setHierarchyOverriden(boolean hierarchyOverriden) {
+		this.hierarchyOverriden = hierarchyOverriden;
+		hierarchyFileModel.setEnabled(!hierarchyOverriden);
 	}
 }

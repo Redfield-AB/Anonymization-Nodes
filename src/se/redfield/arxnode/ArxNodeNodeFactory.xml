@@ -127,7 +127,8 @@
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="In-Port name">Input table</inPort>
+        <inPort index="0" name="Input table">Input table</inPort>
+        <inPort index="1" name="Arx Config Overrides">Arx Config Overrides</inPort>
         <outPort index="0" name="Anonymized Data">Result table with anonymized data</outPort>
         <outPort index="1" name="Stats">Statistics table</outPort>
         <outPort index="2" name="Suppressed records">Suppressed records</outPort>

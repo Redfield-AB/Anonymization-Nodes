@@ -20,66 +20,34 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 
 import se.redfield.arxnode.config.Config;
+import se.redfield.arxnode.nodes.ArxPortObject;
+import se.redfield.arxnode.nodes.ArxPortObjectSpec;
 
 public class ArxNodeNodeModel extends NodeModel {
 
 	private static final NodeLogger logger = NodeLogger.getLogger(ArxNodeNodeModel.class);
 
+	public static final int PORT_DATA_TABLE = 0;
+	public static final int PORT_ARX = 1;
+
 	private Config config;
 	private Anonymizer anonymizer;
 
 	protected ArxNodeNodeModel() {
-		super(new PortType[] { BufferedDataTable.TYPE }, new PortType[] { BufferedDataTable.TYPE,
-				BufferedDataTable.TYPE, BufferedDataTable.TYPE, FlowVariablePortObject.TYPE });
+		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL }, new PortType[] {
+				BufferedDataTable.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE, FlowVariablePortObject.TYPE });
 		config = new Config();
 	}
 
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 		try {
-			return anonymizer.process((BufferedDataTable) inData[0], exec);
-			// return Partitioner.test(inData[0], config, exec);
+			return anonymizer.process((BufferedDataTable) inData[PORT_DATA_TABLE], (ArxPortObject) inData[PORT_ARX],
+					exec);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 			throw e;
 		}
-
-		// // the data table spec of the single output table,
-		// // the table will have three columns:
-		// DataColumnSpec[] allColSpecs = new DataColumnSpec[3];
-		// allColSpecs[0] =
-		// new DataColumnSpecCreator("Column 0", StringCell.TYPE).createSpec();
-		// allColSpecs[1] =
-		// new DataColumnSpecCreator("Column 1", DoubleCell.TYPE).createSpec();
-		// allColSpecs[2] =
-		// new DataColumnSpecCreator("Column 2", IntCell.TYPE).createSpec();
-		// DataTableSpec outputSpec = new DataTableSpec(allColSpecs);
-		// // the execution context will provide us with storage capacity, in this
-		// // case a data container to which we will add rows sequentially
-		// // Note, this container can also handle arbitrary big data tables, it
-		// // will buffer to disc if necessary.
-		// BufferedDataContainer container = exec.createDataContainer(outputSpec);
-		// // let's add m_count rows to it
-		// for (int i = 0; i < m_count.getIntValue(); i++) {
-		// RowKey key = new RowKey("Row " + i);
-		// // the cells of the current row, the types of the cells must match
-		// // the column spec (see above)
-		// DataCell[] cells = new DataCell[3];
-		// cells[0] = new StringCell("String_" + i);
-		// cells[1] = new DoubleCell(0.5 * i);
-		// cells[2] = new IntCell(i);
-		// DataRow row = new DefaultRow(key, cells);
-		// container.addRowToTable(row);
-		//
-		// // check if the execution monitor was canceled
-		// exec.checkCanceled();
-		// exec.setProgress(i / (double)m_count.getIntValue(),
-		// "Adding row " + i);
-		// }
-		// // once we are done, we close the container and return its table
-		// container.close();
-		// BufferedDataTable out = container.getTable();
-		// return new BufferedDataTable[]{out};
 	}
 
 	@Override
@@ -94,7 +62,7 @@ public class ArxNodeNodeModel extends NodeModel {
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		logger.debug("configure");
 
-		config.initColumns((DataTableSpec) inSpecs[0]);
+		config.configure((DataTableSpec) inSpecs[PORT_DATA_TABLE], (ArxPortObjectSpec) inSpecs[PORT_ARX]);
 		config.validate();
 		anonymizer = new Anonymizer(config, this);
 

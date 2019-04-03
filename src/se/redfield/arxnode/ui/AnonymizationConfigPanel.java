@@ -3,7 +3,6 @@ package se.redfield.arxnode.ui;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
-import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.StringValue;
 import org.knime.core.node.NodeLogger;
@@ -12,6 +11,7 @@ import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DialogComponentBoolean;
 import org.knime.core.node.defaultnodesettings.DialogComponentColumnNameSelection;
 import org.knime.core.node.defaultnodesettings.DialogComponentNumber;
+import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.workflow.FlowVariable.Type;
 
 import com.jgoodies.forms.layout.CellConstraints;
@@ -104,7 +104,7 @@ public class AnonymizationConfigPanel {
 		return component;
 	}
 
-	public void load(NodeSettingsRO settings, DataTableSpec[] specs) {
+	public void load(NodeSettingsRO settings, PortObjectSpec[] specs) {
 		try {
 			columnSelection.loadSettingsFrom(settings, specs);
 		} catch (NotConfigurableException e) {

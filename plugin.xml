@@ -1,25 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <plugin>
-
-   <!-- This is an example for providing an own category 
-      <extension
-         point="org.knime.workbench.repository.categories">
-      <category
-            description="Category containing my nodes"
-            icon="icons/default.png"
-            level-id="myNodes"
-            name="My nodes"
-            path="/"/>
-   </extension>
-   -->
+	<extension
+		point="org.knime.workbench.repository.categories">
+		<category
+			description="Category containing arx nodes"
+			icon="icons/arx.png"
+			level-id="arxNodes"
+			name="Arx"
+			path="/"/>
+	</extension>
    
-   <extension
-         point="org.knime.workbench.repository.nodes">
-      <node
-            category-path="/"
-            factory-class="se.redfield.arxnode.ArxNodeNodeFactory"
-            id="se.redfield.ArxNodeNodeFactory"/>
-   </extension>
-   
+	<extension
+		point="org.knime.workbench.repository.nodes">
+		<node
+			category-path="arxNodes/"
+			factory-class="se.redfield.arxnode.ArxNodeNodeFactory"/>
+		<node
+			category-path="arxNodes/"
+			factory-class="se.redfield.arxnode.nodes.HierarchyExpandNodeFactory"/>
+	</extension>
+	
+	<extension
+		point="org.knime.core.PortType">
+		<portType
+        	name="Arx Config"
+        	color="#1eb9dc"
+        	objectClass="se.redfield.arxnode.nodes.ArxPortObject"
+        	objectSerializer="se.redfield.arxnode.nodes.ArxPortObject$Serializer"
+        	specClass="se.redfield.arxnode.nodes.ArxPortObjectSpec"
+        	specSerializer="se.redfield.arxnode.nodes.ArxPortObjectSpec$Serializer">
+		</portType>
+	</extension>
 </plugin>

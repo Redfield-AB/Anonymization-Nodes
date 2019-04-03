@@ -43,9 +43,11 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.util.Pair;
 
 import se.redfield.arxnode.config.AnonymizationConfig;
+import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.config.TransformationConfig;
 import se.redfield.arxnode.config.TransformationConfig.Mode;
+import se.redfield.arxnode.nodes.ArxPortObject;
 import se.redfield.arxnode.partiton.PartitionInfo;
 import se.redfield.arxnode.partiton.Partitioner;
 
@@ -56,13 +58,16 @@ public class Anonymizer {
 	private Config config;
 	private ArxNodeNodeModel model;
 	private ARXNode optimum;
+	private ArxPortObject arxPortObject;
 
 	public Anonymizer(Config config, ArxNodeNodeModel model) {
 		this.config = config;
 		this.model = model;
 	}
 
-	public PortObject[] process(BufferedDataTable inTable, ExecutionContext exec) throws Exception {
+	public PortObject[] process(BufferedDataTable inTable, ArxPortObject arxObject, ExecutionContext exec)
+			throws Exception {
+		this.arxPortObject = arxObject;
 		AnonymizationConfig anonConfig = config.getAnonymizationConfig();
 		Partitioner partitioner = Partitioner.createPartitioner(anonConfig.getNumOfThreads().getIntValue(),
 				anonConfig.getPartitionsGroupByEnabled().getBooleanValue()
@@ -257,7 +262,7 @@ public class Anonymizer {
 			def.setAttributeType(c.getName(), c.getAttrType());
 
 			if (c.getAttrType() == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
-				HierarchyBuilder<?> hierarchy = getHierarchy(c.getHierarchyFile());
+				HierarchyBuilder<?> hierarchy = getHierarchy(c);
 				def.setAttributeType(c.getName(), hierarchy);
 
 				TransformationConfig tc = c.getTransformationConfig();
@@ -306,7 +311,11 @@ public class Anonymizer {
 		return arxConfig;
 	}
 
-	private HierarchyBuilder<?> getHierarchy(String path) {
+	private HierarchyBuilder<?> getHierarchy(ColumnConfig c) {
+		if (arxPortObject != null && arxPortObject.getHierarchies().containsKey(c.getName())) {
+			return arxPortObject.getHierarchies().get(c.getName());
+		}
+		String path = c.getHierarchyFile();
 		if (StringUtils.isEmpty(path)) {
 			return null;
 		}

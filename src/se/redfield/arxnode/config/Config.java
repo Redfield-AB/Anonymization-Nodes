@@ -11,6 +11,7 @@ import org.knime.core.node.NodeSettingsRO;
 
 import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.PrivacyModelsConfig;
+import se.redfield.arxnode.nodes.ArxPortObjectSpec;
 
 public class Config implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(Config.class);
@@ -20,6 +21,8 @@ public class Config implements SettingsModelConfig {
 	private SubsetConfig subsetConfig;
 	private ColumnsConfig columnsConfig;
 
+	private ArxPortObjectSpec overrides;
+
 	public Config() {
 		privacyModelConfig = new PrivacyModelsConfig();
 		anonymizationConfig = new AnonymizationConfig();
@@ -27,15 +30,36 @@ public class Config implements SettingsModelConfig {
 		columnsConfig = new ColumnsConfig();
 	}
 
-	public void initColumns(DataTableSpec spec) {
-		logger.debug("Config.initColumns");
+	public void configure(DataTableSpec spec, ArxPortObjectSpec overrides) {
 		columnsConfig.configure(spec);
+		this.overrides = overrides;
+		processOverrides();
+	}
+
+	private void processOverrides() {
+		columnsConfig.getColumns().values().forEach(c -> c.setHierarchyOverriden(false));
+		if (overrides != null) {
+			for (String column : overrides.getHierarchies()) {
+				ColumnConfig c = columnsConfig.getColumn(column);
+				if (c != null) {
+					c.setHierarchyOverriden(true);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
+		SettingsModelConfig.super.load(settings);
+		processOverrides();
 	}
 
 	public void validate(NodeSettingsRO settings) throws InvalidSettingsException {
 		logger.debug("Config.validate");
 		Config tmp = new Config();
 		tmp.load(settings);
+		tmp.overrides = overrides;
+		tmp.processOverrides();
 		tmp.validate();
 	}
 
