@@ -10,6 +10,7 @@ import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.DataType;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
+import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
@@ -18,6 +19,7 @@ public class ColumnConfig implements SettingsModelConfig {
 	public static final String CONFIG_HIERARCHY_FILE = "hierarchyFile";
 	public static final String CONFIG_ATTR_TYPE = "type";
 	public static final String CONFIG_WEIGHT = "weight";
+	public static final String CONFIG_HIERARCHY_OVERRIDEN = "hierarchyOverriden";
 
 	private String name;
 	private int index;
@@ -29,7 +31,7 @@ public class ColumnConfig implements SettingsModelConfig {
 	private SettingsModelString attrTypeModel;
 	private SettingsModelDoubleBounded weightModel;
 
-	private boolean hierarchyOverriden;
+	private SettingsModelBoolean hierarchyOverriden;
 
 	public ColumnConfig(String name) {
 		this(name, 0, null);
@@ -52,12 +54,12 @@ public class ColumnConfig implements SettingsModelConfig {
 			attrType = option.getType();
 		});
 
-		this.hierarchyOverriden = false;
+		this.hierarchyOverriden = new SettingsModelBoolean(CONFIG_HIERARCHY_OVERRIDEN, false);
 	}
 
 	@Override
 	public List<SettingsModel> getModels() {
-		return Arrays.asList(hierarchyFileModel, attrTypeModel, weightModel);
+		return Arrays.asList(hierarchyFileModel, attrTypeModel, weightModel, hierarchyOverriden);
 	}
 
 	@Override
@@ -75,7 +77,7 @@ public class ColumnConfig implements SettingsModelConfig {
 		SettingsModelConfig.super.validate();
 
 		if (attrType == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
-			if (!hierarchyOverriden) {
+			if (isHierarchyOverriden()) {
 				String path = getHierarchyFile();
 				if (StringUtils.isEmpty(path)) {
 					throw new InvalidSettingsException(
@@ -138,11 +140,11 @@ public class ColumnConfig implements SettingsModelConfig {
 	}
 
 	public boolean isHierarchyOverriden() {
-		return hierarchyOverriden;
+		return hierarchyOverriden.getBooleanValue();
 	}
 
 	public void setHierarchyOverriden(boolean hierarchyOverriden) {
-		this.hierarchyOverriden = hierarchyOverriden;
+		this.hierarchyOverriden.setBooleanValue(hierarchyOverriden);
 		hierarchyFileModel.setEnabled(!hierarchyOverriden);
 	}
 }

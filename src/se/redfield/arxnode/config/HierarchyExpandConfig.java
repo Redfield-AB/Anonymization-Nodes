@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
-import org.deidentifier.arx.aggregates.HierarchyBuilderIntervalBased;
+import org.deidentifier.arx.aggregates.HierarchyBuilderGroupingBased;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
@@ -63,8 +63,8 @@ public class HierarchyExpandConfig implements SettingsModelConfig {
 		}
 		try {
 			HierarchyBuilder<?> h = HierarchyBuilder.create(path);
-			if (!(h instanceof HierarchyBuilderIntervalBased)) {
-				throw new InvalidSettingsException("Only Interval based hierarchies supported");
+			if (!(h instanceof HierarchyBuilderGroupingBased)) {
+				throw new InvalidSettingsException("Only Interval and Order based hierarchies supported");
 			}
 		} catch (IOException e) {
 			throw new InvalidSettingsException(e);

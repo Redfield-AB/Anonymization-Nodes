@@ -1,6 +1,6 @@
 package se.redfield.arxnode.nodes;
 
-import org.knime.core.data.DoubleValue;
+import org.knime.core.data.DataValue;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NotConfigurableException;
 import org.knime.core.node.defaultnodesettings.DefaultNodeSettingsPane;
@@ -20,7 +20,7 @@ public class HierarchyExpandNodeDialog extends DefaultNodeSettingsPane {
 	public HierarchyExpandNodeDialog() {
 		super();
 		config = new HierarchyExpandConfig();
-		columnInput = new DialogComponentColumnNameSelection(config.getColumnSetting(), "Column", 0, DoubleValue.class);
+		columnInput = new DialogComponentColumnNameSelection(config.getColumnSetting(), "Column", 0, DataValue.class);
 		fileInput = new DialogComponentFileChooser(config.getFile(), "arx", "ahs");
 		addDialogComponent(columnInput);
 		addDialogComponent(fileInput);

@@ -51,15 +51,12 @@ public class Config implements SettingsModelConfig {
 	@Override
 	public void load(NodeSettingsRO settings) throws InvalidSettingsException {
 		SettingsModelConfig.super.load(settings);
-		processOverrides();
 	}
 
 	public void validate(NodeSettingsRO settings) throws InvalidSettingsException {
 		logger.debug("Config.validate");
 		Config tmp = new Config();
 		tmp.load(settings);
-		tmp.overrides = overrides;
-		tmp.processOverrides();
 		tmp.validate();
 	}
 

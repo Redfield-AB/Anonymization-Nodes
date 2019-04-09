@@ -18,7 +18,7 @@ import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 
 import se.redfield.arxnode.config.HierarchyExpandConfig;
-import se.redfield.arxnode.util.HierarchyExpander;
+import se.redfield.arxnode.hierarchy.expand.HierarchyExpander;
 
 public class HierarchyExpandNodeModel extends NodeModel {
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyExpandNodeModel.class);
