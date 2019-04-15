@@ -2,6 +2,8 @@ package se.redfield.arxnode.hierarchy.expand;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.deidentifier.arx.DataType;
 import org.deidentifier.arx.DataType.ARXDate;
@@ -17,63 +19,74 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeLogger;
 
+import se.redfield.arxnode.config.HierarchyBinding;
+import se.redfield.arxnode.config.HierarchyExpandNodeConfig;
+
 public abstract class HierarchyExpander<T, HB extends HierarchyBuilderGroupingBased<T>> {
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyExpander.class);
 
 	protected HB src;
+	protected int columnIndex;
 
-	protected HierarchyExpander(HB src) {
+	protected HierarchyExpander(HB src, int columnIndex) {
 		this.src = src;
+		this.columnIndex = columnIndex;
 	}
 
-	public HierarchyBuilder<T> expand(BufferedDataTable inTable, int columnIndex) {
-		for (DataRow row : inTable) {
-			DataCell cell = row.getCell(columnIndex);
-			if (!cell.isMissing()) {
-				Class<? extends DataValue> expectedCellType = getExpectedCellType();
-				if (!cell.getType().isCompatible(expectedCellType)) {
-					throw new UnsupportedOperationException("Unsupported cell type: " + cell.getType().getName()
-							+ ". Expected: " + expectedCellType.getSimpleName());
-				}
-				testRow(cell);
+	protected void processRow(DataRow row) {
+		DataCell cell = row.getCell(columnIndex);
+		if (!cell.isMissing()) {
+			Class<? extends DataValue> expectedCellType = getExpectedCellType();
+			if (!cell.getType().isCompatible(expectedCellType)) {
+				throw new UnsupportedOperationException("Unsupported cell type: " + cell.getType().getName()
+						+ ". Expected: " + expectedCellType.getSimpleName());
 			}
+			processCell(cell);
 		}
-
-		return createHierarchy();
 	}
 
-	protected abstract void testRow(DataCell cell);
+	protected abstract void processCell(DataCell cell);
 
 	protected abstract Class<? extends DataValue> getExpectedCellType();
 
 	protected abstract HierarchyBuilderGroupingBased<T> createHierarchy();
 
 	@SuppressWarnings("unchecked")
-	public static HierarchyExpander<?, ?> create(HierarchyBuilderGroupingBased<?> src) {
+	public static HierarchyExpander<?, ?> create(HierarchyBuilderGroupingBased<?> src, int columnIndex) {
 		if (src instanceof HierarchyBuilderIntervalBased<?>) {
 			DataType<?> type = src.getDataType();
 			if (type instanceof ARXInteger) {
 				return new HierarchyExpanderInterval.HierarchyExpanderArxInteger(
-						(HierarchyBuilderIntervalBased<Long>) src);
+						(HierarchyBuilderIntervalBased<Long>) src, columnIndex);
 			}
 			if (type instanceof ARXDecimal) {
 				return new HierarchyExpanderInterval.HierarchyExpanderArcDecimal(
-						(HierarchyBuilderIntervalBased<Double>) src);
+						(HierarchyBuilderIntervalBased<Double>) src, columnIndex);
 			}
 			if (type instanceof ARXDate) {
-				return new HierarchyExpanderInterval.HierarcyExpanderArxDate((HierarchyBuilderIntervalBased<Date>) src);
+				return new HierarchyExpanderInterval.HierarcyExpanderArxDate((HierarchyBuilderIntervalBased<Date>) src,
+						columnIndex);
 			}
 			throw new UnsupportedOperationException(
 					"Hierarchy datatype '" + type.getDescription().getLabel() + "' is not supported");
 		} else {
-			return new HierarchyExpanderOrder((HierarchyBuilderOrderBased<?>) src);
+			return new HierarchyExpanderOrder((HierarchyBuilderOrderBased<?>) src, columnIndex);
 		}
 	}
 
-	public static HierarchyBuilder<?> expand(BufferedDataTable inTable, String hierarchyFile, int columnIndex)
+	public static Map<String, HierarchyBuilder<?>> expand(BufferedDataTable inTable, HierarchyExpandNodeConfig config)
 			throws IOException {
-		HierarchyExpander<?, ?> expander = create(
-				(HierarchyBuilderGroupingBased<?>) HierarchyBuilder.create(hierarchyFile));
-		return expander.expand(inTable, columnIndex);
+		Map<String, HierarchyExpander<?, ?>> expanders = new HashMap<>();
+		for (HierarchyBinding b : config.getBindings()) {
+			expanders.put(b.getColumnName(),
+					create((HierarchyBuilderGroupingBased<?>) HierarchyBuilder.create(b.getFile()),
+							inTable.getDataTableSpec().findColumnIndex(b.getColumnName())));
+		}
+		for (DataRow row : inTable) {
+			expanders.values().forEach(e -> e.processRow(row));
+		}
+		Map<String, HierarchyBuilder<?>> result = new HashMap<>();
+		expanders.entrySet().forEach(e -> result.put(e.getKey(), e.getValue().createHierarchy()));
+		return result;
 	}
 }

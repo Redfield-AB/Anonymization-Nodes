@@ -113,6 +113,9 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 						new String[] { ColumnsConfig.CONFIG_KEY, c.getName(), ColumnConfig.CONFIG_ATTR_TYPE },
 						Type.STRING),
 				"ahs");
+		if (c.isHierarchyOverriden()) {
+			fileChooser.setBorderTitle("Hierarchy is already provided by config overrides");
+		}
 
 		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(this, c);
 
@@ -120,9 +123,9 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 				e -> onAttrTypeChanged(fileModel, attrTypeModel, fileChooser, transformationPanel, false));
 		onAttrTypeChanged(fileModel, attrTypeModel, fileChooser, transformationPanel, true);
 
-		JLabel columnLabel = new JLabel(c.getName());
+		JLabel columnLabel = new JLabel(createHtmlLabel(c));
 		Font font = UIManager.getFont("Label.font");
-		columnLabel.setFont(new Font(font.getName(), Font.BOLD, font.getSize() + 2));
+		columnLabel.setFont(new Font(font.getName(), font.getStyle(), font.getSize() + 2));
 
 		CellConstraints cc = new CellConstraints();
 		JPanel row = new JPanel(new FormLayout("l:p:n, 5:n, r:p:g", "p:n, 5:n, p:n, 5:n, p:n"));
@@ -132,6 +135,12 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		row.add(fileChooser.getComponentPanel(), cc.rcw(3, 1, 3));
 		row.add(transformationPanel, cc.rcw(5, 1, 3));
 		return row;
+	}
+
+	private String createHtmlLabel(ColumnConfig c) {
+		String html = "<html><b>%1$s</b>%2$s</html>";
+		String asterisk = c.isHierarchyOverriden() ? "<font color=red>*</font>" : "";
+		return String.format(html, c.getName(), asterisk);
 	}
 
 	private void onAttrTypeChanged(SettingsModelString fileModel, SettingsModelString attrTypeModel,

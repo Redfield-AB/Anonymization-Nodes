@@ -22,8 +22,8 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 	protected T min;
 	protected T max;
 
-	protected HierarchyExpanderInterval(HierarchyBuilderIntervalBased<T> src) {
-		super(src);
+	protected HierarchyExpanderInterval(HierarchyBuilderIntervalBased<T> src, int columnIndex) {
+		super(src, columnIndex);
 		min = src.getLowerRange().getMinMaxValue();
 		max = src.getUpperRange().getMinMaxValue();
 	}
@@ -51,8 +51,8 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 	}
 
 	static class HierarchyExpanderArxInteger extends HierarchyExpanderInterval<Long> {
-		protected HierarchyExpanderArxInteger(HierarchyBuilderIntervalBased<Long> src) {
-			super(src);
+		protected HierarchyExpanderArxInteger(HierarchyBuilderIntervalBased<Long> src, int columnIndex) {
+			super(src, columnIndex);
 		}
 
 		@Override
@@ -61,7 +61,7 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 		}
 
 		@Override
-		protected void testRow(DataCell cell) {
+		protected void processCell(DataCell cell) {
 			LongValue longCell = (LongValue) cell;
 			long val = longCell.getLongValue();
 			if (val <= min) {
@@ -77,8 +77,8 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 
 	static class HierarchyExpanderArcDecimal extends HierarchyExpanderInterval<Double> {
 
-		protected HierarchyExpanderArcDecimal(HierarchyBuilderIntervalBased<Double> src) {
-			super(src);
+		protected HierarchyExpanderArcDecimal(HierarchyBuilderIntervalBased<Double> src, int columnIndex) {
+			super(src, columnIndex);
 		}
 
 		@Override
@@ -87,7 +87,7 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 		}
 
 		@Override
-		protected void testRow(DataCell cell) {
+		protected void processCell(DataCell cell) {
 			DoubleValue doubleCell = (DoubleValue) cell;
 			double val = doubleCell.getDoubleValue();
 			if (val <= min) {
@@ -106,12 +106,12 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 
 		private static long HOUR = 60 * 60 * 1000;
 
-		protected HierarcyExpanderArxDate(HierarchyBuilderIntervalBased<Date> src) {
-			super(src);
+		protected HierarcyExpanderArxDate(HierarchyBuilderIntervalBased<Date> src, int columnIndex) {
+			super(src, columnIndex);
 		}
 
 		@Override
-		protected void testRow(DataCell cell) {
+		protected void processCell(DataCell cell) {
 			LocalDateTimeValue dateCell = (LocalDateTimeValue) cell;
 			long time = Date.from(dateCell.getLocalDateTime().atZone(ZoneOffset.systemDefault()).toInstant()).getTime();
 			if (time <= min.getTime()) {

@@ -1,7 +1,11 @@
 package se.redfield.arxnode;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.deidentifier.arx.ARXPopulationModel.Region;
 import org.deidentifier.arx.DataType;
+import org.deidentifier.arx.aggregates.HierarchyBuilder;
 import org.knime.core.node.NodeLogger;
 
 import com.google.gson.Gson;
@@ -54,4 +58,10 @@ public class Utils {
 		return Region.NONE;
 	}
 
+	public static HierarchyBuilder<?> clone(HierarchyBuilder<?> h) throws IOException {
+		File f = File.createTempFile("hierarchy", ".ahs");
+		f.deleteOnExit();
+		h.save(f);
+		return HierarchyBuilder.create(f);
+	}
 }

@@ -1,6 +1,8 @@
 package se.redfield.arxnode.config;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.nio.file.InvalidPathException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -9,12 +11,15 @@ import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.DataType;
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
 import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.util.FileUtil;
 
 public class ColumnConfig implements SettingsModelConfig {
+	private static final NodeLogger logger = NodeLogger.getLogger(ColumnConfig.class);
 
 	public static final String CONFIG_HIERARCHY_FILE = "hierarchyFile";
 	public static final String CONFIG_ATTR_TYPE = "type";
@@ -77,14 +82,18 @@ public class ColumnConfig implements SettingsModelConfig {
 		SettingsModelConfig.super.validate();
 
 		if (attrType == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
-			if (isHierarchyOverriden()) {
-				String path = getHierarchyFile();
-				if (StringUtils.isEmpty(path)) {
+			if (!isHierarchyOverriden()) {
+				if (StringUtils.isEmpty(hierarchyFileModel.getStringValue())) {
 					throw new InvalidSettingsException(
 							"Hierarcy file not set for quasi-identifying attribute '" + name + "'");
 				}
-				if (!new File(path).exists()) {
-					throw new InvalidSettingsException("File " + path + " not found");
+				try {
+					File file = getHierarchyFile();
+					if (!file.exists()) {
+						throw new InvalidSettingsException("File " + file.getAbsolutePath() + " not found");
+					}
+				} catch (InvalidPathException | MalformedURLException e) {
+					throw new InvalidSettingsException(e);
 				}
 			}
 		}
@@ -111,8 +120,8 @@ public class ColumnConfig implements SettingsModelConfig {
 		this.dataType = dataType;
 	}
 
-	public String getHierarchyFile() {
-		return hierarchyFileModel.getStringValue();
+	public File getHierarchyFile() throws InvalidPathException, MalformedURLException {
+		return FileUtil.getFileFromURL(FileUtil.toURL(hierarchyFileModel.getStringValue()));
 	}
 
 	public SettingsModelString getHierarchyFileModel() {

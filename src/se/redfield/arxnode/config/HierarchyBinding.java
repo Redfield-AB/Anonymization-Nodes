@@ -2,6 +2,8 @@ package se.redfield.arxnode.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.InvalidPathException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,18 +14,19 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
+import org.knime.core.util.FileUtil;
 
-public class HierarchyExpandConfig implements SettingsModelConfig {
+public class HierarchyBinding implements SettingsModelConfig {
 
 	private static final String CONFIG_COLUMN = "column";
 	private static final String CONFIG_FILE = "file";
 
 	private SettingsModelColumnName column;
-	private SettingsModelString file;
+	private SettingsModelString fileModel;
 
-	public HierarchyExpandConfig() {
+	public HierarchyBinding() {
 		column = new SettingsModelColumnName(CONFIG_COLUMN, "");
-		file = new SettingsModelString(CONFIG_FILE, "");
+		fileModel = new SettingsModelString(CONFIG_FILE, "");
 	}
 
 	public SettingsModelColumnName getColumnSetting() {
@@ -34,18 +37,22 @@ public class HierarchyExpandConfig implements SettingsModelConfig {
 		return column.getColumnName();
 	}
 
-	public SettingsModelString getFile() {
-		return file;
+	public SettingsModelString getFileModel() {
+		return fileModel;
+	}
+
+	public File getFile() throws InvalidPathException, MalformedURLException {
+		return FileUtil.getFileFromURL(FileUtil.toURL(fileModel.getStringValue()));
 	}
 
 	@Override
 	public List<SettingsModel> getModels() {
-		return Arrays.asList(column, file);
+		return Arrays.asList(column, fileModel);
 	}
 
 	@Override
 	public String getKey() {
-		return null;
+		return getColumnName();
 	}
 
 	@Override
@@ -54,15 +61,15 @@ public class HierarchyExpandConfig implements SettingsModelConfig {
 		if (StringUtils.isEmpty(column.getStringValue())) {
 			throw new InvalidSettingsException("Target column is not selected");
 		}
-		String path = file.getStringValue();
-		if (StringUtils.isEmpty(path)) {
+		if (StringUtils.isEmpty(fileModel.getStringValue())) {
 			throw new InvalidSettingsException("Hierarchy file is not set");
 		}
-		if (!new File(path).exists()) {
-			throw new InvalidSettingsException("Hierarchy file does not exist");
-		}
 		try {
-			HierarchyBuilder<?> h = HierarchyBuilder.create(path);
+			File hFile = getFile();
+			if (!hFile.exists()) {
+				throw new InvalidSettingsException("Hierarchy file does not exist");
+			}
+			HierarchyBuilder<?> h = HierarchyBuilder.create(hFile);
 			if (!(h instanceof HierarchyBuilderGroupingBased)) {
 				throw new InvalidSettingsException("Only Interval and Order based hierarchies supported");
 			}

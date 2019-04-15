@@ -18,8 +18,8 @@ public class HierarchyExpanderOrder<T> extends HierarchyExpander<T, HierarchyBui
 	private int nextOrder;
 
 	@SuppressWarnings("unchecked")
-	protected HierarchyExpanderOrder(HierarchyBuilderOrderBased<T> src) {
-		super(src);
+	protected HierarchyExpanderOrder(HierarchyBuilderOrderBased<T> src, int columnIndex) {
+		super(src, columnIndex);
 		try {
 			comparator = src.getComparator();
 			orderMap = (Map<String, Integer>) FieldUtils.readDeclaredField(comparator, "val$map", true);
@@ -30,7 +30,7 @@ public class HierarchyExpanderOrder<T> extends HierarchyExpander<T, HierarchyBui
 	}
 
 	@Override
-	protected void testRow(DataCell cell) {
+	protected void processCell(DataCell cell) {
 		if (orderMap != null) {
 			String val = cell.toString();
 			if (!orderMap.containsKey(val)) {

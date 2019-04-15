@@ -2,6 +2,8 @@ package se.redfield.arxnode.nodes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
 import org.knime.core.node.BufferedDataTable;
@@ -17,7 +19,8 @@ import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 
-import se.redfield.arxnode.config.HierarchyExpandConfig;
+import se.redfield.arxnode.config.HierarchyBinding;
+import se.redfield.arxnode.config.HierarchyExpandNodeConfig;
 import se.redfield.arxnode.hierarchy.expand.HierarchyExpander;
 
 public class HierarchyExpandNodeModel extends NodeModel {
@@ -26,13 +29,13 @@ public class HierarchyExpandNodeModel extends NodeModel {
 	public static final int PORT_DATA_TABLE = 0;
 	public static final int PORT_ARX_OBJECT = 1;
 
-	private HierarchyExpandConfig config;
+	private HierarchyExpandNodeConfig config;
 	private ArxPortObjectSpec outSpec;
 
 	protected HierarchyExpandNodeModel() {
 		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL },
 				new PortType[] { ArxPortObject.TYPE });
-		config = new HierarchyExpandConfig();
+		config = new HierarchyExpandNodeConfig();
 	}
 
 	@Override
@@ -58,7 +61,7 @@ public class HierarchyExpandNodeModel extends NodeModel {
 	@Override
 	protected void validateSettings(NodeSettingsRO settings) throws InvalidSettingsException {
 		logger.debug("validateSettings");
-		HierarchyExpandConfig temp = new HierarchyExpandConfig();
+		HierarchyExpandNodeConfig temp = new HierarchyExpandNodeConfig();
 		temp.load(settings);
 		temp.validate();
 	}
@@ -87,7 +90,8 @@ public class HierarchyExpandNodeModel extends NodeModel {
 		} else {
 			outSpec = inSpec.clone();
 		}
-		outSpec.getHierarchies().add(config.getColumnName());
+		outSpec.getHierarchies().addAll(
+				config.getBindings().stream().map(HierarchyBinding::getColumnName).collect(Collectors.toList()));
 		return outSpec;
 	}
 
@@ -95,13 +99,11 @@ public class HierarchyExpandNodeModel extends NodeModel {
 	protected PortObject[] execute(PortObject[] inObjects, ExecutionContext exec) throws Exception {
 		logger.debug("execute");
 		ArxPortObject out = ArxPortObject.create(outSpec, (ArxPortObject) inObjects[PORT_ARX_OBJECT]);
-		out.getHierarchies().put(config.getColumnName(),
-				expandHierarchy((BufferedDataTable) inObjects[PORT_DATA_TABLE]));
+		out.getHierarchies().putAll(expandHierarchies((BufferedDataTable) inObjects[PORT_DATA_TABLE]));
 		return new PortObject[] { out };
 	}
 
-	private HierarchyBuilder<?> expandHierarchy(BufferedDataTable inTable) throws IOException {
-		return HierarchyExpander.expand(inTable, config.getFile().getStringValue(),
-				inTable.getDataTableSpec().findColumnIndex(config.getColumnName()));
+	private Map<String, HierarchyBuilder<?>> expandHierarchies(BufferedDataTable inTable) throws IOException {
+		return HierarchyExpander.expand(inTable, config);
 	}
 }

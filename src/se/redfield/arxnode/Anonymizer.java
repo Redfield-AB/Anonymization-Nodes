@@ -11,7 +11,6 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.ARXAnonymizer;
 import org.deidentifier.arx.ARXConfiguration;
 import org.deidentifier.arx.ARXLattice.ARXNode;
@@ -79,9 +78,10 @@ public class Anonymizer {
 		ExecutorService executor = Executors.newFixedThreadPool(parts.size());
 		CompletionService<Pair<ARXResult, PartitionInfo>> service = new ExecutorCompletionService<>(executor);
 		for (Pair<DefaultData, PartitionInfo> pair : parts) {
+			ARXConfiguration arxConfig = configure(pair.getFirst());
 			service.submit(() -> {
 				ARXAnonymizer anonymizer = new ARXAnonymizer();
-				ARXResult result = anonymizer.anonymize(pair.getFirst(), configure(pair.getFirst()));
+				ARXResult result = anonymizer.anonymize(pair.getFirst(), arxConfig);
 				return new Pair<ARXResult, PartitionInfo>(result, pair.getSecond());
 			});
 		}
@@ -312,15 +312,11 @@ public class Anonymizer {
 	}
 
 	private HierarchyBuilder<?> getHierarchy(ColumnConfig c) {
-		if (arxPortObject != null && arxPortObject.getHierarchies().containsKey(c.getName())) {
-			return arxPortObject.getHierarchies().get(c.getName());
-		}
-		String path = c.getHierarchyFile();
-		if (StringUtils.isEmpty(path)) {
-			return null;
-		}
 		try {
-			return HierarchyBuilder.create(path);
+			if (arxPortObject != null && arxPortObject.getHierarchies().containsKey(c.getName())) {
+				return Utils.clone(arxPortObject.getHierarchies().get(c.getName()));
+			}
+			return HierarchyBuilder.create(c.getHierarchyFile());
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 		}
