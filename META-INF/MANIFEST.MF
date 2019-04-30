@@ -2,12 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ARX Data Anonymization Node extension for KNIME Workbench
 Bundle-SymbolicName: se.redfield.arxnode.ArxNode;singleton:=true
-Bundle-Version: 0.2.10
+Bundle-Version: 0.2.11
 Bundle-ClassPath: arxnode.jar,
  lib/libarx-3.7.1.jar,
  lib/gson-2.8.5.jar,
  lib/jgoodies-common-1.7.0.jar,
- lib/jgoodies-forms-1.8.0.jar
+ lib/jgoodies-forms-1.8.0.jar,
+ lib/arx-swing.jar
 Bundle-Activator: se.redfield.arxnode.ArxNodeNodePlugin
 Bundle-Vendor: Redfield AB
 Require-Bundle: org.eclipse.core.runtime,

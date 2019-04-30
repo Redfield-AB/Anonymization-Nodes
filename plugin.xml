@@ -19,6 +19,10 @@
 		<node
 			category-path="arxNodes/"
 			factory-class="se.redfield.arxnode.nodes.HierarchyExpandNodeFactory"/>
+		<node
+			category-path="arxNodes/"
+        	factory-class="se.redfield.arxnode.nodes.HierarchyCreateNodeFactory">
+		</node>
 	</extension>
 	
 	<extension
