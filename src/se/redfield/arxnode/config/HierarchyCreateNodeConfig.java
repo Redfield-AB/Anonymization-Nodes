@@ -15,23 +15,32 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
+import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
 public class HierarchyCreateNodeConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyCreateNodeConfig.class);
 
 	public static final String CONFIG_COLUMN = "column";
+	public static final String CONFIG_TYPE = "type";
 	public static final String CONFIG_MODEL = "model";
 
 	private SettingsModelColumnName column;
+	private SettingsModelString typeModel;
+
+	private HierarchyTypeOptions type;
 	private HierarchyBuilder<?> builder;
 
 	public HierarchyCreateNodeConfig() {
 		column = new SettingsModelColumnName(CONFIG_COLUMN, "");
+		typeModel = new SettingsModelString(CONFIG_TYPE, "");
+		typeModel.addChangeListener(e -> {
+			type = HierarchyTypeOptions.fromName(typeModel.getStringValue());
+		});
 	}
 
 	@Override
 	public List<SettingsModel> getModels() {
-		return Arrays.asList(column);
+		return Arrays.asList(column, typeModel);
 	}
 
 	@Override
@@ -70,6 +79,18 @@ public class HierarchyCreateNodeConfig implements SettingsModelConfig {
 
 	public String getColumnName() {
 		return column.getStringValue();
+	}
+
+	public HierarchyTypeOptions getType() {
+		return type;
+	}
+
+	public SettingsModelString getTypeModel() {
+		return typeModel;
+	}
+
+	public void setType(HierarchyTypeOptions type) {
+		this.typeModel.setStringValue(type.name());
 	}
 
 	public HierarchyBuilder<?> getBuilder() {

@@ -26,7 +26,7 @@ public class HierarchyCreateNodeModel extends NodeModel {
 
 	protected HierarchyCreateNodeModel() {
 		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL },
-				new PortType[] { ArxPortObject.TYPE });
+				new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE });
 		config = new HierarchyCreateNodeConfig();
 	}
 
@@ -79,13 +79,13 @@ public class HierarchyCreateNodeModel extends NodeModel {
 			outSpec = inSpec.clone();
 		}
 		outSpec.getHierarchies().add(config.getColumnName());
-		return new PortObjectSpec[] { outSpec };
+		return new PortObjectSpec[] { inSpecs[PORT_DATA_TABLE], outSpec };
 	}
 
 	@Override
 	protected PortObject[] execute(PortObject[] inObjects, ExecutionContext exec) throws Exception {
 		ArxPortObject out = ArxPortObject.create(outSpec, (ArxPortObject) inObjects[PORT_ARX_OBJECT]);
 		out.getHierarchies().put(config.getColumnName(), config.getBuilder());
-		return new PortObject[] { out };
+		return new PortObject[] { inObjects[PORT_DATA_TABLE], out };
 	}
 }
