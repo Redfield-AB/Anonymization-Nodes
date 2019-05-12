@@ -27,18 +27,18 @@ import org.knime.core.node.workflow.FlowVariable.Type;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-import se.redfield.arxnode.ArxNodeNodeDialog;
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.ColumnsConfig;
 import se.redfield.arxnode.config.TransformationConfig;
 import se.redfield.arxnode.config.TransformationConfig.MicroaggregationFunction;
 import se.redfield.arxnode.config.TransformationConfig.Mode;
+import se.redfield.arxnode.nodes.AnonymizerNodeDialog;
 
 public class TransformationConfigPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationConfigPanel.class);
 
-	private ArxNodeNodeDialog dlg;
+	private AnonymizerNodeDialog dlg;
 	private ColumnConfig columnConfig;
 	private TransformationConfig transformationConfig;
 	private MicroaggregationFunction[] microaggregationOptions;
@@ -57,7 +57,7 @@ public class TransformationConfigPanel extends JPanel {
 	private FlowVariableModel fwIgnoreMissing;
 	private FlowVariableModel fwMode;
 
-	public TransformationConfigPanel(ArxNodeNodeDialog dlg, ColumnConfig config) {
+	public TransformationConfigPanel(AnonymizerNodeDialog dlg, ColumnConfig config) {
 		this.dlg = dlg;
 		this.columnConfig = config;
 		this.transformationConfig = config.getTransformationConfig();

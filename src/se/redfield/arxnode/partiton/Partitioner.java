@@ -35,8 +35,7 @@ public abstract class Partitioner {
 		long index = 0;
 		for (DataRow row : source) {
 			DefaultData current = findTarget(row, index++);
-			current.add(
-					row.stream().map(cell -> cell.toString()).collect(Collectors.toList()).toArray(new String[] {}));
+			current.add(row.stream().map(Utils::toString).collect(Collectors.toList()).toArray(new String[] {}));
 		}
 		return getResult();
 	}

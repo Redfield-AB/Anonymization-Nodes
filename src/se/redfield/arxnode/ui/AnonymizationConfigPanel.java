@@ -17,20 +17,20 @@ import org.knime.core.node.workflow.FlowVariable.Type;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-import se.redfield.arxnode.ArxNodeNodeDialog;
 import se.redfield.arxnode.config.AnonymizationConfig;
+import se.redfield.arxnode.nodes.AnonymizerNodeDialog;
 
 public class AnonymizationConfigPanel {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfigPanel.class);
 
-	private ArxNodeNodeDialog dlg;
+	private AnonymizerNodeDialog dlg;
 	private AnonymizationConfig config;
 	private JPanel component;
 	private CellConstraints cc;
 
 	private DialogComponentColumnNameSelection columnSelection;
 
-	public AnonymizationConfigPanel(AnonymizationConfig config, ArxNodeNodeDialog dlg) {
+	public AnonymizationConfigPanel(AnonymizationConfig config, AnonymizerNodeDialog dlg) {
 		this.config = config;
 		this.dlg = dlg;
 		initUi();

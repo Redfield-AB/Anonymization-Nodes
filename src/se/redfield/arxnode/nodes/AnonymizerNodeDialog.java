@@ -1,4 +1,4 @@
-package se.redfield.arxnode;
+package se.redfield.arxnode.nodes;
 
 import java.awt.Font;
 
@@ -30,15 +30,14 @@ import se.redfield.arxnode.config.AttributeTypeOptions;
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.ColumnsConfig;
 import se.redfield.arxnode.config.Config;
-import se.redfield.arxnode.nodes.ArxPortObjectSpec;
 import se.redfield.arxnode.ui.AnonymizationConfigPanel;
 import se.redfield.arxnode.ui.PrivacyModelsPane;
 import se.redfield.arxnode.ui.SubsetConfigPanel;
 import se.redfield.arxnode.ui.TransformationConfigPanel;
 
-public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
+public class AnonymizerNodeDialog extends DefaultNodeSettingsPane {
 
-	private static final NodeLogger logger = NodeLogger.getLogger(ArxNodeNodeDialog.class);
+	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizerNodeDialog.class);
 	private static final String PRIVACY_MODELS_TAB_TITLE = "Privacy Models";
 
 	private Config config;
@@ -46,7 +45,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	private PrivacyModelsPane privacyPanel;
 	private AnonymizationConfigPanel anonConfigPanel;
 
-	protected ArxNodeNodeDialog() {
+	protected AnonymizerNodeDialog() {
 		super();
 		logger.info("Dialog.constructor");
 
@@ -55,6 +54,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		columnsPanel = new JPanel();
 		privacyPanel = new PrivacyModelsPane(config);
 		anonConfigPanel = new AnonymizationConfigPanel(config.getAnonymizationConfig(), this);
+
 		addTab("Columns", columnsPanel);
 		addTab(PRIVACY_MODELS_TAB_TITLE, privacyPanel.getComponent(), false);
 		addTab("Anonymization Config", anonConfigPanel.getComponent());
@@ -68,7 +68,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 	public void loadAdditionalSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs)
 			throws NotConfigurableException {
 		logger.info("Dialog.loadSettings");
-		DataTableSpec inTableSpec = (DataTableSpec) specs[ArxNodeNodeModel.PORT_DATA_TABLE];
+		DataTableSpec inTableSpec = (DataTableSpec) specs[AnonymizerNodeModel.PORT_DATA_TABLE];
 		if ((inTableSpec == null) || (inTableSpec.getNumColumns() < 1)) {
 			throw new NotConfigurableException("Cannot be configured without" + " input table");
 		}
@@ -78,7 +78,7 @@ public class ArxNodeNodeDialog extends DefaultNodeSettingsPane {
 		} catch (InvalidSettingsException e) {
 			logger.debug(e.getMessage(), e);
 		}
-		config.configure(inTableSpec, (ArxPortObjectSpec) specs[ArxNodeNodeModel.PORT_ARX]);
+		config.configure(inTableSpec, (ArxPortObjectSpec) specs[AnonymizerNodeModel.PORT_ARX]);
 		initColumnsPanel(settings, inTableSpec);
 		anonConfigPanel.load(settings, specs);
 	}

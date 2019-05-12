@@ -46,6 +46,7 @@ import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.config.TransformationConfig;
 import se.redfield.arxnode.config.TransformationConfig.Mode;
+import se.redfield.arxnode.nodes.AnonymizerNodeModel;
 import se.redfield.arxnode.nodes.ArxPortObject;
 import se.redfield.arxnode.partiton.PartitionInfo;
 import se.redfield.arxnode.partiton.Partitioner;
@@ -55,11 +56,11 @@ public class Anonymizer {
 	private static final NodeLogger logger = NodeLogger.getLogger(Anonymizer.class);
 
 	private Config config;
-	private ArxNodeNodeModel model;
+	private AnonymizerNodeModel model;
 	private ARXNode optimum;
 	private ArxPortObject arxPortObject;
 
-	public Anonymizer(Config config, ArxNodeNodeModel model) {
+	public Anonymizer(Config config, AnonymizerNodeModel model) {
 		this.config = config;
 		this.model = model;
 	}
@@ -181,6 +182,7 @@ public class Anonymizer {
 		}
 
 		if (totalSuppressedCount > 0) {
+			model.showWarnig("Some records were suppressed");
 			logger.warn("Some records were suppressed");
 		}
 

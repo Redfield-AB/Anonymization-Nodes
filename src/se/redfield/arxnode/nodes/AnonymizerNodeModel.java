@@ -1,4 +1,4 @@
-package se.redfield.arxnode;
+package se.redfield.arxnode.nodes;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,13 +19,12 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 
+import se.redfield.arxnode.Anonymizer;
 import se.redfield.arxnode.config.Config;
-import se.redfield.arxnode.nodes.ArxPortObject;
-import se.redfield.arxnode.nodes.ArxPortObjectSpec;
 
-public class ArxNodeNodeModel extends NodeModel {
+public class AnonymizerNodeModel extends NodeModel {
 
-	private static final NodeLogger logger = NodeLogger.getLogger(ArxNodeNodeModel.class);
+	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizerNodeModel.class);
 
 	public static final int PORT_DATA_TABLE = 0;
 	public static final int PORT_ARX = 1;
@@ -33,7 +32,7 @@ public class ArxNodeNodeModel extends NodeModel {
 	private Config config;
 	private Anonymizer anonymizer;
 
-	protected ArxNodeNodeModel() {
+	protected AnonymizerNodeModel() {
 		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL }, new PortType[] {
 				BufferedDataTable.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE, FlowVariablePortObject.TYPE });
 		config = new Config();
@@ -120,7 +119,14 @@ public class ArxNodeNodeModel extends NodeModel {
 		pushFlowVariableString("headers", headers);
 		pushFlowVariableString("transformation", transformation);
 		pushFlowVariableString("anonymity", anonymity);
-		pushFlowVariableDouble("rowCount", rowCount);
-		pushFlowVariableDouble("suppresedRecords", suppresedRecords);
+		pushFlowVariableInt("rowCount", (int) rowCount);
+		pushFlowVariableInt("suppresedRecords", (int) suppresedRecords);
+		if (suppresedRecords > 0) {
+			setWarningMessage("");
+		}
+	}
+
+	public void showWarnig(String str) {
+		setWarningMessage(str);
 	}
 }

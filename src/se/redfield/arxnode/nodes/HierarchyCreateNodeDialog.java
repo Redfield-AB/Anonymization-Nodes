@@ -1,6 +1,7 @@
 package se.redfield.arxnode.nodes;
 
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.stream.Collectors;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
@@ -16,6 +19,8 @@ import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.DataType;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
 import org.deidentifier.arx.gui.swing.HierarchyModelAbstract;
+import org.deidentifier.arx.gui.swing.HierarchyModelAbstract.HierarchyWizardView;
+import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DataValue;
@@ -48,6 +53,7 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 
 	private JPanel cards;
 	private JPanel editorPanel;
+	private JLabel lError;
 	private DialogComponentColumnNameSelection columnInput;
 	private Map<HierarchyTypeOptions, JRadioButton> buttons;
 
@@ -112,7 +118,8 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 
 		org.knime.core.data.DataType dataType = spec.getColumnSpec(config.getColumnName()).getType();
 		for (HierarchyTypeOptions opt : buttons.keySet()) {
-			buttons.get(opt).setEnabled(dataType.isCompatible(opt.getDataClass()));
+			buttons.get(opt).setSelected(opt == config.getType());
+			buttons.get(opt).setEnabled(opt.isCompatible(dataType));
 		}
 
 		JRadioButton firstEnabled = null;
@@ -132,9 +139,22 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 	}
 
 	private void showEditorPage() {
+		if (!checkDomain()) {
+			((CardLayout) cards.getLayout()).show(cards, PAGE_SELECT);
+			return;
+		}
+
 		DataType<?> type = Utils.knimeToArxType(spec.getColumnSpec(config.getColumnName()).getType());
 		HierarchyModelFactory<?, ?> factory = createFactory(type);
 		model = factory.getModel();
+		model.setView(new HierarchyWizardView() {
+
+			@Override
+			public void update() {
+				lError.setText(model.getError());
+			}
+		});
+		model.setVisible(true);
 
 		editorPanel.removeAll();
 		editorPanel.add(factory.getEditor(), CC.rc(1, 1));
@@ -142,9 +162,35 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 		((CardLayout) cards.getLayout()).show(cards, PAGE_EDITOR);
 	}
 
+	private boolean checkDomain() {
+		String error = "";
+		String errorTemplate = "Insufficient domain information.\nPlease use 'Domain Calculator' on data table to fill %s for column '%s'";
+		DataColumnDomain domain = spec.getColumnSpec(config.getColumnName()).getDomain();
+
+		if (config.getType() == HierarchyTypeOptions.ORDER) {
+			if (!domain.hasValues()) {
+				error = "possible values";
+			}
+		}
+
+		if (config.getType() == HierarchyTypeOptions.INTERVAL) {
+			if (!domain.hasValues() && !domain.hasBounds()) {
+				error = "min/max values";
+			}
+		}
+
+		if (StringUtils.isNotEmpty(error)) {
+			JOptionPane.showMessageDialog(getPanel(), String.format(errorTemplate, error, config.getColumnName()),
+					"Insufficient domain", JOptionPane.WARNING_MESSAGE);
+			return false;
+		}
+		return true;
+	}
+
 	@SuppressWarnings("unchecked")
 	private <T> HierarchyModelFactory<T, ?> createFactory(DataType<T> type) {
-		HierarchyModelFactory<T, ?> factory = HierarchyModelFactory.create(config.getType(), type, collectData());
+		HierarchyModelFactory<T, ?> factory = (HierarchyModelFactory<T, ?>) HierarchyModelFactory
+				.create(config.getType(), type, collectData());
 		if (config.getBuilder() != null) {
 			factory.getModel().parse((HierarchyBuilder<T>) config.getBuilder());
 		}
@@ -155,21 +201,33 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 		DataColumnSpec columnSpec = spec.getColumnSpec(config.getColumnName());
 		List<String> data = new ArrayList<>();
 		if (columnSpec.getDomain().hasLowerBound()) {
-			data.add(columnSpec.getDomain().getLowerBound().toString());
+			data.add(Utils.toString(columnSpec.getDomain().getLowerBound()));
 		}
 		if (columnSpec.getDomain().hasUpperBound()) {
-			data.add(columnSpec.getDomain().getUpperBound().toString());
+			data.add(Utils.toString(columnSpec.getDomain().getUpperBound()));
 		}
 		if (columnSpec.getDomain().hasValues()) {
-			data.addAll(columnSpec.getDomain().getValues().stream().map(val -> val.toString())
-					.collect(Collectors.toList()));
+			data.addAll(columnSpec.getDomain().getValues().stream().map(Utils::toString).collect(Collectors.toList()));
 		}
 		return data.toArray(new String[] {});
 	}
 
 	private JPanel createEditorPanel() {
 		editorPanel = new JPanel(new FormLayout("f:p:g", "f:p:g"));
-		return editorPanel;
+
+		JButton bBack = new JButton("< Back");
+		bBack.addActionListener(e -> {
+			config.setBuilder(null);
+			((CardLayout) cards.getLayout()).show(cards, PAGE_SELECT);
+		});
+		lError = new JLabel("");
+		lError.setForeground(Color.RED);
+
+		JPanel panel = new JPanel(new FormLayout("p:n, 5:n, f:p:g", "f:p:g, 5:n, p:n"));
+		panel.add(editorPanel, CC.rcw(1, 1, 3));
+		panel.add(bBack, CC.rc(3, 1));
+		panel.add(lError, CC.rc(3, 3));
+		return panel;
 	}
 
 	@Override
@@ -191,6 +249,7 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 		if (config.getBuilder() != null) {
 			showEditorPage();
 		}
+
 	}
 
 	@Override

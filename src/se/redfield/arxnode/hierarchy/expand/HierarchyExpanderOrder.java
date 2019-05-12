@@ -10,6 +10,8 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataValue;
 import org.knime.core.node.NodeLogger;
 
+import se.redfield.arxnode.Utils;
+
 public class HierarchyExpanderOrder<T> extends HierarchyExpander<T, HierarchyBuilderOrderBased<T>> {
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyExpanderOrder.class);
 
@@ -32,7 +34,7 @@ public class HierarchyExpanderOrder<T> extends HierarchyExpander<T, HierarchyBui
 	@Override
 	protected void processCell(DataCell cell) {
 		if (orderMap != null) {
-			String val = cell.toString();
+			String val = Utils.toString(cell);
 			if (!orderMap.containsKey(val)) {
 				logger.debug("new key: " + val);
 				orderMap.put(val, nextOrder++);
