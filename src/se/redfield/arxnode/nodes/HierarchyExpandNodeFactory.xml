@@ -25,7 +25,8 @@
         <inPort index="0" name="Date talbe">Date table</inPort>
         <inPort index="1" name="Arx Config Overrides">Arx Config Overrides</inPort>
         <!-- possibly more input ports here-->
-        <outPort index="0" name="Arx Config Overrides">Arx Config Overrides</outPort>
+        <outPort index="0" name="Date talbe">Date table unchanged</outPort>
+        <outPort index="1" name="Arx Config Overrides">Arx Config Overrides</outPort>
         <!-- possibly more output ports here-->
     </ports>    
     <!--<views>

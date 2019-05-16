@@ -77,15 +77,20 @@ public abstract class HierarchyExpander<T, HB extends HierarchyBuilderGroupingBa
 	public static Map<String, HierarchyBuilder<?>> expand(BufferedDataTable inTable, HierarchyExpandNodeConfig config)
 			throws IOException {
 		Map<String, HierarchyExpander<?, ?>> expanders = new HashMap<>();
+		Map<String, HierarchyBuilder<?>> result = new HashMap<>();
 		for (HierarchyBinding b : config.getBindings()) {
-			expanders.put(b.getColumnName(),
-					create((HierarchyBuilderGroupingBased<?>) HierarchyBuilder.create(b.getFile()),
-							inTable.getDataTableSpec().findColumnIndex(b.getColumnName())));
+			HierarchyBuilder<?> hb = HierarchyBuilder.create(b.getFile());
+			if (hb instanceof HierarchyBuilderGroupingBased) {
+				expanders.put(b.getColumnName(), create((HierarchyBuilderGroupingBased<?>) hb,
+						inTable.getDataTableSpec().findColumnIndex(b.getColumnName())));
+			} else {
+				logger.debug("Pass hierarchy unchanged for: " + b.getColumnName());
+				result.put(b.getColumnName(), hb);
+			}
 		}
 		for (DataRow row : inTable) {
 			expanders.values().forEach(e -> e.processRow(row));
 		}
-		Map<String, HierarchyBuilder<?>> result = new HashMap<>();
 		expanders.entrySet().forEach(e -> result.put(e.getKey(), e.getValue().createHierarchy()));
 		return result;
 	}

@@ -2,7 +2,10 @@ package se.redfield.arxnode.nodes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -31,11 +34,13 @@ public class AnonymizerNodeModel extends NodeModel {
 
 	private Config config;
 	private Anonymizer anonymizer;
+	private Set<String> warnings;
 
 	protected AnonymizerNodeModel() {
 		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL }, new PortType[] {
 				BufferedDataTable.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE, FlowVariablePortObject.TYPE });
 		config = new Config();
+		warnings = new HashSet<>();
 	}
 
 	@Override
@@ -55,6 +60,7 @@ public class AnonymizerNodeModel extends NodeModel {
 		if (anonymizer != null) {
 			anonymizer.clear();
 		}
+		warnings.clear();
 	}
 
 	@Override
@@ -126,7 +132,12 @@ public class AnonymizerNodeModel extends NodeModel {
 		}
 	}
 
-	public void showWarnig(String str) {
-		setWarningMessage(str);
+	public void showWarnig(String message) {
+		if (!warnings.contains(message)) {
+			warnings.add(message);
+			String joined = StringUtils.join(warnings, ";\n");
+			setWarningMessage(joined);
+			// logger.warn(message);
+		}
 	}
 }

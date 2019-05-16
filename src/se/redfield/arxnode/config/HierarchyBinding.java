@@ -8,8 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.deidentifier.arx.aggregates.HierarchyBuilder;
-import org.deidentifier.arx.aggregates.HierarchyBuilderGroupingBased;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelColumnName;
@@ -68,10 +66,6 @@ public class HierarchyBinding implements SettingsModelConfig {
 			File hFile = getFile();
 			if (!hFile.exists()) {
 				throw new InvalidSettingsException("Hierarchy file does not exist");
-			}
-			HierarchyBuilder<?> h = HierarchyBuilder.create(hFile);
-			if (!(h instanceof HierarchyBuilderGroupingBased)) {
-				throw new InvalidSettingsException("Only Interval and Order based hierarchies supported");
 			}
 		} catch (IOException e) {
 			throw new InvalidSettingsException(e);

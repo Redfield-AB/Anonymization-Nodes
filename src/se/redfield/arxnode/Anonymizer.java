@@ -22,6 +22,11 @@ import org.deidentifier.arx.Data.DefaultData;
 import org.deidentifier.arx.DataDefinition;
 import org.deidentifier.arx.DataHandle;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
+import org.deidentifier.arx.aggregates.StatisticsEquivalenceClasses;
+import org.deidentifier.arx.risk.RiskModelSampleSummary;
+import org.deidentifier.arx.risk.RiskModelSampleSummary.JournalistRisk;
+import org.deidentifier.arx.risk.RiskModelSampleSummary.MarketerRisk;
+import org.deidentifier.arx.risk.RiskModelSampleSummary.ProsecutorRisk;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
@@ -31,6 +36,7 @@ import org.knime.core.data.RowKey;
 import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.DoubleCell;
+import org.knime.core.data.def.IntCell;
 import org.knime.core.data.def.LongCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
@@ -154,6 +160,8 @@ public class Anonymizer {
 						suppresedRowsNum++;
 					}
 				}
+				StatisticsEquivalenceClasses statistics = handle.getStatistics().getEquivalenceClassStatistics();
+
 				totalSuppressedCount += suppresedRowsNum;
 				double informationLoss = Double.valueOf(opt.getHighestScore().toString());
 				String headers = Arrays.toString(opt.getQuasiIdentifyingAttributes());
@@ -161,12 +169,18 @@ public class Anonymizer {
 				String anonymity = opt.getAnonymity().toString();
 				long rowCount = pair.getSecond().getRows();
 
+				RiskModelSampleSummary riskSummary = handle.getRiskEstimator()
+						.getSampleBasedRiskSummary(config.getAnonymizationConfig().getRiskThreshold().getDoubleValue());
+				ProsecutorRisk prosecutorRisk = riskSummary.getProsecutorRisk();
+				JournalistRisk journalistRisk = riskSummary.getJournalistRisk();
+				MarketerRisk marketerRisk = riskSummary.getMarketerRisk();
+
 				if (!flowVarsPushed) {
 					flowVarsPushed = true;
 					model.putVariables(informationLoss, headers, transformation, anonymity, rowCount, suppresedRowsNum);
 				}
 
-				DataCell[] cells = new DataCell[7];
+				DataCell[] cells = new DataCell[20];
 				cells[0] = new DoubleCell(informationLoss);
 				cells[1] = new StringCell(headers);
 				cells[2] = new StringCell(transformation);
@@ -174,6 +188,21 @@ public class Anonymizer {
 				cells[4] = new LongCell(rowCount);
 				cells[5] = new StringCell(pair.getSecond().getCriteria());
 				cells[6] = new LongCell(suppresedRowsNum);
+
+				cells[7] = new DoubleCell(statistics.getAverageEquivalenceClassSize());
+				cells[8] = new IntCell(statistics.getMinimalEquivalenceClassSize());
+				cells[9] = new IntCell(statistics.getMaximalEquivalenceClassSize());
+				cells[10] = new DoubleCell(statistics.getAverageEquivalenceClassSizeIncludingOutliers());
+				cells[11] = new IntCell(statistics.getMinimalEquivalenceClassSizeIncludingOutliers());
+				cells[12] = new IntCell(statistics.getMaximalEquivalenceClassSizeIncludingOutliers());
+
+				cells[13] = new DoubleCell(prosecutorRisk.getRecordsAtRisk());
+				cells[14] = new DoubleCell(prosecutorRisk.getHighestRisk());
+				cells[15] = new DoubleCell(prosecutorRisk.getSuccessRate());
+				cells[16] = new DoubleCell(journalistRisk.getRecordsAtRisk());
+				cells[17] = new DoubleCell(journalistRisk.getHighestRisk());
+				cells[18] = new DoubleCell(journalistRisk.getSuccessRate());
+				cells[19] = new DoubleCell(marketerRisk.getSuccessRate());
 
 				RowKey key = new RowKey("Row" + row++);
 				DataRow datarow = new DefaultRow(key, cells);
@@ -183,7 +212,6 @@ public class Anonymizer {
 
 		if (totalSuppressedCount > 0) {
 			model.showWarnig("Some records were suppressed");
-			logger.warn("Some records were suppressed");
 		}
 
 		container.close();
@@ -191,7 +219,7 @@ public class Anonymizer {
 	}
 
 	public DataTableSpec createStatsTableSpec() {
-		DataColumnSpec[] outColSpecs = new DataColumnSpec[7];
+		DataColumnSpec[] outColSpecs = new DataColumnSpec[20];
 		outColSpecs[0] = new DataColumnSpecCreator("Information Loss", DoubleCell.TYPE).createSpec();
 		outColSpecs[1] = new DataColumnSpecCreator("Headers", StringCell.TYPE).createSpec();
 		outColSpecs[2] = new DataColumnSpecCreator("Transformation", StringCell.TYPE).createSpec();
@@ -199,6 +227,23 @@ public class Anonymizer {
 		outColSpecs[4] = new DataColumnSpecCreator("Row count", LongCell.TYPE).createSpec();
 		outColSpecs[5] = new DataColumnSpecCreator("Partition criteria", StringCell.TYPE).createSpec();
 		outColSpecs[6] = new DataColumnSpecCreator("Suppressed records", LongCell.TYPE).createSpec();
+
+		outColSpecs[7] = new DataColumnSpecCreator("Average Class Size", DoubleCell.TYPE).createSpec();
+		outColSpecs[8] = new DataColumnSpecCreator("Min Class Size", IntCell.TYPE).createSpec();
+		outColSpecs[9] = new DataColumnSpecCreator("Max Class Size", IntCell.TYPE).createSpec();
+		outColSpecs[10] = new DataColumnSpecCreator("Average Class Size (incl. outliers)", DoubleCell.TYPE)
+				.createSpec();
+		outColSpecs[11] = new DataColumnSpecCreator("Min Class Size  (incl. outliers)", IntCell.TYPE).createSpec();
+		outColSpecs[12] = new DataColumnSpecCreator("Max Class Size  (incl. outliers)", IntCell.TYPE).createSpec();
+
+		outColSpecs[13] = new DataColumnSpecCreator("Records at Risk [Prosecutor]", DoubleCell.TYPE).createSpec();
+		outColSpecs[14] = new DataColumnSpecCreator("Highest Risk [Prosecutor]", DoubleCell.TYPE).createSpec();
+		outColSpecs[15] = new DataColumnSpecCreator("Success Rate [Prosecutor]", DoubleCell.TYPE).createSpec();
+		outColSpecs[16] = new DataColumnSpecCreator("Records at Risk [Journalist]", DoubleCell.TYPE).createSpec();
+		outColSpecs[17] = new DataColumnSpecCreator("Highest Risk [Journalist]", DoubleCell.TYPE).createSpec();
+		outColSpecs[18] = new DataColumnSpecCreator("Success Rate [Journalist]", DoubleCell.TYPE).createSpec();
+		outColSpecs[19] = new DataColumnSpecCreator("Success Rate [Marketer]", DoubleCell.TYPE).createSpec();
+
 		return new DataTableSpec(outColSpecs);
 	}
 
@@ -255,6 +300,7 @@ public class Anonymizer {
 				}
 			}
 		}
+		model.showWarnig("Unable to use a single transformation for all partitions");
 		return opt;
 	}
 
