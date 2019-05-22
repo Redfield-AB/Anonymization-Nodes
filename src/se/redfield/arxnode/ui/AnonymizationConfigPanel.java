@@ -38,10 +38,11 @@ public class AnonymizationConfigPanel {
 
 	private void initUi() {
 		cc = new CellConstraints();
-		component = new JPanel(new FormLayout("f:p:g", "f:p:n, 5:n, f:p:n, 5:n, f:p:n"));
+		component = new JPanel(new FormLayout("f:p:g", "f:p:n, 5:n, f:p:n, 5:n, f:p:n, 5:n, f:p:n"));
 		component.add(createPartitioningPanel(), cc.rc(1, 1));
 		component.add(createGeneralPanel(), cc.rc(3, 1));
 		component.add(createSearchStrategyPanel(), cc.rc(5, 1));
+		component.add(new MetricConfigPanel(config.getMeasure()), cc.rc(7, 1));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -67,7 +68,7 @@ public class AnonymizationConfigPanel {
 	}
 
 	private JPanel createGeneralPanel() {
-		JPanel panel = new JPanel(new FormLayout("l:p:n, p:g", "p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n"));
+		JPanel panel = new JPanel(new FormLayout("l:p:n, p:g", "p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n"));
 		panel.add(
 				new DialogComponentNumber(config.getSuppresionLimit(), "Suppression limit", 0.01,
 						dlg.createFlowVariableModel(new String[] { AnonymizationConfig.CONFIG_KEY,
@@ -75,12 +76,10 @@ public class AnonymizationConfigPanel {
 				cc.rc(1, 1));
 		panel.add(new DialogComponentBoolean(config.getPractivalMonotonicity(),
 				"Approximate: assume practical monotonicity").getComponentPanel(), cc.rc(3, 1));
-		panel.add(new DialogComponentBoolean(config.getPrecomputationEnabled(), "Enable precomputation")
-				.getComponentPanel(), cc.rc(5, 1));
-		panel.add(new DialogComponentNumber(config.getPrecomputationThreshold(), "Precomputation threshold", 0.01)
-				.getComponentPanel(), cc.rc(7, 1));
 		panel.add(new DialogComponentNumber(config.getRiskThreshold(), "Re-identification Risk Threshold", 0.01)
-				.getComponentPanel(), cc.rc(9, 1));
+				.getComponentPanel(), cc.rc(5, 1));
+		panel.add(new DialogComponentBoolean(config.getAddClassColumn(), "Add Class column to output table")
+				.getComponentPanel(), cc.rc(7, 1));
 		panel.setBorder(BorderFactory.createTitledBorder("General"));
 		return panel;
 	}

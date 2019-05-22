@@ -56,6 +56,7 @@ import se.redfield.arxnode.nodes.AnonymizerNodeModel;
 import se.redfield.arxnode.nodes.ArxPortObject;
 import se.redfield.arxnode.partiton.PartitionInfo;
 import se.redfield.arxnode.partiton.Partitioner;
+import se.redfield.arxnode.util.RowClassifier;
 
 public class Anonymizer {
 
@@ -120,7 +121,7 @@ public class Anonymizer {
 			DataRow inRow = inIter.next();
 
 			boolean sameOrErased = true;
-			for (int i = 0; i < outRow.getNumCells() && sameOrErased; i++) {
+			for (int i = 0; i < inRow.getNumCells() && sameOrErased; i++) {
 				String val = outRow.getCell(i).toString();
 				sameOrErased = val.equals("*") || val.equals(inRow.getCell(i).toString());
 			}
@@ -254,14 +255,23 @@ public class Anonymizer {
 		for (Pair<ARXResult, PartitionInfo> pair : results) {
 			ARXResult res = pair.getFirst();
 			if (res.isResultAvailable()) {
+				RowClassifier classifier = null;
+				if (config.getAnonymizationConfig().getAddClassColumn().getBooleanValue()) {
+					classifier = new RowClassifier(config);
+				}
+
 				Iterator<String[]> iter = res.getOutput(findOptimumNode(res)).iterator();
 				iter.next();
 				while (iter.hasNext()) {
 					String[] row = iter.next();
 
-					DataCell[] cells = new DataCell[row.length];
-					for (int i = 0; i < cells.length; i++) {
+					DataCell[] cells = new DataCell[classifier == null ? row.length : row.length + 1];
+					for (int i = 0; i < row.length; i++) {
 						cells[i] = new StringCell(row[i]);
+					}
+
+					if (classifier != null) {
+						cells[cells.length - 1] = new IntCell(classifier.computeClass(row));
 					}
 
 					DataRow inRow = inIterator.next();
@@ -280,10 +290,17 @@ public class Anonymizer {
 	}
 
 	public DataTableSpec createOutDataTableSpec() {
-		DataColumnSpec[] outColSpecs = new DataColumnSpec[config.getColumns().size()];
+		boolean classColumn = config.getAnonymizationConfig().getAddClassColumn().getBooleanValue();
+		DataColumnSpec[] outColSpecs = new DataColumnSpec[classColumn ? config.getColumns().size() + 1
+				: config.getColumns().size()];
 		config.getColumns().forEach(c -> {
 			outColSpecs[c.getIndex()] = new DataColumnSpecCreator(c.getName(), StringCell.TYPE).createSpec();
 		});
+
+		if (classColumn) {
+			outColSpecs[outColSpecs.length - 1] = new DataColumnSpecCreator("Class", IntCell.TYPE).createSpec();
+		}
+
 		return new DataTableSpec(outColSpecs);
 	}
 
@@ -346,16 +363,7 @@ public class Anonymizer {
 
 		arxConfig.setSuppressionLimit(aConfig.getSuppresionLimit().getDoubleValue());
 		arxConfig.setPracticalMonotonicity(aConfig.getPractivalMonotonicity().getBooleanValue());
-
-		boolean precomputationEnabled = aConfig.getPrecomputationEnabled().getBooleanValue();
-		arxConfig.getQualityModel().getConfiguration().setPrecomputed(precomputationEnabled);
-		if (precomputationEnabled) {
-			arxConfig.getQualityModel().getConfiguration()
-					.setPrecomputationThreshold(aConfig.getPrecomputationThreshold().getDoubleValue());
-		}
-		// logger.debug("ArxConfiguraton: \n" + Utils.toPrettyJson(arxConfig));
-		// logger.debug("DataDefinition: \n" +
-		// Utils.toPrettyJson(defData.getDefinition()));
+		arxConfig.setQualityModel(aConfig.getMeasure().createMetric());
 		return arxConfig;
 	}
 

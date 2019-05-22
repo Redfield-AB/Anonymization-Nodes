@@ -5,11 +5,13 @@ import java.util.Collections;
 import java.util.List;
 
 import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 
 public interface SettingsModelConfig {
+	static final NodeLogger logger = NodeLogger.getLogger(SettingsModelConfig.class);
 
 	default void save(NodeSettingsWO settings) {
 		getModels().forEach(s -> s.saveSettingsTo(settings));
@@ -21,11 +23,20 @@ public interface SettingsModelConfig {
 
 	default void load(NodeSettingsRO settings) throws InvalidSettingsException {
 		for (SettingsModel s : getModels()) {
-			s.loadSettingsFrom(settings);
+			try {
+				s.loadSettingsFrom(settings);
+			} catch (InvalidSettingsException e) {
+				logger.warn(e.getMessage(), e);
+			}
 		}
 		for (SettingsModelConfig c : getChildred()) {
-			NodeSettingsRO child = settings.getNodeSettings(c.getKey());
-			c.load(child);
+			try {
+				NodeSettingsRO child = settings.getNodeSettings(c.getKey());
+				c.load(child);
+			} catch (InvalidSettingsException e) {
+				logger.warn(e.getMessage(), e);
+			}
+
 		}
 	}
 
