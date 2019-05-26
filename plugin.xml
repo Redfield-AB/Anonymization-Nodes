@@ -23,6 +23,10 @@
 			category-path="arxNodes/"
         	factory-class="se.redfield.arxnode.nodes.HierarchyCreateNodeFactory">
 		</node>
+		<node
+			category-path="arxNodes/"
+        	factory-class="se.redfield.arxnode.nodes.HierarchyWriterNodeFactory">
+		</node>
 	</extension>
 	
 	<extension

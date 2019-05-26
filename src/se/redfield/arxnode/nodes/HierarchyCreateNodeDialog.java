@@ -40,6 +40,7 @@ import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.HierarchyCreateNodeConfig;
 import se.redfield.arxnode.config.HierarchyTypeOptions;
 import se.redfield.arxnode.hierarchy.HierarchyModelFactory;
+import se.redfield.arxnode.ui.HierarchyOverwriteNoticeLabel;
 
 public class HierarchyCreateNodeDialog extends NodeDialogPane {
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyCreateNodeDialog.class);
@@ -55,6 +56,7 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 	private JPanel editorPanel;
 	private JLabel lError;
 	private DialogComponentColumnNameSelection columnInput;
+	private HierarchyOverwriteNoticeLabel lNotice;
 	private Map<HierarchyTypeOptions, JRadioButton> buttons;
 
 	public HierarchyCreateNodeDialog() {
@@ -75,16 +77,18 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 	private JPanel createSelectPanel() {
 		columnInput = new DialogComponentColumnNameSelection(config.getColumn(), "Column",
 				HierarchyCreateNodeModel.PORT_DATA_TABLE, DataValue.class);
+		lNotice = new HierarchyOverwriteNoticeLabel(config.getColumn());
 		JButton bNext = new JButton("Next>");
 		bNext.addActionListener(e -> {
 			config.setBuilder(null);
 			showEditorPage();
 		});
 
-		JPanel panel = new JPanel(new FormLayout("l:p:g, 5:n, r:p:n", "p:n, 5:n, p:n, 5:g, p:n"));
+		JPanel panel = new JPanel(new FormLayout("l:p:g, 5:n, r:p:n", "p:n, 5:n, p:n, 5:n, p:n, 5:g, p:n"));
 		panel.add(columnInput.getComponentPanel(), CC.rc(1, 1));
-		panel.add(createTypeSelector(), CC.rc(3, 1));
-		panel.add(bNext, CC.rc(5, 3));
+		panel.add(lNotice, CC.rc(3, 1));
+		panel.add(createTypeSelector(), CC.rc(5, 1));
+		panel.add(bNext, CC.rc(7, 3));
 		return panel;
 	}
 
@@ -243,6 +247,7 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 			logger.error(e.getMessage(), e);
 		}
 		columnInput.loadSettingsFrom(settings, specs);
+		lNotice.setArxObject((ArxPortObjectSpec) specs[HierarchyCreateNodeModel.PORT_ARX_OBJECT]);
 
 		refreshRadioButtonsEnabled();
 

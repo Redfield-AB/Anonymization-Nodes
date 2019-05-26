@@ -23,8 +23,8 @@ public class MetricConfig implements SettingsModelConfig {
 	private MetricConfiguration configuration;
 
 	public MetricConfig() {
-		measure = MetricDescriptionWrap.fromString("0");
-		configuration = new MetricConfiguration(false, 0.5, false, 0.1, AggregateFunction.GEOMETRIC_MEAN);
+		measure = MetricDescriptionWrap.fromString("Loss");
+		configuration = new MetricConfiguration(false, 0.5, false, 0.1, AggregateFunction.ARITHMETIC_MEAN);
 	}
 
 	@Override

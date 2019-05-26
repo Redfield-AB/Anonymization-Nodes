@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
-    <name>Create Hierarchy</name>
+    <name>Hierarchy Writer</name>
     
     <shortDescription>
         This is an example node provided by KNIME.
@@ -22,12 +22,8 @@
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Date talbe">Date table</inPort>
-        <inPort index="1" name="Arx Config Overrides">Arx Config Overrides</inPort>
+        <inPort index="0" name="Arx Config Overrides">Arx Config Overrides</inPort>
         <!-- possibly more input ports here-->
-        <outPort index="0" name="Date talbe">Date table unchanged</outPort>
-        <outPort index="1" name="Arx Config Overrides">Arx Config Overrides</outPort>
-        <outPort index="2" name="Preview">Hierarchy preview</outPort>
         <!-- possibly more output ports here-->
     </ports>    
     <!--<views>

@@ -15,6 +15,8 @@ import com.jgoodies.forms.factories.CC;
 import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.config.HierarchyBinding;
+import se.redfield.arxnode.nodes.ArxPortObjectSpec;
+import se.redfield.arxnode.nodes.HierarchyExpandNodeModel;
 
 public class HierarchyBindingPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -22,6 +24,7 @@ public class HierarchyBindingPanel extends JPanel {
 	private HierarchyBinding binding;
 	private HierarchyBindingPanelListener listener;
 	private DialogComponentColumnNameSelection columnInput;
+	private HierarchyOverwriteNoticeLabel lNotice;
 
 	public HierarchyBindingPanel(HierarchyBinding binding, HierarchyBindingPanelListener listener) {
 		super();
@@ -31,7 +34,7 @@ public class HierarchyBindingPanel extends JPanel {
 	}
 
 	private void initUI() {
-		setLayout(new FormLayout("f:p:n, 5:n, r:p:n", "t:p:n"));
+		setLayout(new FormLayout("f:p:g, 5:n, r:p:n", "t:p:n"));
 		add(createInputPanel(), CC.rc(1, 1));
 		add(createButtonsPanel(), CC.rc(1, 3));
 		setBorder(BorderFactory.createCompoundBorder(BorderFactory.createRaisedSoftBevelBorder(),
@@ -53,10 +56,13 @@ public class HierarchyBindingPanel extends JPanel {
 	@SuppressWarnings("unchecked")
 	private JPanel createInputPanel() {
 		columnInput = new DialogComponentColumnNameSelection(binding.getColumnSetting(), "Column", 0, DataValue.class);
+		lNotice = new HierarchyOverwriteNoticeLabel(binding.getColumnSetting());
 		DialogComponentFileChooser fileInput = new DialogComponentFileChooser(binding.getFileModel(), "arx", "ahs");
-		JPanel panel = new JPanel(new FormLayout("l:p:n", "p:n, 5:n, p:n"));
+
+		JPanel panel = new JPanel(new FormLayout("l:p:n", "p:n, 5:n, p:n, 5:n, p:n"));
 		panel.add(columnInput.getComponentPanel(), CC.rc(1, 1));
-		panel.add(fileInput.getComponentPanel(), CC.rc(3, 1));
+		panel.add(lNotice, CC.rc(3, 1));
+		panel.add(fileInput.getComponentPanel(), CC.rc(5, 1));
 		return panel;
 	}
 
@@ -66,6 +72,7 @@ public class HierarchyBindingPanel extends JPanel {
 
 	public void loadSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs) throws NotConfigurableException {
 		columnInput.loadSettingsFrom(settings, specs);
+		lNotice.setArxObject((ArxPortObjectSpec) specs[HierarchyExpandNodeModel.PORT_ARX_OBJECT]);
 	}
 
 	public static interface HierarchyBindingPanelListener {
