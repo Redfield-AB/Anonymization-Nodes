@@ -21,6 +21,7 @@ import org.knime.core.node.port.PortType;
 
 import se.redfield.arxnode.config.HierarchyBinding;
 import se.redfield.arxnode.config.HierarchyExpandNodeConfig;
+import se.redfield.arxnode.hierarchy.HierarchyPreviewBuilder;
 import se.redfield.arxnode.hierarchy.expand.HierarchyExpander;
 
 public class HierarchyExpandNodeModel extends NodeModel {
@@ -34,7 +35,7 @@ public class HierarchyExpandNodeModel extends NodeModel {
 
 	protected HierarchyExpandNodeModel() {
 		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL },
-				new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE });
+				new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE, BufferedDataTable.TYPE });
 		config = new HierarchyExpandNodeConfig();
 	}
 
@@ -81,7 +82,7 @@ public class HierarchyExpandNodeModel extends NodeModel {
 	protected PortObjectSpec[] configure(PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		logger.debug("configure");
 		ArxPortObjectSpec inSpec = (ArxPortObjectSpec) inSpecs[PORT_ARX_OBJECT];
-		return new PortObjectSpec[] { inSpecs[PORT_DATA_TABLE], prepareSpec(inSpec) };
+		return new PortObjectSpec[] { inSpecs[PORT_DATA_TABLE], prepareSpec(inSpec), null };
 	}
 
 	private ArxPortObjectSpec prepareSpec(ArxPortObjectSpec inSpec) {
@@ -98,9 +99,16 @@ public class HierarchyExpandNodeModel extends NodeModel {
 	@Override
 	protected PortObject[] execute(PortObject[] inObjects, ExecutionContext exec) throws Exception {
 		logger.debug("execute");
+		Map<String, HierarchyBuilder<?>> expandedHierarchies = expandHierarchies(
+				(BufferedDataTable) inObjects[PORT_DATA_TABLE]);
+
 		ArxPortObject out = ArxPortObject.create(outSpec, (ArxPortObject) inObjects[PORT_ARX_OBJECT]);
-		out.getHierarchies().putAll(expandHierarchies((BufferedDataTable) inObjects[PORT_DATA_TABLE]));
-		return new PortObject[] { inObjects[PORT_DATA_TABLE], out };
+		out.getHierarchies().putAll(expandedHierarchies);
+
+		BufferedDataTable preview = new HierarchyPreviewBuilder().build((BufferedDataTable) inObjects[PORT_DATA_TABLE],
+				expandedHierarchies, exec);
+
+		return new PortObject[] { inObjects[PORT_DATA_TABLE], out, preview };
 	}
 
 	private Map<String, HierarchyBuilder<?>> expandHierarchies(BufferedDataTable inTable) throws IOException {

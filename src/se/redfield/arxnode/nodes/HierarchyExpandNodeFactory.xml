@@ -27,6 +27,7 @@
         <!-- possibly more input ports here-->
         <outPort index="0" name="Date talbe">Date table unchanged</outPort>
         <outPort index="1" name="Arx Config Overrides">Arx Config Overrides</outPort>
+        <outPort index="2" name="Preview">Hierarchy preview</outPort>
         <!-- possibly more output ports here-->
     </ports>    
     <!--<views>
