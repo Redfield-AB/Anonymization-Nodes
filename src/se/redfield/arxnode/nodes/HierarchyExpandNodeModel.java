@@ -35,7 +35,7 @@ public class HierarchyExpandNodeModel extends NodeModel {
 
 	protected HierarchyExpandNodeModel() {
 		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL },
-				new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE, BufferedDataTable.TYPE });
+				new PortType[] { BufferedDataTable.TYPE, BufferedDataTable.TYPE, ArxPortObject.TYPE });
 		config = new HierarchyExpandNodeConfig();
 	}
 
@@ -82,7 +82,7 @@ public class HierarchyExpandNodeModel extends NodeModel {
 	protected PortObjectSpec[] configure(PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		logger.debug("configure");
 		ArxPortObjectSpec inSpec = (ArxPortObjectSpec) inSpecs[PORT_ARX_OBJECT];
-		return new PortObjectSpec[] { inSpecs[PORT_DATA_TABLE], prepareSpec(inSpec), null };
+		return new PortObjectSpec[] { inSpecs[PORT_DATA_TABLE], null, prepareSpec(inSpec) };
 	}
 
 	private ArxPortObjectSpec prepareSpec(ArxPortObjectSpec inSpec) {
@@ -108,7 +108,7 @@ public class HierarchyExpandNodeModel extends NodeModel {
 		BufferedDataTable preview = new HierarchyPreviewBuilder().build((BufferedDataTable) inObjects[PORT_DATA_TABLE],
 				expandedHierarchies, exec);
 
-		return new PortObject[] { inObjects[PORT_DATA_TABLE], out, preview };
+		return new PortObject[] { inObjects[PORT_DATA_TABLE], preview, out };
 	}
 
 	private Map<String, HierarchyBuilder<?>> expandHierarchies(BufferedDataTable inTable) throws IOException {

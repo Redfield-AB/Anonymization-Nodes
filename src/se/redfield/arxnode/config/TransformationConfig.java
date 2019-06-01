@@ -83,6 +83,9 @@ public class TransformationConfig implements SettingsModelConfig {
 		microaggregationFunc = MicroaggregationFunction
 				.fromName(settings.getString(CONFIG_MA_FUNC, MicroaggregationFunction.ARITHMETIC_MEAN.name()));
 		ignoreMissingData = settings.getBoolean(CONFIG_IGNORE_MISSING, true);
+
+		minGeneralization = null;
+		maxGeneralization = null;
 		if (settings.containsKey(CONFIG_MIN_LEVEL)) {
 			minGeneralization = settings.getInt(CONFIG_MIN_LEVEL);
 		}

@@ -21,7 +21,7 @@ public class KAnonymityConfig extends AbstractPrivacyModelConfig {
 	private int factor;
 
 	public KAnonymityConfig() {
-		factor = 1;
+		factor = 2;
 	}
 
 	public int getFactor() {
