@@ -3,6 +3,7 @@ package se.redfield.arxnode.nodes;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -22,7 +23,9 @@ import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
 
-import se.redfield.arxnode.Anonymizer;
+import se.redfield.arxnode.anonymize.AnonymizationResult;
+import se.redfield.arxnode.anonymize.AnonymizationResultProcessor;
+import se.redfield.arxnode.anonymize.Anonymizer;
 import se.redfield.arxnode.config.Config;
 
 public class AnonymizerNodeModel extends NodeModel {
@@ -33,7 +36,7 @@ public class AnonymizerNodeModel extends NodeModel {
 	public static final int PORT_ARX = 1;
 
 	private Config config;
-	private Anonymizer anonymizer;
+	private AnonymizationResultProcessor outputBuilder;
 	private Set<String> warnings;
 
 	protected AnonymizerNodeModel() {
@@ -46,8 +49,10 @@ public class AnonymizerNodeModel extends NodeModel {
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 		try {
-			return anonymizer.process((BufferedDataTable) inData[PORT_DATA_TABLE], (ArxPortObject) inData[PORT_ARX],
-					exec);
+			Anonymizer anonymizer = new Anonymizer(config);
+			List<AnonymizationResult> results = anonymizer.process((BufferedDataTable) inData[PORT_DATA_TABLE],
+					(ArxPortObject) inData[PORT_ARX], exec);
+			return outputBuilder.process((BufferedDataTable) inData[PORT_DATA_TABLE], results, exec);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 			throw e;
@@ -57,9 +62,6 @@ public class AnonymizerNodeModel extends NodeModel {
 	@Override
 	protected void reset() {
 		logger.debug("reset");
-		if (anonymizer != null) {
-			anonymizer.clear();
-		}
 		warnings.clear();
 	}
 
@@ -69,9 +71,10 @@ public class AnonymizerNodeModel extends NodeModel {
 
 		config.configure((DataTableSpec) inSpecs[PORT_DATA_TABLE], (ArxPortObjectSpec) inSpecs[PORT_ARX]);
 		config.validate();
-		anonymizer = new Anonymizer(config, this);
 
-		return new PortObjectSpec[] { anonymizer.createOutDataTableSpec(), anonymizer.createStatsTableSpec(),
+		outputBuilder = new AnonymizationResultProcessor(config, this);
+
+		return new PortObjectSpec[] { outputBuilder.createOutDataTableSpec(), outputBuilder.createStatsTableSpec(),
 				inSpecs[0], FlowVariablePortObjectSpec.INSTANCE };
 	}
 
@@ -127,9 +130,6 @@ public class AnonymizerNodeModel extends NodeModel {
 		pushFlowVariableString("anonymity", anonymity);
 		pushFlowVariableInt("rowCount", (int) rowCount);
 		pushFlowVariableInt("suppresedRecords", (int) suppresedRecords);
-		if (suppresedRecords > 0) {
-			setWarningMessage("");
-		}
 	}
 
 	public void showWarnig(String message) {

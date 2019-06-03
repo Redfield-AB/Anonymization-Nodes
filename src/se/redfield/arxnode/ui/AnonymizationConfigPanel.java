@@ -68,7 +68,7 @@ public class AnonymizationConfigPanel {
 	}
 
 	private JPanel createGeneralPanel() {
-		JPanel panel = new JPanel(new FormLayout("l:p:n, p:g", "p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n"));
+		JPanel panel = new JPanel(new FormLayout("l:p:n, p:g", "p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n, 5:n, p:n"));
 		panel.add(
 				new DialogComponentNumber(config.getSuppresionLimit(), "Suppression limit", 0.01,
 						dlg.createFlowVariableModel(new String[] { AnonymizationConfig.CONFIG_KEY,
@@ -80,6 +80,8 @@ public class AnonymizationConfigPanel {
 				.getComponentPanel(), cc.rc(5, 1));
 		panel.add(new DialogComponentBoolean(config.getAddClassColumn(), "Add Class column to output table")
 				.getComponentPanel(), cc.rc(7, 1));
+		panel.add(new DialogComponentBoolean(config.getOmitMissingValues(), "Omit rows with missing cells")
+				.getComponentPanel(), cc.rc(9, 1));
 		panel.setBorder(BorderFactory.createTitledBorder("General"));
 		return panel;
 	}

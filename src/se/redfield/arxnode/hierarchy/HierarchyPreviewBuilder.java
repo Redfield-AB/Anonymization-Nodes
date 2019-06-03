@@ -44,7 +44,10 @@ public class HierarchyPreviewBuilder {
 
 		for (DataRow row : inTable) {
 			for (HierarchyPreview hp : previews) {
-				hp.getData().add(Utils.toString(row.getCell(hp.getIndex())));
+				DataCell cell = row.getCell(hp.getIndex());
+				if (!cell.isMissing()) {
+					hp.getData().add(Utils.toString(cell));
+				}
 			}
 		}
 

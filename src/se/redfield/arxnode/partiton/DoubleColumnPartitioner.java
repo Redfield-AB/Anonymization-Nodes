@@ -3,13 +3,11 @@ package se.redfield.arxnode.partiton;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.deidentifier.arx.Data.DefaultData;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.util.Pair;
 
 public class DoubleColumnPartitioner extends ColumnPartitioner {
 	private static final NodeLogger logger = NodeLogger.getLogger(DoubleColumnPartitioner.class);
@@ -17,7 +15,7 @@ public class DoubleColumnPartitioner extends ColumnPartitioner {
 	protected Double min;
 	protected Double max;
 	protected double intervalLength;
-	private List<DefaultData> partitions;
+	private List<Partition> partitions;
 
 	public DoubleColumnPartitioner(String column, int partsNum) {
 		super(column, partsNum);
@@ -43,7 +41,7 @@ public class DoubleColumnPartitioner extends ColumnPartitioner {
 		logger.info("interval length = " + intervalLength);
 		partitions = new ArrayList<>();
 		for (int i = 0; i < partsNum; i++) {
-			partitions.add(createData(source));
+			partitions.add(new Partition(createData(source)));
 		}
 	}
 
@@ -56,7 +54,7 @@ public class DoubleColumnPartitioner extends ColumnPartitioner {
 	}
 
 	@Override
-	protected DefaultData findTarget(DataRow row, long index) {
+	protected Partition findTarget(DataRow row, long index) {
 		Double val = getValue(row);
 		int idx = 0;
 		if (val != null) {
@@ -66,16 +64,13 @@ public class DoubleColumnPartitioner extends ColumnPartitioner {
 	}
 
 	@Override
-	protected List<Pair<DefaultData, PartitionInfo>> getResult() {
-		List<Pair<DefaultData, PartitionInfo>> result = new ArrayList<>();
+	protected List<Partition> getResult() {
 		int index = 0;
-		for (DefaultData data : partitions) {
-			String criteria = createCriteria(index);
-			PartitionInfo info = new PartitionInfo(data.getHandle().getNumRows(), criteria);
-			result.add(new Pair<DefaultData, PartitionInfo>(data, info));
-			index++;
+		for (Partition p : partitions) {
+			String criteria = createCriteria(index++);
+			p.getInfo().setCriteria(criteria);
 		}
-		return result;
+		return partitions;
 	}
 
 	protected String createCriteria(int index) {

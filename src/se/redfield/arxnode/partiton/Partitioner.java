@@ -1,10 +1,12 @@
 package se.redfield.arxnode.partiton;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.Data;
 import org.deidentifier.arx.Data.DefaultData;
 import org.knime.core.data.DataCell;
@@ -16,9 +18,9 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
-import org.knime.core.util.Pair;
 
 import se.redfield.arxnode.Utils;
+import se.redfield.arxnode.anonymize.Anonymizer;
 import se.redfield.arxnode.config.Config;
 
 public abstract class Partitioner {
@@ -30,20 +32,51 @@ public abstract class Partitioner {
 		this.partsNum = partsNum;
 	}
 
-	public List<Pair<DefaultData, PartitionInfo>> partition(BufferedDataTable source) {
+	public List<Partition> partition(BufferedDataTable source, boolean omitMissing) {
 		init(source);
 		long index = 0;
+
 		for (DataRow row : source) {
-			DefaultData current = findTarget(row, index++);
-			current.add(row.stream().map(Utils::toString).collect(Collectors.toList()).toArray(new String[] {}));
+			Partition current = findTarget(row, index++);
+
+			List<String> strings = readRow(row, omitMissing);
+			if (strings != null) {
+				strings.add(row.getKey().getString());
+				current.getData().add(strings.toArray(new String[] {}));
+			} else {
+				current.getInfo().getOmittedRows().add(row.getKey().getString());
+			}
 		}
-		return getResult();
+		List<Partition> result = getResult();
+		for (Partition p : result) {
+			p.getInfo().setRows(p.getData().getHandle().getNumRows());
+		}
+		return result;
+	}
+
+	private List<String> readRow(DataRow row, boolean omitMissing) {
+		List<String> result = new ArrayList<>();
+		for (DataCell cell : row) {
+			if (cell.isMissing()) {
+				if (omitMissing) {
+					return null;
+				} else {
+					throw new RuntimeException("Table contains missing value at row: " + row.getKey());
+				}
+			}
+			result.add(Utils.toString(cell));
+		}
+		return result;
 	}
 
 	protected DefaultData createData(BufferedDataTable inTable) {
 		DefaultData defData = Data.create();
 		String[] columnNames = inTable.getDataTableSpec().getColumnNames();
-		defData.add(columnNames);
+		defData.add((String[]) ArrayUtils.add(columnNames, Anonymizer.ROW_KEY));
+
+		defData.getDefinition().setDataType(Anonymizer.ROW_KEY, org.deidentifier.arx.DataType.STRING);
+		defData.getDefinition().setAttributeType(Anonymizer.ROW_KEY, AttributeType.INSENSITIVE_ATTRIBUTE);
+
 		for (int i = 0; i < columnNames.length; i++) {
 			DataType type = inTable.getDataTableSpec().getColumnSpec(columnNames[i]).getType();
 			defData.getDefinition().setDataType(columnNames[i], Utils.knimeToArxType(type));
@@ -54,9 +87,9 @@ public abstract class Partitioner {
 
 	protected abstract void init(BufferedDataTable source);
 
-	protected abstract DefaultData findTarget(DataRow row, long index);
+	protected abstract Partition findTarget(DataRow row, long index);
 
-	protected abstract List<Pair<DefaultData, PartitionInfo>> getResult();
+	protected abstract List<Partition> getResult();
 
 	public static Partitioner createPartitioner(int partsNum, String column, BufferedDataTable table) {
 		if (partsNum > 1) {
@@ -84,14 +117,14 @@ public abstract class Partitioner {
 	public static BufferedDataTable[] test(BufferedDataTable table, Config config, ExecutionContext exec) {
 		Partitioner p = Partitioner.createPartitioner(5, "age", table);
 		Utils.time();
-		List<Pair<DefaultData, PartitionInfo>> list = p.partition(table);
+		List<Partition> list = p.partition(table, false);
 		Utils.time("partition");
-		for (Pair<DefaultData, PartitionInfo> pair : list) {
-			logger.info(pair.getSecond().getRows() + " " + pair.getSecond().getCriteria());
-			Iterator<String[]> iterator = pair.getFirst().getHandle().iterator();
+		for (Partition pair : list) {
+			logger.info(pair.getInfo().getRows() + " " + pair.getInfo().getCriteria());
+			Iterator<String[]> iterator = pair.getData().getHandle().iterator();
 			while (iterator.hasNext()) {
 				String[] strings = (String[]) iterator.next();
-				logger.info(strings[pair.getFirst().getHandle().getColumnIndexOf("age")]);
+				logger.info(strings[pair.getData().getHandle().getColumnIndexOf("age")]);
 			}
 
 		}
