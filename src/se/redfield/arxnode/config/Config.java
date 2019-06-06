@@ -3,7 +3,9 @@ package se.redfield.arxnode.config;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.deidentifier.arx.AttributeType;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
@@ -62,6 +64,13 @@ public class Config implements SettingsModelConfig {
 
 	public Collection<ColumnConfig> getColumns() {
 		return columnsConfig.getColumns().values();
+	}
+
+	public List<ColumnConfig> getOutputColumns() {
+		boolean omitIdentifying = getAnonymizationConfig().getOmitIdentifyingColumns().getBooleanValue();
+		return getColumns().stream().sorted()
+				.filter(c -> !(omitIdentifying && c.getAttrType() == AttributeType.IDENTIFYING_ATTRIBUTE))
+				.collect(Collectors.toList());
 	}
 
 	public List<AbstractPrivacyModelConfig> getPrivacyModels() {

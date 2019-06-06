@@ -1,5 +1,6 @@
 package se.redfield.arxnode.anonymize;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,14 +31,17 @@ import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
+import org.knime.core.node.NodeLogger;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 
+import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.nodes.AnonymizerNodeModel;
 import se.redfield.arxnode.util.RowClassifier;
 
 public class AnonymizationResultProcessor {
+	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationResultProcessor.class);
 
 	private Config config;
 	private AnonymizerNodeModel model;
@@ -67,6 +71,8 @@ public class AnonymizationResultProcessor {
 	}
 
 	private BufferedDataTable createDataTable(List<AnonymizationResult> results, ExecutionContext exec) {
+		List<ColumnConfig> outColumns = config.getOutputColumns();
+
 		BufferedDataContainer container = exec.createDataContainer(createOutDataTableSpec());
 		for (AnonymizationResult r : results) {
 			ARXResult res = r.getArxResult();
@@ -80,14 +86,14 @@ public class AnonymizationResultProcessor {
 				iter.next();
 				while (iter.hasNext()) {
 					String[] row = iter.next();
+					List<DataCell> cells = new ArrayList<>();
 
-					DataCell[] cells = new DataCell[classifier == null ? row.length - 1 : row.length];
-					for (int i = 0; i < row.length - 1; i++) {
-						cells[i] = new StringCell(row[i]);
+					for (ColumnConfig c : outColumns) {
+						cells.add(new StringCell(row[c.getIndex()]));
 					}
 
 					if (classifier != null) {
-						cells[cells.length - 1] = new IntCell(classifier.computeClass(row));
+						cells.add(new IntCell(classifier.computeClass(row)));
 					}
 
 					RowKey rowKey = new RowKey(row[row.length - 1]);
@@ -119,17 +125,17 @@ public class AnonymizationResultProcessor {
 
 	public DataTableSpec createOutDataTableSpec() {
 		boolean classColumn = config.getAnonymizationConfig().getAddClassColumn().getBooleanValue();
-		DataColumnSpec[] outColSpecs = new DataColumnSpec[classColumn ? config.getColumns().size() + 1
-				: config.getColumns().size()];
-		config.getColumns().forEach(c -> {
-			outColSpecs[c.getIndex()] = new DataColumnSpecCreator(c.getName(), StringCell.TYPE).createSpec();
-		});
+		List<DataColumnSpec> specs = new ArrayList<>();
 
-		if (classColumn) {
-			outColSpecs[outColSpecs.length - 1] = new DataColumnSpecCreator("Class", IntCell.TYPE).createSpec();
+		for (ColumnConfig c : config.getOutputColumns()) {
+			specs.add(new DataColumnSpecCreator(c.getName(), StringCell.TYPE).createSpec());
 		}
 
-		return new DataTableSpec(outColSpecs);
+		if (classColumn) {
+			specs.add(new DataColumnSpecCreator("Class", IntCell.TYPE).createSpec());
+		}
+
+		return new DataTableSpec(specs.toArray(new DataColumnSpec[] {}));
 	}
 
 	private BufferedDataTable createStatsTable(List<AnonymizationResult> results, ExecutionContext exec) {

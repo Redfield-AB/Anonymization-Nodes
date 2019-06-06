@@ -18,7 +18,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.FileUtil;
 
-public class ColumnConfig implements SettingsModelConfig {
+public class ColumnConfig implements SettingsModelConfig, Comparable<ColumnConfig> {
 	private static final NodeLogger logger = NodeLogger.getLogger(ColumnConfig.class);
 
 	public static final String CONFIG_HIERARCHY_FILE = "hierarchyFile";
@@ -155,5 +155,10 @@ public class ColumnConfig implements SettingsModelConfig {
 	public void setHierarchyOverriden(boolean hierarchyOverriden) {
 		this.hierarchyOverriden.setBooleanValue(hierarchyOverriden);
 		hierarchyFileModel.setEnabled(!hierarchyOverriden);
+	}
+
+	@Override
+	public int compareTo(ColumnConfig o) {
+		return Integer.compare(index, o.index);
 	}
 }
