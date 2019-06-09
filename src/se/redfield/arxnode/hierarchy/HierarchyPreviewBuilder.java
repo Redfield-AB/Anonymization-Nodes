@@ -1,6 +1,7 @@
 package se.redfield.arxnode.hierarchy;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,27 +52,25 @@ public class HierarchyPreviewBuilder {
 			}
 		}
 
-		int columnCount = previews.stream().map(hp -> hp.getColumnCount()).max(Integer::compare).orElse(0);
+		int levelsCount = previews.stream().map(hp -> hp.getColumnCount()).max(Integer::compare).orElse(0);
+		boolean multiplePreviews = previews.size() > 1;
 
-		DataColumnSpec[] specs = new DataColumnSpec[columnCount];
-		for (int i = 0; i < specs.length; i++) {
-			specs[i] = new DataColumnSpecCreator("Level-" + i, StringCell.TYPE).createSpec();
-		}
-		BufferedDataContainer container = exec.createDataContainer(new DataTableSpec(specs));
+		BufferedDataContainer container = exec.createDataContainer(createSpec(multiplePreviews, levelsCount));
 
+		int columnCount = container.getTableSpec().getNumColumns();
 		long rowIdx = 0;
 		for (HierarchyPreview hp : previews) {
-			StringCell headerCell = new StringCell(hp.getName());
-			container.addRowToTable(
-					new DefaultRow(RowKey.createRowKey(rowIdx++), addMissingCells(columnCount, headerCell)));
-
 			String[][] preview = hp.getPreview();
 			for (int i = 0; i < preview.length; i++) {
 				String[] row = preview[i];
-				DataCell[] cells = new DataCell[row.length];
+				List<DataCell> cells = new ArrayList<>();
+
+				if (multiplePreviews) {
+					cells.add(new StringCell(hp.getName()));
+				}
 
 				for (int j = 0; j < row.length; j++) {
-					cells[j] = new StringCell(row[j]);
+					cells.add(new StringCell(row[j]));
 				}
 
 				container.addRowToTable(
@@ -83,16 +82,22 @@ public class HierarchyPreviewBuilder {
 		return container.getTable();
 	}
 
-	private DataCell[] addMissingCells(int count, DataCell... cells) {
-		DataCell[] result = new DataCell[count];
-		for (int i = 0; i < result.length; i++) {
-			if (i < cells.length) {
-				result[i] = cells[i];
-			} else {
-				result[i] = new StringCell("");
-			}
+	private DataTableSpec createSpec(boolean hasAttribute, int levelsCount) {
+		List<DataColumnSpec> specss = new ArrayList<DataColumnSpec>();
+		if (hasAttribute) {
+			specss.add(new DataColumnSpecCreator("Attribute", StringCell.TYPE).createSpec());
 		}
-		return result;
+		for (int i = 0; i < levelsCount; i++) {
+			specss.add(new DataColumnSpecCreator("Level-" + i, StringCell.TYPE).createSpec());
+		}
+		return new DataTableSpec(specss.toArray(new DataColumnSpec[] {}));
+	}
+
+	private List<DataCell> addMissingCells(int count, List<DataCell> cells) {
+		for (int i = cells.size(); i < count; i++) {
+			cells.add(new StringCell(""));
+		}
+		return cells;
 	}
 
 	private class HierarchyPreview {

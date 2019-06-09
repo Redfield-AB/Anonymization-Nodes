@@ -3,8 +3,12 @@ package se.redfield.arxnode.nodes;
 import org.knime.core.node.NodeDialogPane;
 import org.knime.core.node.NodeFactory;
 import org.knime.core.node.NodeView;
+import org.knime.core.node.interactive.InteractiveNodeFactoryExtension;
 
-public class AnonymizerNodeFactory extends NodeFactory<AnonymizerNodeModel> {
+import se.redfield.arxnode.nodes.AnonymizerNodeView.AnonymizerNodeViewValue;
+
+public class AnonymizerNodeFactory extends NodeFactory<AnonymizerNodeModel> implements
+		InteractiveNodeFactoryExtension<AnonymizerNodeModel, AnonymizerNodeViewValue, AnonymizerNodeViewValue> {
 
 	@Override
 	public AnonymizerNodeModel createNodeModel() {
@@ -29,6 +33,12 @@ public class AnonymizerNodeFactory extends NodeFactory<AnonymizerNodeModel> {
 	@Override
 	public NodeDialogPane createNodeDialogPane() {
 		return new AnonymizerNodeDialog();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public AnonymizerNodeView createInteractiveView(AnonymizerNodeModel model) {
+		return new AnonymizerNodeView(model);
 	}
 
 }

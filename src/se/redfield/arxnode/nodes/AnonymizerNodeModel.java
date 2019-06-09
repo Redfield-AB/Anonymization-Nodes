@@ -7,6 +7,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.mahout.math.Arrays;
+import org.deidentifier.arx.aggregates.StatisticsEquivalenceClasses;
+import org.deidentifier.arx.risk.RiskModelSampleSummary.JournalistRisk;
+import org.deidentifier.arx.risk.RiskModelSampleSummary.MarketerRisk;
+import org.deidentifier.arx.risk.RiskModelSampleSummary.ProsecutorRisk;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -17,18 +22,22 @@ import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeModel;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
+import org.knime.core.node.interactive.InteractiveNode;
 import org.knime.core.node.port.PortObject;
 import org.knime.core.node.port.PortObjectSpec;
 import org.knime.core.node.port.PortType;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 import org.knime.core.node.port.flowvariable.FlowVariablePortObjectSpec;
+import org.knime.core.node.web.ValidationError;
 
 import se.redfield.arxnode.anonymize.AnonymizationResult;
 import se.redfield.arxnode.anonymize.AnonymizationResultProcessor;
 import se.redfield.arxnode.anonymize.Anonymizer;
 import se.redfield.arxnode.config.Config;
+import se.redfield.arxnode.nodes.AnonymizerNodeView.AnonymizerNodeViewValue;
 
-public class AnonymizerNodeModel extends NodeModel {
+public class AnonymizerNodeModel extends NodeModel
+		implements InteractiveNode<AnonymizerNodeViewValue, AnonymizerNodeViewValue> {
 
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizerNodeModel.class);
 
@@ -38,6 +47,8 @@ public class AnonymizerNodeModel extends NodeModel {
 	private Config config;
 	private AnonymizationResultProcessor outputBuilder;
 	private Set<String> warnings;
+	private List<AnonymizationResult> results;
+	private int[] selectedTransformation;
 
 	protected AnonymizerNodeModel() {
 		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL }, new PortType[] {
@@ -46,13 +57,27 @@ public class AnonymizerNodeModel extends NodeModel {
 		warnings = new HashSet<>();
 	}
 
+	public List<AnonymizationResult> getResults() {
+		return results;
+	}
+
+	public int[] getSelectedTransformation() {
+		return selectedTransformation;
+	}
+
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
+		logger.debug("execute");
 		try {
-			Anonymizer anonymizer = new Anonymizer(config);
-			List<AnonymizationResult> results = anonymizer.process((BufferedDataTable) inData[PORT_DATA_TABLE],
-					(ArxPortObject) inData[PORT_ARX], exec);
-			return outputBuilder.process((BufferedDataTable) inData[PORT_DATA_TABLE], results, exec);
+			if (results == null) {
+				logger.debug("anonymizing");
+				Anonymizer anonymizer = new Anonymizer(config);
+				results = anonymizer.process((BufferedDataTable) inData[PORT_DATA_TABLE],
+						(ArxPortObject) inData[PORT_ARX], exec);
+			}
+			logger.debug("processing result");
+			return outputBuilder.process((BufferedDataTable) inData[PORT_DATA_TABLE], results, selectedTransformation,
+					exec);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 			throw e;
@@ -63,6 +88,8 @@ public class AnonymizerNodeModel extends NodeModel {
 	protected void reset() {
 		logger.debug("reset");
 		warnings.clear();
+		results = null;
+		selectedTransformation = null;
 	}
 
 	@Override
@@ -123,13 +150,32 @@ public class AnonymizerNodeModel extends NodeModel {
 	}
 
 	public void putVariables(double informationLoss, String headers, String transformation, String anonymity,
-			long rowCount, long suppresedRecords) {
+			long rowCount, long suppresedRecords, StatisticsEquivalenceClasses statistics, ProsecutorRisk prosecutor,
+			JournalistRisk journalist, MarketerRisk marketer) {
 		pushFlowVariableDouble("informationLoss", informationLoss);
 		pushFlowVariableString("headers", headers);
 		pushFlowVariableString("transformation", transformation);
 		pushFlowVariableString("anonymity", anonymity);
 		pushFlowVariableInt("rowCount", (int) rowCount);
 		pushFlowVariableInt("suppresedRecords", (int) suppresedRecords);
+
+		pushFlowVariableDouble("avgClassSize", statistics.getAverageEquivalenceClassSize());
+		pushFlowVariableInt("minClassSize", statistics.getMinimalEquivalenceClassSize());
+		pushFlowVariableInt("maxClassSize", statistics.getMaximalEquivalenceClassSize());
+		pushFlowVariableInt("numberofClasses", statistics.getNumberOfEquivalenceClasses());
+		pushFlowVariableDouble("avgClassSizeInclOutliers",
+				statistics.getAverageEquivalenceClassSizeIncludingOutliers());
+		pushFlowVariableInt("minClassSizeInclOutliers", statistics.getMinimalEquivalenceClassSizeIncludingOutliers());
+		pushFlowVariableInt("maxClassSizeInclOutliers", statistics.getMaximalEquivalenceClassSizeIncludingOutliers());
+		pushFlowVariableInt("numberofClassesInclOutliers", statistics.getNumberOfEquivalenceClassesIncludingOutliers());
+
+		pushFlowVariableDouble("prosecutorRecordsAtRisk", prosecutor.getRecordsAtRisk());
+		pushFlowVariableDouble("prosecutorHighestRisk", prosecutor.getHighestRisk());
+		pushFlowVariableDouble("prosecutorSuccessRate", prosecutor.getSuccessRate());
+		pushFlowVariableDouble("journalistRecordsAtRisk", journalist.getRecordsAtRisk());
+		pushFlowVariableDouble("journalistHighestRisk", journalist.getHighestRisk());
+		pushFlowVariableDouble("journalistSuccessRate", journalist.getSuccessRate());
+		pushFlowVariableDouble("marketerSuccessRate", marketer.getSuccessRate());
 	}
 
 	public void showWarnig(String message) {
@@ -137,7 +183,34 @@ public class AnonymizerNodeModel extends NodeModel {
 			warnings.add(message);
 			String joined = StringUtils.join(warnings, ";\n");
 			setWarningMessage(joined);
-			// logger.warn(message);
 		}
+	}
+
+	@Override
+	public AnonymizerNodeViewValue getViewRepresentation() {
+		// TODO Auto-generated method stub
+		logger.debug("getViewRepresentation");
+		return null;
+	}
+
+	@Override
+	public AnonymizerNodeViewValue getViewValue() {
+		// TODO Auto-generated method stub
+		logger.debug("getViewValue");
+		return null;
+	}
+
+	@Override
+	public ValidationError validateViewValue(AnonymizerNodeViewValue viewContent) {
+		// TODO Auto-generated method stub
+		logger.debug("validateViewValue");
+		return null;
+	}
+
+	@Override
+	public void loadViewValue(AnonymizerNodeViewValue viewContent, boolean useAsDefault) {
+		// TODO Auto-generated method stub
+		logger.debug("loadViewValue: " + Arrays.toString(viewContent.getTransformation()));
+		selectedTransformation = viewContent.getTransformation();
 	}
 }

@@ -134,4 +134,8 @@
         <outPort index="2" name="Suppressed records">Suppressed records</outPort>
         <outPort index="3" name="Stats Variables">Statistics in a form of flow variables. If partitioning is enabled only first row of statistic table is used</outPort>
     </ports>
+    
+    <interactiveView name="Transformation View">
+    	Select transformation from available options
+    </interactiveView>
 </knimeNode>

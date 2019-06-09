@@ -46,7 +46,7 @@ public class AnonymizationResultProcessor {
 	private Config config;
 	private AnonymizerNodeModel model;
 
-	private ARXNode optimum;
+	private int[] targetTransformation;
 	private Set<String> suppressedRows;
 
 	public AnonymizationResultProcessor(Config config, AnonymizerNodeModel model) {
@@ -54,18 +54,22 @@ public class AnonymizationResultProcessor {
 		this.model = model;
 	}
 
-	public PortObject[] process(BufferedDataTable inTable, List<AnonymizationResult> results, ExecutionContext exec)
-			throws CanceledExecutionException {
-		optimum = findSingleOptimum(results);
+	public PortObject[] process(BufferedDataTable inTable, List<AnonymizationResult> results,
+			int[] selectedTransformation, ExecutionContext exec) throws CanceledExecutionException {
+		if (selectedTransformation == null) {
+			targetTransformation = findSingleOptimum(results);
+		} else {
+			targetTransformation = selectedTransformation;
+		}
 		suppressedRows = new HashSet<>();
 		return new PortObject[] { createDataTable(results, exec), createStatsTable(results, exec),
 				createExceptionsTable(inTable, results, exec), FlowVariablePortObject.INSTANCE };
 	}
 
-	private ARXNode findSingleOptimum(List<AnonymizationResult> results) {
+	private int[] findSingleOptimum(List<AnonymizationResult> results) {
 		if (config.getAnonymizationConfig().getPartitionsSingleOptimum().getBooleanValue()) {
 			return results.stream().map(AnonymizationResult::getArxResult).filter(ARXResult::isResultAvailable)
-					.map(ARXResult::getGlobalOptimum).findFirst().orElse(null);
+					.map(ARXResult::getGlobalOptimum).map(ARXNode::getTransformation).findFirst().orElse(null);
 		}
 		return null;
 	}
@@ -107,14 +111,14 @@ public class AnonymizationResultProcessor {
 	}
 
 	private ARXNode findOptimumNode(ARXResult res) {
-		if (optimum == null) {
+		if (targetTransformation == null) {
 			return res.getGlobalOptimum();
 		}
-		int[] levels = optimum.getTransformation();
+
 		ARXNode opt = res.getGlobalOptimum();
 		for (ARXNode[] nodes : res.getLattice().getLevels()) {
 			for (ARXNode n : nodes) {
-				if (Arrays.equals(levels, n.getTransformation())) {
+				if (Arrays.equals(targetTransformation, n.getTransformation())) {
 					return n;
 				}
 			}
@@ -173,7 +177,8 @@ public class AnonymizationResultProcessor {
 
 				if (!flowVarsPushed) {
 					flowVarsPushed = true;
-					model.putVariables(informationLoss, headers, transformation, anonymity, rowCount, suppresedRowsNum);
+					model.putVariables(informationLoss, headers, transformation, anonymity, rowCount, suppresedRowsNum,
+							statistics, prosecutorRisk, journalistRisk, marketerRisk);
 				}
 
 				DataCell[] cells = new DataCell[22];
