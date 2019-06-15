@@ -11,17 +11,19 @@ import java.util.Map;
 import javax.swing.ImageIcon;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
+import org.deidentifier.arx.ARXLattice.ARXNode;
 import org.deidentifier.arx.ARXLattice.Anonymity;
 
 public class TransformationsTable extends JTable {
 	private static final long serialVersionUID = 1L;
 
-	public TransformationsTable() {
+	public TransformationsTable(TransformationFilter filter) {
 		super(new TransformationTableModel());
 
 		getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -31,6 +33,20 @@ public class TransformationsTable extends JTable {
 		TableRowSorter<TransformationTableModel> sorter = new TableRowSorter<TransformationTableModel>(getModel());
 		sorter.setSortKeys(Arrays.asList(new SortKey(TransformationTableModel.COLUMN_MIN_SCORE, SortOrder.DESCENDING)));
 		setRowSorter(sorter);
+
+		sorter.setRowFilter(new RowFilter<TransformationTableModel, Integer>() {
+
+			@Override
+			public boolean include(Entry<? extends TransformationTableModel, ? extends Integer> entry) {
+				ARXNode node = entry.getModel().getRow(entry.getIdentifier());
+				if (node != null) {
+					return filter.isAllowed(node);
+				}
+				return true;
+			}
+
+		});
+		filter.addChangeListener(e -> sorter.allRowsChanged());
 	}
 
 	@Override
