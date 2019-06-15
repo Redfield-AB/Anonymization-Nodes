@@ -46,7 +46,6 @@ public class AnonymizationResultProcessor {
 	private Config config;
 	private AnonymizerNodeModel model;
 
-	private int[] targetTransformation;
 	private Set<String> suppressedRows;
 
 	public AnonymizationResultProcessor(Config config, AnonymizerNodeModel model) {
@@ -54,39 +53,26 @@ public class AnonymizationResultProcessor {
 		this.model = model;
 	}
 
-	public PortObject[] process(BufferedDataTable inTable, List<AnonymizationResult> results,
-			int[] selectedTransformation, ExecutionContext exec) throws CanceledExecutionException {
-		if (selectedTransformation == null) {
-			targetTransformation = findSingleOptimum(results);
-		} else {
-			targetTransformation = selectedTransformation;
-		}
+	public PortObject[] process(BufferedDataTable inTable, List<AnonymizationResult> results, ExecutionContext exec)
+			throws CanceledExecutionException {
 		suppressedRows = new HashSet<>();
 		return new PortObject[] { createDataTable(results, exec), createStatsTable(results, exec),
 				createExceptionsTable(inTable, results, exec), FlowVariablePortObject.INSTANCE };
-	}
-
-	private int[] findSingleOptimum(List<AnonymizationResult> results) {
-		if (config.getAnonymizationConfig().getPartitionsSingleOptimum().getBooleanValue()) {
-			return results.stream().map(AnonymizationResult::getArxResult).filter(ARXResult::isResultAvailable)
-					.map(ARXResult::getGlobalOptimum).map(ARXNode::getTransformation).findFirst().orElse(null);
-		}
-		return null;
 	}
 
 	private BufferedDataTable createDataTable(List<AnonymizationResult> results, ExecutionContext exec) {
 		List<ColumnConfig> outColumns = config.getOutputColumns();
 
 		BufferedDataContainer container = exec.createDataContainer(createOutDataTableSpec());
+		RowClassifier classifier = null;
+		if (config.getAnonymizationConfig().getAddClassColumn().getBooleanValue()) {
+			classifier = new RowClassifier(config);
+		}
+
 		for (AnonymizationResult r : results) {
 			ARXResult res = r.getArxResult();
 			if (res.isResultAvailable()) {
-				RowClassifier classifier = null;
-				if (config.getAnonymizationConfig().getAddClassColumn().getBooleanValue()) {
-					classifier = new RowClassifier(config);
-				}
-
-				Iterator<String[]> iter = res.getOutput(findOptimumNode(res)).iterator();
+				Iterator<String[]> iter = res.getOutput(r.getCurrentNode()).iterator();
 				iter.next();
 				while (iter.hasNext()) {
 					String[] row = iter.next();
@@ -110,23 +96,6 @@ public class AnonymizationResultProcessor {
 		return container.getTable();
 	}
 
-	private ARXNode findOptimumNode(ARXResult res) {
-		if (targetTransformation == null) {
-			return res.getGlobalOptimum();
-		}
-
-		ARXNode opt = res.getGlobalOptimum();
-		for (ARXNode[] nodes : res.getLattice().getLevels()) {
-			for (ARXNode n : nodes) {
-				if (Arrays.equals(targetTransformation, n.getTransformation())) {
-					return n;
-				}
-			}
-		}
-		model.showWarnig("Unable to use a single transformation for all partitions");
-		return opt;
-	}
-
 	public DataTableSpec createOutDataTableSpec() {
 		boolean classColumn = config.getAnonymizationConfig().getAddClassColumn().getBooleanValue();
 		List<DataColumnSpec> specs = new ArrayList<>();
@@ -147,10 +116,10 @@ public class AnonymizationResultProcessor {
 		int row = 0;
 		int totalSuppressedCount = 0;
 		boolean flowVarsPushed = false;
-		for (AnonymizationResult pair : results) {
-			ARXResult res = pair.getArxResult();
+		for (AnonymizationResult r : results) {
+			ARXResult res = r.getArxResult();
 			if (res.isResultAvailable()) {
-				ARXNode opt = findOptimumNode(res);
+				ARXNode opt = r.getCurrentNode();
 
 				DataHandle handle = res.getOutput(opt);
 				int suppresedRowsNum = 0;
@@ -167,7 +136,7 @@ public class AnonymizationResultProcessor {
 				String headers = Arrays.toString(opt.getQuasiIdentifyingAttributes());
 				String transformation = Arrays.toString(opt.getTransformation());
 				String anonymity = opt.getAnonymity().toString();
-				long rowCount = pair.getPartitionInfo().getRows();
+				long rowCount = r.getPartitionInfo().getRows();
 
 				RiskModelSampleSummary riskSummary = handle.getRiskEstimator()
 						.getSampleBasedRiskSummary(config.getAnonymizationConfig().getRiskThreshold().getDoubleValue());
@@ -187,7 +156,7 @@ public class AnonymizationResultProcessor {
 				cells[2] = new StringCell(transformation);
 				cells[3] = new StringCell(anonymity);
 				cells[4] = new LongCell(rowCount);
-				cells[5] = new StringCell(pair.getPartitionInfo().getCriteria());
+				cells[5] = new StringCell(r.getPartitionInfo().getCriteria());
 				cells[6] = new LongCell(suppresedRowsNum);
 
 				cells[7] = new DoubleCell(statistics.getAverageEquivalenceClassSize());

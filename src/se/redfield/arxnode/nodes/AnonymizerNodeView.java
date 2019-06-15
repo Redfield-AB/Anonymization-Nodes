@@ -1,17 +1,12 @@
 package se.redfield.arxnode.nodes;
 
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.table.AbstractTableModel;
 
 import org.deidentifier.arx.ARXLattice.ARXNode;
-import org.deidentifier.arx.ARXResult;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.interactive.DefaultReexecutionCallback;
 import org.knime.core.node.interactive.InteractiveClientNodeView;
@@ -22,40 +17,92 @@ import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.anonymize.AnonymizationResult;
 import se.redfield.arxnode.nodes.AnonymizerNodeView.AnonymizerNodeViewValue;
+import se.redfield.arxnode.ui.transformation.TransformationSelector;
+import se.redfield.arxnode.ui.transformation.TransformationSelectorsTabbedPane;
 
 public class AnonymizerNodeView
 		extends InteractiveClientNodeView<AnonymizerNodeModel, AnonymizerNodeViewValue, AnonymizerNodeViewValue> {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizerNodeView.class);
 
+	private JCheckBox cbSingleTransformation;
 	private JButton bRun;
-	private JTable table;
+	private JButton bReset;
+	private TransformationSelectorsTabbedPane selectorsPanel;
+	private List<AnonymizationResult> results;
 
 	protected AnonymizerNodeView(AnonymizerNodeModel nodeModel) {
 		super(nodeModel);
-		bRun = new JButton("Apply");
-		bRun.addActionListener(e -> execute());
-		bRun.setEnabled(false);
+
+		selectorsPanel = new TransformationSelectorsTabbedPane();
 
 		JPanel panel = new JPanel(new FormLayout("10:n, f:p:g, 10:n", "10:n, f:p:g, 5:n, p:n, 10:n"));
-		panel.add(new JScrollPane(createTable()), CC.rc(2, 2, "f,f"));
-		panel.add(bRun, CC.rc(4, 2, "f, c"));
+		panel.add(selectorsPanel, CC.rc(2, 2, "f,f"));
+		panel.add(createButtonsPanel(), CC.rc(4, 2, "f, c"));
 		setComponent(panel);
 	}
 
-	private JTable createTable() {
-		table = new JTable(new TransformationTableModel());
-		table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		table.getSelectionModel().addListSelectionListener(e -> bRun.setEnabled(table.getSelectedRow() > -1));
-		return table;
+	private JPanel createButtonsPanel() {
+		bRun = new JButton("Apply Selected");
+		bRun.addActionListener(e -> onApply());
+
+		bReset = new JButton("Reset to Optimum");
+		bReset.addActionListener(e -> onReset());
+
+		cbSingleTransformation = new JCheckBox("Use the same transformation for all partitions");
+
+		JPanel panel = new JPanel(new FormLayout("p:n, 5:n, p:n, 5:n, p:n, f:p:g", "p:n"));
+		panel.add(bRun, CC.rc(1, 1));
+		panel.add(bReset, CC.rc(1, 3));
+		panel.add(cbSingleTransformation, CC.rc(1, 5));
+		return panel;
 	}
 
-	private void execute() {
-		ARXNode node = null;
-		if (table.getSelectedRow() >= 0) {
-			node = ((TransformationTableModel) table.getModel()).getRow(table.getSelectedRow());
+	private void onApply() {
+		if (results == null) {
+			return;
 		}
-		AnonymizerNodeViewValue val = new AnonymizerNodeViewValue(node == null ? null : node.getTransformation());
-		triggerReExecution(val, true, new DefaultReexecutionCallback());
+
+		TransformationSelector selector = selectorsPanel.getCurrentSelector();
+		ARXNode selected = selector.getSelectedNode();
+		AnonymizationResult result = selector.getModel();
+		boolean single = true;
+
+		if (selected != null) {
+			result.setTransformation(selected.getTransformation());
+			if (cbSingleTransformation.isSelected()) {
+				single = setForAll(selected.getTransformation());
+			}
+		} else {
+			result.setTransformation(null);
+		}
+
+		triggerReExecution(
+				new AnonymizerNodeViewValue(single ? null : "Unable to use a single transformation for all partitions"),
+				true, new DefaultReexecutionCallback());
+	}
+
+	private boolean setForAll(int[] trasformation) {
+		boolean single = true;
+		for (AnonymizationResult r : results) {
+			ARXNode node = r.findNodeForTransfromation(trasformation, false);
+			if (node != null) {
+				r.setTransformation(node.getTransformation());
+			} else {
+				r.setTransformation(null);
+				single = false;
+			}
+		}
+		return single;
+	}
+
+	private void onReset() {
+		if (results == null) {
+			return;
+		}
+		for (AnonymizationResult r : results) {
+			r.setTransformation(null);
+		}
+		triggerReExecution(null, true, new DefaultReexecutionCallback());
 	}
 
 	@Override
@@ -71,119 +118,20 @@ public class AnonymizerNodeView
 	@Override
 	protected void modelChanged() {
 		logger.debug("modelChanged");
-		List<AnonymizationResult> results = getNodeModel().getResults();
-		ARXResult result = null;
-		if (results != null && results.size() > 0) {
-			result = results.get(0).getArxResult();
-		}
-
-		int[] currentTransform = getNodeModel().getSelectedTransformation();
-		if (currentTransform == null && result != null) {
-			currentTransform = result.getGlobalOptimum().getTransformation();
-		}
-
-		TransformationTableModel model = ((TransformationTableModel) table.getModel());
-		model.setResult(result);
-		model.setCurrentTransform(currentTransform);
-	}
-
-	private class TransformationTableModel extends AbstractTableModel {
-		private static final long serialVersionUID = 1L;
-		private static final int COLUMN_SELECTED = 0;
-		private static final int COLUMN_TRANSFROMATION = 1;
-		private static final int COLUMN_ANONYMITY = 2;
-
-		private ARXResult result;
-		private int[] currentTransform;
-
-		public void setResult(ARXResult result) {
-			this.result = result;
-			fireTableDataChanged();
-		}
-
-		public void setCurrentTransform(int[] currentTransform) {
-			this.currentTransform = currentTransform;
-			fireTableDataChanged();
-		}
-
-		@Override
-		public int getColumnCount() {
-			return 3;
-		}
-
-		@Override
-		public int getRowCount() {
-			if (result == null) {
-				return 0;
-			}
-			int count = 0;
-			for (ARXNode[] level : result.getLattice().getLevels()) {
-				count += level.length;
-			}
-			return count;
-		}
-
-		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			ARXNode node = getRow(rowIndex);
-			if (node != null) {
-				switch (columnIndex) {
-				case COLUMN_SELECTED:
-					return getSelectedVal(node);
-				case COLUMN_TRANSFROMATION:
-					return Arrays.toString(node.getTransformation());
-				case COLUMN_ANONYMITY:
-					return node.getAnonymity().toString();
-				}
-			}
-			return null;
-
-		}
-
-		private String getSelectedVal(ARXNode node) {
-			if (Arrays.equals(currentTransform, node.getTransformation())) {
-				return "\u2713";
-			}
-			return "";
-		}
-
-		public ARXNode getRow(int index) {
-			if (result == null) {
-				return null;
-			}
-			for (ARXNode[] level : result.getLattice().getLevels()) {
-				if (index >= level.length) {
-					index -= level.length;
-				} else {
-					return level[index];
-				}
-			}
-			return null;
-		}
-
-		@Override
-		public String getColumnName(int column) {
-			switch (column) {
-			case COLUMN_SELECTED:
-				return "Active";
-			case COLUMN_TRANSFROMATION:
-				return "Transformation";
-			case COLUMN_ANONYMITY:
-				return "Anonymity";
-			}
-			return "";
-		}
+		results = getNodeModel().getResults();
+		selectorsPanel.setModel(results);
+		cbSingleTransformation.setVisible(results != null && results.size() > 1);
 	}
 
 	public static class AnonymizerNodeViewValue implements ViewContent {
-		private int[] transformation;
+		private String warning;
 
-		public AnonymizerNodeViewValue(int[] transformation) {
-			this.transformation = transformation;
+		public AnonymizerNodeViewValue(String warning) {
+			this.warning = warning;
 		}
 
-		public int[] getTransformation() {
-			return transformation;
+		public String getWarning() {
+			return warning;
 		}
 	}
 }

@@ -7,10 +7,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.DataType;
-import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 import org.knime.core.node.defaultnodesettings.SettingsModelBoolean;
@@ -75,29 +73,6 @@ public class ColumnConfig implements SettingsModelConfig, Comparable<ColumnConfi
 	@Override
 	public Collection<? extends SettingsModelConfig> getChildred() {
 		return Arrays.asList(transformationConfig);
-	}
-
-	@Override
-	public void validate() throws InvalidSettingsException {
-		SettingsModelConfig.super.validate();
-
-		if (attrType == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
-			if (!isHierarchyOverriden()) {
-				if (StringUtils.isEmpty(hierarchyFileModel.getStringValue())) {
-					throw new InvalidSettingsException(
-							"Hierarcy file not set for quasi-identifying attribute '" + name + "'");
-				}
-				try {
-					File file = getHierarchyFile();
-					if (!file.exists()) {
-						throw new InvalidSettingsException("File " + file.getAbsolutePath() + " not found");
-					}
-				} catch (InvalidPathException | MalformedURLException e) {
-					throw new InvalidSettingsException(e);
-				}
-			}
-		}
-
 	}
 
 	public String getName() {

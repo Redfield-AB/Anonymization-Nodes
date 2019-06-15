@@ -50,19 +50,15 @@ public class AnonymizationConfigPanel {
 		columnSelection = new DialogComponentColumnNameSelection(config.getPartitionsGroupByColumn(), "Group by column",
 				0, StringValue.class, DoubleValue.class);
 
-		JPanel panel = new JPanel(new FormLayout("l:p:n, 5:n, l:p:g, p:g", "p:n, 5:n, p:n, 5:n, p:n"));
+		JPanel panel = new JPanel(new FormLayout("l:p:n, 5:n, l:p:g, p:g", "p:n, 5:n, p:n"));
 		panel.add(
 				new DialogComponentNumber(config.getNumOfThreads(), "# of threads", 1,
 						dlg.createFlowVariableModel(new String[] { AnonymizationConfig.CONFIG_KEY,
 								AnonymizationConfig.CONFIG_NUM_OF_THREADS }, Type.INTEGER)).getComponentPanel(),
 				cc.rcw(1, 1, 3, "d,l"));
-		panel.add(
-				new DialogComponentBoolean(config.getPartitionsSingleOptimum(),
-						"Try to use single transformation for all partitions").getComponentPanel(),
-				cc.rcw(3, 1, 3, "d,l"));
 		panel.add(new DialogComponentBoolean(config.getPartitionsGroupByEnabled(), "").getComponentPanel(),
-				cc.rc(5, 1));
-		panel.add(columnSelection.getComponentPanel(), cc.rc(5, 3));
+				cc.rc(3, 1));
+		panel.add(columnSelection.getComponentPanel(), cc.rc(3, 3));
 		panel.setBorder(BorderFactory.createTitledBorder("Partitioning"));
 		return panel;
 	}

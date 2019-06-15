@@ -48,7 +48,6 @@ public class AnonymizationConfig implements SettingsModelConfig {
 	private SettingsModelBoolean omitIdentifyingColumns;
 
 	private SettingsModelIntegerBounded numOfThreads;
-	private SettingsModelBoolean partitionsSingleOptimum;
 	private SettingsModelBoolean partitionsGroupByEnabled;
 	private SettingsModelString partitionsGroupByColumn;
 
@@ -72,7 +71,6 @@ public class AnonymizationConfig implements SettingsModelConfig {
 		omitIdentifyingColumns = new SettingsModelBoolean(CONFIG_OMIT_IDENTIFYING_COLUMNS, false);
 
 		numOfThreads = new SettingsModelIntegerBounded(CONFIG_NUM_OF_THREADS, 1, 1, 20);
-		partitionsSingleOptimum = new SettingsModelBoolean(CONFIG_PARTITIONS_SINGLE_OPTIMUM, true);
 
 		partitionsGroupByEnabled = new SettingsModelBoolean(CONFIG_PARTITIONS_GROUP_BY_ENABLED, false);
 		partitionsGroupByColumn = new SettingsModelString(CONFIG_PARTITIONS_GROUP_BY_COLUMN, "");
@@ -82,7 +80,6 @@ public class AnonymizationConfig implements SettingsModelConfig {
 		searchStepsLimit.setEnabled(false);
 		searchTimeLimit.setEnabled(false);
 		practivalMonotonicity.setEnabled(false);
-		partitionsSingleOptimum.setEnabled(false);
 		partitionsGroupByEnabled.setEnabled(false);
 		partitionsGroupByColumn.setEnabled(false);
 
@@ -98,7 +95,6 @@ public class AnonymizationConfig implements SettingsModelConfig {
 		});
 		numOfThreads.addChangeListener(e -> {
 			boolean enabled = numOfThreads.getIntValue() > 1;
-			partitionsSingleOptimum.setEnabled(enabled);
 			partitionsGroupByEnabled.setEnabled(enabled);
 		});
 
@@ -109,8 +105,8 @@ public class AnonymizationConfig implements SettingsModelConfig {
 	public List<SettingsModel> getModels() {
 		return Arrays.asList(heuristicSearchEnabled, limitSearchSteps, limitSearchTime, searchStepsLimit,
 				searchTimeLimit, suppresionLimit, practivalMonotonicity, riskThreshold, addClassColumn,
-				omitMissingValues, omitIdentifyingColumns, numOfThreads, partitionsSingleOptimum,
-				partitionsGroupByEnabled, partitionsGroupByColumn);
+				omitMissingValues, omitIdentifyingColumns, numOfThreads, partitionsGroupByEnabled,
+				partitionsGroupByColumn);
 	}
 
 	@Override
@@ -173,10 +169,6 @@ public class AnonymizationConfig implements SettingsModelConfig {
 
 	public SettingsModelIntegerBounded getNumOfThreads() {
 		return numOfThreads;
-	}
-
-	public SettingsModelBoolean getPartitionsSingleOptimum() {
-		return partitionsSingleOptimum;
 	}
 
 	public SettingsModelBoolean getPartitionsGroupByEnabled() {

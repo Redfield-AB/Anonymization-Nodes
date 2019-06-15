@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.mahout.math.Arrays;
 import org.deidentifier.arx.aggregates.StatisticsEquivalenceClasses;
 import org.deidentifier.arx.risk.RiskModelSampleSummary.JournalistRisk;
 import org.deidentifier.arx.risk.RiskModelSampleSummary.MarketerRisk;
@@ -48,7 +47,7 @@ public class AnonymizerNodeModel extends NodeModel
 	private AnonymizationResultProcessor outputBuilder;
 	private Set<String> warnings;
 	private List<AnonymizationResult> results;
-	private int[] selectedTransformation;
+	private AnonymizerNodeViewValue viewValue;
 
 	protected AnonymizerNodeModel() {
 		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL }, new PortType[] {
@@ -61,14 +60,11 @@ public class AnonymizerNodeModel extends NodeModel
 		return results;
 	}
 
-	public int[] getSelectedTransformation() {
-		return selectedTransformation;
-	}
-
 	@Override
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 		logger.debug("execute");
 		try {
+			warnings.clear();
 			if (results == null) {
 				logger.debug("anonymizing");
 				Anonymizer anonymizer = new Anonymizer(config);
@@ -76,8 +72,12 @@ public class AnonymizerNodeModel extends NodeModel
 						(ArxPortObject) inData[PORT_ARX], exec);
 			}
 			logger.debug("processing result");
-			return outputBuilder.process((BufferedDataTable) inData[PORT_DATA_TABLE], results, selectedTransformation,
-					exec);
+
+			if (viewValue != null && StringUtils.isNotEmpty(viewValue.getWarning())) {
+				showWarnig(viewValue.getWarning());
+			}
+
+			return outputBuilder.process((BufferedDataTable) inData[PORT_DATA_TABLE], results, exec);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 			throw e;
@@ -89,7 +89,7 @@ public class AnonymizerNodeModel extends NodeModel
 		logger.debug("reset");
 		warnings.clear();
 		results = null;
-		selectedTransformation = null;
+		// selectedTransformation = null;
 	}
 
 	@Override
@@ -210,7 +210,8 @@ public class AnonymizerNodeModel extends NodeModel
 	@Override
 	public void loadViewValue(AnonymizerNodeViewValue viewContent, boolean useAsDefault) {
 		// TODO Auto-generated method stub
-		logger.debug("loadViewValue: " + Arrays.toString(viewContent.getTransformation()));
-		selectedTransformation = viewContent.getTransformation();
+		logger.debug("loadViewValue: ");
+		this.viewValue = viewContent;
+		// selectedTransformation = viewContent.getTransformation();
 	}
 }
