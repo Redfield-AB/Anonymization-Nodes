@@ -1,6 +1,7 @@
 package se.redfield.arxnode.ui.transformation;
 
 import java.awt.Component;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JLabel;
@@ -20,9 +21,12 @@ public class TransformationSelectorsTabbedPane extends JPanel {
 
 	private JTabbedPane tabs;
 	private JLabel errorLabel;
+	private List<TransformationSelector> selectors;
 
 	public TransformationSelectorsTabbedPane() {
 		super(new FormLayout("f:p:g", "f:p:g"));
+
+		selectors = new ArrayList<>();
 
 		tabs = new JTabbedPane();
 		tabs.setTabPlacement(JTabbedPane.LEFT);
@@ -38,12 +42,8 @@ public class TransformationSelectorsTabbedPane extends JPanel {
 			return;
 		}
 
-		adjustTabCount(results.size());
-		for (int i = 0; i < results.size(); i++) {
-			getSelector(i).setModel(results.get(i));
-		}
-
-		setContent(tabs.getTabCount() > 1 ? tabs : tabs.getComponentAt(0));
+		initSelectors(results);
+		setContent(selectors.size() > 1 ? initTabPanel() : selectors.get(0));
 	}
 
 	private void setContent(Component component) {
@@ -52,23 +52,35 @@ public class TransformationSelectorsTabbedPane extends JPanel {
 		updateUI();
 	}
 
-	private void adjustTabCount(int count) {
-		if (count > tabs.getTabCount()) {
-			for (int i = tabs.getTabCount(); i < count; i++) {
-				tabs.addTab(String.valueOf(i), new TransformationSelector());
+	private void initSelectors(List<AnonymizationResult> results) {
+		for (int i = 0; i < results.size(); i++) {
+			if (i >= selectors.size()) {
+				selectors.add(new TransformationSelector());
 			}
-		} else {
-			for (int i = tabs.getTabCount() - 1; i >= count; i--) {
-				tabs.removeTabAt(i);
-			}
+			selectors.get(i).setModel(results.get(i));
+		}
+
+		while (selectors.size() > results.size()) {
+			selectors.remove(selectors.size() - 1);
 		}
 	}
 
-	private TransformationSelector getSelector(int i) {
-		return (TransformationSelector) tabs.getComponentAt(i);
+	private JTabbedPane initTabPanel() {
+		int selected = tabs.getSelectedIndex();
+
+		tabs.removeAll();
+		for (int i = 0; i < selectors.size(); i++) {
+			tabs.addTab(String.valueOf(i), selectors.get(i));
+		}
+
+		if (selected > -1) {
+			tabs.setSelectedIndex(selected);
+		}
+		return tabs;
 	}
 
 	public TransformationSelector getCurrentSelector() {
-		return getSelector(tabs.getSelectedIndex());
+		int index = selectors.size() > 1 ? tabs.getSelectedIndex() : 0;
+		return selectors.get(index);
 	}
 }

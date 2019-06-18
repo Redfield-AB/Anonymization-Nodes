@@ -14,6 +14,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableRowSorter;
 
@@ -27,8 +28,12 @@ public class TransformationsTable extends JTable {
 		super(new TransformationTableModel());
 
 		getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
 		getColumnModel().getColumn(TransformationTableModel.COLUMN_ANONYMITY)
 				.setCellRenderer(new AnonymityCellRenderer());
+		getColumnModel().getColumn(TransformationTableModel.COLUMN_SELECTED)
+				.setCellRenderer(new SelectedCellRenderer());
+		getColumnModel().getColumn(TransformationTableModel.COLUMN_SELECTED).setMaxWidth(40);
 
 		TableRowSorter<TransformationTableModel> sorter = new TableRowSorter<TransformationTableModel>(getModel());
 		sorter.setSortKeys(Arrays.asList(new SortKey(TransformationTableModel.COLUMN_MIN_SCORE, SortOrder.DESCENDING)));
@@ -86,5 +91,26 @@ public class TransformationsTable extends JTable {
 			return this;
 		}
 
+	}
+
+	private class SelectedCellRenderer extends DefaultTableCellRenderer {
+		private static final long serialVersionUID = 1L;
+
+		private Color selectedBg = new Color(128, 255, 255);
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
+			super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			if ((boolean) value) {
+				setText("\u2713");
+				setHorizontalAlignment(SwingConstants.CENTER);
+				setBackground(selectedBg);
+			} else {
+				setText("");
+				setBackground(table.getBackground());
+			}
+			return this;
+		}
 	}
 }

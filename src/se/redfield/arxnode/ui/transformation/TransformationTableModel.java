@@ -62,11 +62,8 @@ public class TransformationTableModel extends AbstractTableModel {
 
 	}
 
-	private String getSelectedVal(ARXNode node) {
-		if (Arrays.equals(result.getTransformation(), node.getTransformation())) {
-			return "\u2713";
-		}
-		return "";
+	private boolean getSelectedVal(ARXNode node) {
+		return Arrays.equals(result.getTransformation(), node.getTransformation());
 	}
 
 	public ARXNode getRow(int index) {
@@ -103,6 +100,8 @@ public class TransformationTableModel extends AbstractTableModel {
 	@Override
 	public Class<?> getColumnClass(int columnIndex) {
 		switch (columnIndex) {
+		case COLUMN_SELECTED:
+			return Boolean.class;
 		case COLUMN_ANONYMITY:
 			return Anonymity.class;
 		case COLUMN_MAX_SCORE:

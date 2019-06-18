@@ -29,6 +29,9 @@ import org.deidentifier.arx.criteria.KAnonymity;
 import com.jgoodies.forms.factories.CC;
 import com.jgoodies.forms.layout.FormLayout;
 
+import se.redfield.arxnode.anonymize.AnonymizationResult;
+import se.redfield.arxnode.partiton.PartitionInfo;
+
 public class TransformationFilterPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
@@ -126,8 +129,8 @@ public class TransformationFilterPanel extends JPanel {
 		ARXResult res = getTestResult();
 		printLevels(res);
 
-		TransformationFilterPanel filter = new TransformationFilterPanel();
-		filter.setResult(res);
+		TransformationSelector filter = new TransformationSelector();
+		filter.setModel(new AnonymizationResult(res, new PartitionInfo()));
 
 		JFrame f = new JFrame();
 		f.getContentPane().add(filter);

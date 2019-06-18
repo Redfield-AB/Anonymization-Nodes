@@ -58,7 +58,7 @@ public class AnonymizerNodeView
 	}
 
 	private void onApply() {
-		if (results == null) {
+		if (results == null || results.size() == 0) {
 			return;
 		}
 
