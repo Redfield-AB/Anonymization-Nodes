@@ -5,7 +5,6 @@ import java.util.Arrays;
 import javax.swing.table.AbstractTableModel;
 
 import org.deidentifier.arx.ARXLattice.ARXNode;
-import org.deidentifier.arx.ARXLattice.Anonymity;
 
 import se.redfield.arxnode.anonymize.AnonymizationResult;
 
@@ -22,6 +21,10 @@ public class TransformationTableModel extends AbstractTableModel {
 	public void setResult(AnonymizationResult result) {
 		this.result = result;
 		fireTableDataChanged();
+	}
+
+	public AnonymizationResult getResult() {
+		return result;
 	}
 
 	@Override
@@ -51,7 +54,7 @@ public class TransformationTableModel extends AbstractTableModel {
 			case COLUMN_TRANSFROMATION:
 				return Arrays.toString(node.getTransformation());
 			case COLUMN_ANONYMITY:
-				return node.getAnonymity();
+				return node;
 			case COLUMN_MIN_SCORE:
 				return InfolossScore.createFrom(result.getArxResult().getLattice(), node.getLowestScore());
 			case COLUMN_MAX_SCORE:
@@ -103,7 +106,7 @@ public class TransformationTableModel extends AbstractTableModel {
 		case COLUMN_SELECTED:
 			return Boolean.class;
 		case COLUMN_ANONYMITY:
-			return Anonymity.class;
+			return ARXNode.class;
 		case COLUMN_MAX_SCORE:
 		case COLUMN_MIN_SCORE:
 			return InfolossScore.class;
