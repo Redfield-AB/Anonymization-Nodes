@@ -23,7 +23,6 @@ public abstract class ListSettingsModelConfig<T extends SettingsModelConfig> imp
 		getChildred().clear();
 		for (String key : settings) {
 			T child = createChild();
-			System.out.println(key);
 			child.load(settings.getNodeSettings(key));
 			getChildred().add(child);
 		}

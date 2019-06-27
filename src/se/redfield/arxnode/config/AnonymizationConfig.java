@@ -11,6 +11,8 @@ import org.knime.core.node.defaultnodesettings.SettingsModelDoubleBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelIntegerBounded;
 import org.knime.core.node.defaultnodesettings.SettingsModelString;
 
+import se.redfield.arxnode.config.pmodels.PopulationConfig;
+
 public class AnonymizationConfig implements SettingsModelConfig {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfig.class);
 
@@ -52,6 +54,7 @@ public class AnonymizationConfig implements SettingsModelConfig {
 	private SettingsModelString partitionsGroupByColumn;
 
 	private MetricConfig measure;
+	private PopulationConfig population;
 
 	public AnonymizationConfig() {
 		heuristicSearchEnabled = new SettingsModelBoolean(CONFIG_HEURISTIC_SEARCH_ENABLED, false);
@@ -99,6 +102,7 @@ public class AnonymizationConfig implements SettingsModelConfig {
 		});
 
 		measure = new MetricConfig();
+		population = new PopulationConfig();
 	}
 
 	@Override
@@ -111,7 +115,7 @@ public class AnonymizationConfig implements SettingsModelConfig {
 
 	@Override
 	public Collection<? extends SettingsModelConfig> getChildred() {
-		return Arrays.asList(measure);
+		return Arrays.asList(measure, population);
 	}
 
 	private void addEnabledListener(SettingsModelBoolean source, SettingsModel... targets) {
@@ -181,6 +185,10 @@ public class AnonymizationConfig implements SettingsModelConfig {
 
 	public MetricConfig getMeasure() {
 		return measure;
+	}
+
+	public PopulationConfig getPopulation() {
+		return population;
 	}
 
 	@Override

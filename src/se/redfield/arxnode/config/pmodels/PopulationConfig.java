@@ -19,8 +19,8 @@ public class PopulationConfig implements SettingsModelConfig {
 	private long populationSize;
 
 	public PopulationConfig() {
-		region = Region.NONE.name();
-		populationSize = 0;
+		region = Region.USA.name();
+		populationSize = Region.USA.getPopulationSize();
 	}
 
 	public String getRegion() {

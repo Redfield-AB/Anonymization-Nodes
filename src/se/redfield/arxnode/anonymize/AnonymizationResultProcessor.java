@@ -11,6 +11,8 @@ import org.deidentifier.arx.ARXLattice.ARXNode;
 import org.deidentifier.arx.ARXResult;
 import org.deidentifier.arx.DataHandle;
 import org.deidentifier.arx.aggregates.StatisticsEquivalenceClasses;
+import org.deidentifier.arx.risk.RiskEstimateBuilder;
+import org.deidentifier.arx.risk.RiskModelAttributes.QuasiIdentifierRisk;
 import org.deidentifier.arx.risk.RiskModelSampleSummary;
 import org.deidentifier.arx.risk.RiskModelSampleSummary.JournalistRisk;
 import org.deidentifier.arx.risk.RiskModelSampleSummary.MarketerRisk;
@@ -57,7 +59,8 @@ public class AnonymizationResultProcessor {
 			throws CanceledExecutionException {
 		suppressedRows = new HashSet<>();
 		return new PortObject[] { createDataTable(results, exec), createStatsTable(results, exec),
-				createExceptionsTable(inTable, results, exec), FlowVariablePortObject.INSTANCE };
+				createExceptionsTable(inTable, results, exec), createRiskTable(results, exec),
+				FlowVariablePortObject.INSTANCE };
 	}
 
 	private BufferedDataTable createDataTable(List<AnonymizationResult> results, ExecutionContext exec) {
@@ -138,7 +141,7 @@ public class AnonymizationResultProcessor {
 				String anonymity = opt.getAnonymity().toString();
 				long rowCount = r.getPartitionInfo().getRows();
 
-				RiskModelSampleSummary riskSummary = handle.getRiskEstimator()
+				RiskModelSampleSummary riskSummary = getRiskEstimator(r)
 						.getSampleBasedRiskSummary(config.getAnonymizationConfig().getRiskThreshold().getDoubleValue());
 				ProsecutorRisk prosecutorRisk = riskSummary.getProsecutorRisk();
 				JournalistRisk journalistRisk = riskSummary.getJournalistRisk();
@@ -188,6 +191,12 @@ public class AnonymizationResultProcessor {
 
 		container.close();
 		return container.getTable();
+	}
+
+	private RiskEstimateBuilder getRiskEstimator(AnonymizationResult r) {
+		ARXNode node = r.getCurrentNode();
+		return r.getArxResult().getOutput(node)
+				.getRiskEstimator(config.getAnonymizationConfig().getPopulation().getPopulationModel());
 	}
 
 	public DataTableSpec createStatsTableSpec() {
@@ -247,5 +256,39 @@ public class AnonymizationResultProcessor {
 		omitted.close();
 
 		return exec.createConcatenateTable(exec, suppressed.getTable(), omitted.getTable());
+	}
+
+	public DataTableSpec createRiskTableSpec() {
+		DataColumnSpec[] outColSpecs = new DataColumnSpec[4];
+		outColSpecs[0] = new DataColumnSpecCreator("Attribute", StringCell.TYPE).createSpec();
+		outColSpecs[1] = new DataColumnSpecCreator("Distinction", DoubleCell.TYPE).createSpec();
+		outColSpecs[2] = new DataColumnSpecCreator("Separation", DoubleCell.TYPE).createSpec();
+		outColSpecs[3] = new DataColumnSpecCreator("Partition", IntCell.TYPE).createSpec();
+		return new DataTableSpec(outColSpecs);
+	}
+
+	private BufferedDataTable createRiskTable(List<AnonymizationResult> results, ExecutionContext exec) {
+		BufferedDataContainer container = exec.createDataContainer(createRiskTableSpec());
+		int partition = 0;
+		long rowIndex = 0;
+		for (AnonymizationResult r : results) {
+			QuasiIdentifierRisk[] risks = getRiskEstimator(r).getAttributeRisks().getAttributeRisks();
+			for (QuasiIdentifierRisk risk : risks) {
+				if (risk.getIdentifier().size() == 1) {
+					List<DataCell> cells = new ArrayList<>();
+
+					cells.add(new StringCell(risk.getIdentifier().get(0)));
+					cells.add(new DoubleCell(risk.getDistinction()));
+					cells.add(new DoubleCell(risk.getSeparation()));
+					cells.add(new IntCell(partition));
+
+					DataRow row = new DefaultRow(RowKey.createRowKey(rowIndex++), cells);
+					container.addRowToTable(row);
+				}
+			}
+			partition++;
+		}
+		container.close();
+		return container.getTable();
 	}
 }

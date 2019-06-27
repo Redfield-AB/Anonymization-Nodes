@@ -29,6 +29,7 @@ public class AnonymizationConfigPanel {
 	private CellConstraints cc;
 
 	private DialogComponentColumnNameSelection columnSelection;
+	private PopulationConfigPanel populationPanel;
 
 	public AnonymizationConfigPanel(AnonymizationConfig config, AnonymizerNodeDialog dlg) {
 		this.config = config;
@@ -38,11 +39,12 @@ public class AnonymizationConfigPanel {
 
 	private void initUi() {
 		cc = new CellConstraints();
-		component = new JPanel(new FormLayout("f:p:g", "f:p:n, 5:n, f:p:n, 5:n, f:p:n, 5:n, f:p:n"));
+		component = new JPanel(new FormLayout("f:p:g", "f:p:n, 5:n, f:p:n, 5:n, f:p:n, 5:n, f:p:n, 5:n, f:p:n"));
 		component.add(createPartitioningPanel(), cc.rc(1, 1));
 		component.add(createGeneralPanel(), cc.rc(3, 1));
 		component.add(createSearchStrategyPanel(), cc.rc(5, 1));
 		component.add(new MetricConfigPanel(config.getMeasure()), cc.rc(7, 1));
+		component.add(populationPanel = new PopulationConfigPanel(config.getPopulation()), cc.rc(9, 1));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -109,6 +111,7 @@ public class AnonymizationConfigPanel {
 	public void load(NodeSettingsRO settings, PortObjectSpec[] specs) {
 		try {
 			columnSelection.loadSettingsFrom(settings, specs);
+			populationPanel.loadFromConfig();
 		} catch (NotConfigurableException e) {
 			logger.error(e.getMessage(), e);
 		}

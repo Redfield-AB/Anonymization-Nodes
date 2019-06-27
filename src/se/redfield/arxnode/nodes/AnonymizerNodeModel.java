@@ -50,8 +50,9 @@ public class AnonymizerNodeModel extends NodeModel
 	private AnonymizerNodeViewValue viewValue;
 
 	protected AnonymizerNodeModel() {
-		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL }, new PortType[] {
-				BufferedDataTable.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE, FlowVariablePortObject.TYPE });
+		super(new PortType[] { BufferedDataTable.TYPE, ArxPortObject.TYPE_OPTIONAL },
+				new PortType[] { BufferedDataTable.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE,
+						BufferedDataTable.TYPE, FlowVariablePortObject.TYPE });
 		config = new Config();
 		warnings = new HashSet<>();
 	}
@@ -102,7 +103,7 @@ public class AnonymizerNodeModel extends NodeModel
 		outputBuilder = new AnonymizationResultProcessor(config, this);
 
 		return new PortObjectSpec[] { outputBuilder.createOutDataTableSpec(), outputBuilder.createStatsTableSpec(),
-				inSpecs[0], FlowVariablePortObjectSpec.INSTANCE };
+				inSpecs[0], outputBuilder.createRiskTableSpec(), FlowVariablePortObjectSpec.INSTANCE };
 	}
 
 	@Override

@@ -22,8 +22,11 @@ public class PopulationConfigPanel extends JPanel {
 	private JSpinner populationInput;
 	private boolean ignoreListener = false;
 
+	private PopulationConfig config;
+
 	public PopulationConfigPanel(PopulationConfig config) {
 		super();
+		this.config = config;
 
 		String[] regions = new String[Region.values().length];
 		for (int i = 0; i < regions.length; i++) {
@@ -36,7 +39,7 @@ public class PopulationConfigPanel extends JPanel {
 				Long.valueOf(Long.MAX_VALUE), Long.valueOf(100000)));
 		populationInput.addChangeListener(e -> onPopulationChanged());
 
-		setLayout(new FormLayout("p:n, 5:n, f:p:g", "p:n, 5:n, p:n"));
+		setLayout(new FormLayout("p:n, 5:n, f:p:n", "p:n, 5:n, p:n"));
 		CellConstraints cc = new CellConstraints();
 		add(new JLabel("Region:"), cc.rc(1, 1));
 		add(cbRegion, cc.rc(1, 3));
@@ -65,6 +68,7 @@ public class PopulationConfigPanel extends JPanel {
 			populationInput.setValue(region.getPopulationSize());
 			ignoreListener = false;
 		}
+		updateConfig();
 	}
 
 	private void onPopulationChanged() {
@@ -74,12 +78,18 @@ public class PopulationConfigPanel extends JPanel {
 		ignoreListener = true;
 		cbRegion.setSelectedItem(Region.NONE.getName());
 		ignoreListener = false;
+		updateConfig();
 	}
 
-	public PopulationConfig getPopulationConfig() {
-		PopulationConfig config = new PopulationConfig();
+	private void updateConfig() {
 		config.setRegion((String) cbRegion.getSelectedItem());
 		config.setPopulationSize((long) populationInput.getValue());
-		return config;
+	}
+
+	public void loadFromConfig() {
+		cbRegion.setSelectedItem(config.getRegion());
+		if (getSelectedRegion() == Region.NONE) {
+			populationInput.setValue(config.getPopulationSize());
+		}
 	}
 }

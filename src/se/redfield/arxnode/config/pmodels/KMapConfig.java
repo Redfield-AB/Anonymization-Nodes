@@ -1,6 +1,5 @@
 package se.redfield.arxnode.config.pmodels;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 import org.deidentifier.arx.Data;
@@ -13,7 +12,6 @@ import org.knime.core.node.NodeSettingsWO;
 
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
-import se.redfield.arxnode.config.SettingsModelConfig;
 import se.redfield.arxnode.ui.pmodels.KMapEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 import se.redfield.arxnode.util.TitledEnum;
@@ -27,13 +25,11 @@ public class KMapConfig extends AbstractPrivacyModelConfig {
 	private int k;
 	private EstimatorOption estimator;
 	private double significanceLevel;
-	private PopulationConfig population;
 
 	public KMapConfig() {
 		k = 2;
 		estimator = EstimatorOption.NONE;
 		significanceLevel = 0;
-		population = new PopulationConfig();
 	}
 
 	public int getK() {
@@ -60,14 +56,6 @@ public class KMapConfig extends AbstractPrivacyModelConfig {
 		this.significanceLevel = significanceLevel;
 	}
 
-	public PopulationConfig getPopulation() {
-		return population;
-	}
-
-	public void setPopulation(PopulationConfig population) {
-		this.population = population;
-	}
-
 	@Override
 	public PrivacyModelEditor createEditor(Collection<ColumnConfig> columns) {
 		return new KMapEditor(this);
@@ -78,7 +66,8 @@ public class KMapConfig extends AbstractPrivacyModelConfig {
 		if (estimator == EstimatorOption.NONE) {
 			return new KMap(k, config.getSubsetConfig().createDataSubset(data));
 		}
-		return new KMap(k, significanceLevel, population.getPopulationModel(), estimator.getEstimator());
+		return new KMap(k, significanceLevel, config.getAnonymizationConfig().getPopulation().getPopulationModel(),
+				estimator.getEstimator());
 	}
 
 	@Override
@@ -93,11 +82,6 @@ public class KMapConfig extends AbstractPrivacyModelConfig {
 			result += String.format(" (%s/%.3f)", estimator, significanceLevel);
 		}
 		return result;
-	}
-
-	@Override
-	public Collection<? extends SettingsModelConfig> getChildred() {
-		return Arrays.asList(population);
 	}
 
 	@Override
