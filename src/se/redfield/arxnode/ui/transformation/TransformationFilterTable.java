@@ -15,9 +15,11 @@ import javax.swing.table.TableCellRenderer;
 
 import org.deidentifier.arx.ARXLattice.ARXNode;
 import org.deidentifier.arx.ARXResult;
+import org.knime.core.node.NodeLogger;
 
 public class TransformationFilterTable extends JTable {
 	private static final long serialVersionUID = 1L;
+	private static final NodeLogger logger = NodeLogger.getLogger(TransformationFilterTable.class);
 
 	public TransformationFilterTable(TransformationFilter filter) {
 		super(new TransformationFilterTableModel(filter));
@@ -103,15 +105,15 @@ public class TransformationFilterTable extends JTable {
 				}
 			}
 
-			int levelsCount = 0;
+			int maxLevel = 0;
 			for (Set<Integer> row : levels) {
 				for (Integer i : row) {
-					if (i > levelsCount) {
-						levelsCount = i;
+					if (i > maxLevel) {
+						maxLevel = i;
 					}
 				}
 			}
-			columnCount = levelsCount + 1;
+			columnCount = maxLevel + 2;
 			fireTableStructureChanged();
 			fireTableDataChanged();
 		}

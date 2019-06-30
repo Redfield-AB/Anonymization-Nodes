@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.DataType;
 import org.deidentifier.arx.DataType.ARXDate;
 import org.deidentifier.arx.DataType.ARXDecimal;
@@ -19,6 +20,7 @@ import org.knime.core.data.DataValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeLogger;
 
+import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.HierarchyBinding;
 import se.redfield.arxnode.config.HierarchyExpandNodeConfig;
 
@@ -74,12 +76,12 @@ public abstract class HierarchyExpander<T, HB extends HierarchyBuilderGroupingBa
 		}
 	}
 
-	public static Map<String, HierarchyBuilder<?>> expand(BufferedDataTable inTable, HierarchyExpandNodeConfig config)
-			throws IOException {
+	public static Map<String, HierarchyBuilder<?>> expand(BufferedDataTable inTable, HierarchyExpandNodeConfig config,
+			Map<String, HierarchyBuilder<?>> existingHierarchies) throws IOException {
 		Map<String, HierarchyExpander<?, ?>> expanders = new HashMap<>();
 		Map<String, HierarchyBuilder<?>> result = new HashMap<>();
 		for (HierarchyBinding b : config.getBindings()) {
-			HierarchyBuilder<?> hb = HierarchyBuilder.create(b.getFile());
+			HierarchyBuilder<?> hb = getHierarchyBuilder(b, existingHierarchies);
 			if (hb instanceof HierarchyBuilderGroupingBased) {
 				expanders.put(b.getColumnName(), create((HierarchyBuilderGroupingBased<?>) hb,
 						inTable.getDataTableSpec().findColumnIndex(b.getColumnName())));
@@ -93,5 +95,14 @@ public abstract class HierarchyExpander<T, HB extends HierarchyBuilderGroupingBa
 		}
 		expanders.entrySet().forEach(e -> result.put(e.getKey(), e.getValue().createHierarchy()));
 		return result;
+	}
+
+	private static HierarchyBuilder<?> getHierarchyBuilder(HierarchyBinding binding,
+			Map<String, HierarchyBuilder<?>> existingHierarchies) throws IOException {
+		if (StringUtils.isNotEmpty(binding.getFileModel().getStringValue())) {
+			return HierarchyBuilder.create(binding.getFile());
+		}
+		return Utils.clone(existingHierarchies.get(binding.getColumnName()));
+
 	}
 }

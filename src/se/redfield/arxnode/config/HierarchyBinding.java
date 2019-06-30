@@ -1,7 +1,6 @@
 package se.redfield.arxnode.config;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.InvalidPathException;
 import java.util.Arrays;
@@ -58,17 +57,6 @@ public class HierarchyBinding implements SettingsModelConfig {
 		SettingsModelConfig.super.validate();
 		if (StringUtils.isEmpty(column.getStringValue())) {
 			throw new InvalidSettingsException("Target column is not selected");
-		}
-		if (StringUtils.isEmpty(fileModel.getStringValue())) {
-			throw new InvalidSettingsException("Hierarchy file is not set");
-		}
-		try {
-			File hFile = getFile();
-			if (!hFile.exists()) {
-				throw new InvalidSettingsException("Hierarchy file does not exist");
-			}
-		} catch (IOException e) {
-			throw new InvalidSettingsException(e);
 		}
 	}
 }

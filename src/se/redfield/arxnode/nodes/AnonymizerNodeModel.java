@@ -34,6 +34,7 @@ import se.redfield.arxnode.anonymize.AnonymizationResultProcessor;
 import se.redfield.arxnode.anonymize.Anonymizer;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.nodes.AnonymizerNodeView.AnonymizerNodeViewValue;
+import se.redfield.arxnode.ui.transformation.InfolossScore;
 
 public class AnonymizerNodeModel extends NodeModel
 		implements InteractiveNode<AnonymizerNodeViewValue, AnonymizerNodeViewValue> {
@@ -150,10 +151,14 @@ public class AnonymizerNodeModel extends NodeModel
 
 	}
 
-	public void putVariables(double informationLoss, String headers, String transformation, String anonymity,
-			long rowCount, long suppresedRecords, StatisticsEquivalenceClasses statistics, ProsecutorRisk prosecutor,
-			JournalistRisk journalist, MarketerRisk marketer) {
-		pushFlowVariableDouble("informationLoss", informationLoss);
+	public void putVariables(InfolossScore minScore, InfolossScore maxScore, String headers, String transformation,
+			String anonymity, long rowCount, long suppresedRecords, StatisticsEquivalenceClasses statistics,
+			ProsecutorRisk prosecutor, JournalistRisk journalist, MarketerRisk marketer) {
+		pushFlowVariableString("minScore", minScore.getValue());
+		pushFlowVariableDouble("minScoreRelative", minScore.getRelativePercent());
+		pushFlowVariableString("maxScore", maxScore.getValue());
+		pushFlowVariableDouble("maxScoreRelative", maxScore.getRelativePercent());
+
 		pushFlowVariableString("headers", headers);
 		pushFlowVariableString("transformation", transformation);
 		pushFlowVariableString("anonymity", anonymity);

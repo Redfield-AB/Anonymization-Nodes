@@ -3,6 +3,8 @@ package se.redfield.arxnode.nodes;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
@@ -85,13 +87,29 @@ public class HierarchyWriterNodeModel extends NodeModel {
 		File dir = config.getDirFile();
 		boolean overwrite = config.getOverwrite().getBooleanValue();
 		String nameFormat = config.getPrefix().getStringValue() + "%s.ahs";
+		List<String> skipped = new ArrayList<>();
+
 		for (Entry<String, HierarchyBuilder<?>> entry : arxObject.getHierarchies().entrySet()) {
 			File file = new File(dir, String.format(nameFormat, entry.getKey()));
 			if (!file.exists() || overwrite) {
 				entry.getValue().save(file);
 			} else {
-				logger.warn("Skipping existing file: " + file.getAbsolutePath());
+				skipped.add(file.getAbsolutePath());
 			}
 		}
+
+		if (skipped.size() > 0) {
+			showSkippedWarning(skipped);
+		}
+	}
+
+	private void showSkippedWarning(List<String> files) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(String.format("Skipping existing file%s:", files.size() > 1 ? "s" : ""));
+		for (String file : files) {
+			sb.append("\n");
+			sb.append(file);
+		}
+		setWarningMessage(sb.toString());
 	}
 }

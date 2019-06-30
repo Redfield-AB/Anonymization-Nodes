@@ -21,6 +21,10 @@ public class InfolossScore implements Comparable<InfolossScore> {
 		return relative;
 	}
 
+	public double getRelativePercent() {
+		return relative * 100d;
+	}
+
 	@Override
 	public int compareTo(InfolossScore o) {
 		return Double.compare(relative, o.relative);
