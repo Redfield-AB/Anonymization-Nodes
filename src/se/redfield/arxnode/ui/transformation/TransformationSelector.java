@@ -22,7 +22,7 @@ public class TransformationSelector extends JPanel {
 	private AnonymizationResult model;
 
 	public TransformationSelector() {
-		super(new FormLayout("f:600:g", "f:300:g, 5:n, p:n"));
+		super(new FormLayout("f:600:g", "f:600:g, 5:n, p:n"));
 
 		filterPanel = new TransformationFilterPanel();
 
@@ -35,9 +35,8 @@ public class TransformationSelector extends JPanel {
 		table = new TransformationsTable(filterPanel.getFilter());
 
 		tabs = new JTabbedPane();
-		tabs.addTab("Graph", new JScrollPane(graph));
+		tabs.addTab("Graph", graph);
 		tabs.addTab("List", new JScrollPane(table));
-		tabs.setSelectedIndex(1);
 		return tabs;
 	}
 

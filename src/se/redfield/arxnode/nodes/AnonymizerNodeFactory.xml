@@ -3,7 +3,7 @@
     <name>Arx Anonymization</name>
     
     <shortDescription>
-        
+        Node for anonymizing data using ARX Data Anonymization Tool.
     </shortDescription>
     
     <fullDescription>
@@ -56,10 +56,6 @@
         </tab>
         <tab name="Anonymization Config">
         	<option name="Number of threads">Number of partitions (threads). Input data will be split into # partitions to run in different threads simultaneously.</option>
-        	<option name="Try to use single transformation for all partitions">
-        		Make an attempt to use the same transformation for all partitions.
-        		If unchecked - optimal transformation for each partition will be used.
-        	</option>
         	<option name="Group by column">
         		Partition table by specified column. When unchecked - table will be partitioned into <b>Number of threads</b> parts of equal size.
         		For string columns - table will be partitioned by distinct values for this column, raising an error in case there are more
@@ -73,11 +69,19 @@
         		The option "Approximate" can be enabled to compute an approximate solution with potentially significantly reduce execution times. 
         		The solution is guaranteed to fulfill the given privacy settings, but it might not be optimal regarding the data utility model specified.
         	</option>
-        	<option name="Enable precomputation">
-        		Precomputation is switched on when, for each quasi-identifier, 
-        		the number of distinct data values divided by the total number of records in the dataset is lower than the configured <b>Precomputation threshold</b>.
+        	<option name="Re-identification Risk Threshold">Thresholds for the highest risk of any record.
+        		Used for measuring re-identification risks for three different attacker models: (1) the prosecutor scenario, (2) the journalist scenario and (3) the marketer scenario.
         	</option>
-        	<option name="Precomputation threshold">Value between 0.0 and 1.0.</option>
+        	<option name="Add Class column to output table">
+        		Option for including additional column representing equivalence class - a set of records which are indistinguishable regarding the specified quasi-identifying variables.
+        	</option>
+        	<option name="Omit rows with missing cells">
+        		Exclude rows with 'missing cells' from the input table.
+        		Throw an error if table contains missing cell when option is disabled.
+        	</option>
+        	<option name="Omit identifying columns">
+        		Exclude 'identifying' columns from the result table.
+        	</option>
         	<option name="Heuristic Search Enabled">
         		Sets whether ARX will use a heuristic search strategy.
         	</option>
@@ -86,6 +90,57 @@
         	</option>
         	<option name="Limited time [ms]">
         		The heuristic search algorithm will terminate after the given number of milliseconds.
+        	</option>
+        	<option name="Utility measure">
+        		The model for quantifying data quality which will be used as an optimization function during the anonymization process.
+        	</option>
+        	<option name="Measure">Possible options:
+<pre>
+0 | Average equivalence class size
+1 | Discernability
+2 | Height
+3 | Loss
+4 | Non-uniform entropy
+5 | Precision
+6 | Ambiguity
+7 | Normalized non-uniform entropy
+8 | KL-Divergence
+9 | Publisher payout (prosecutor)
+10| Publisher payout (journalist)
+11| Entropy-based information loss
+12| Classification accuracy
+</pre>        	
+				(Either index or name could be used in flow variables)
+        	</option>
+        	<option name="Generalization/Suppression Factor">
+        		Value between 0 and 1 specifying whether generalization or suppression should be preferred when transforming data.
+        	</option>
+        	<option name="Enable precomputation">
+        		Precomputation is switched on when, for each quasi-identifier, 
+        		the number of distinct data values divided by the total number of records in the dataset is lower than the configured <b>Precomputation threshold</b>.
+        	</option>
+        	<option name="Precomputation threshold">Value between 0.0 and 1.0.</option>
+        	<option name="Aggregate Function">
+        		Aggregate function will be used to compile the estimates obtained for the individual attributes of a dataset into a global value.
+        		Possible options:
+<pre>
+0 | SUM
+1 | MAX
+2 | ARITHMETIC_MEAN
+3 | GEOMETRIC_MEAN
+4 | RANK
+</pre>        	
+				(Either index or name could be used in flow variables)
+        	</option>
+        	<option name="Population">
+        		Population model is used by K-Map privacy model and for estimating re-identification risks.
+        		Note: Privacy models based on population uniqueness assume that the dataset is a uniform sample of the population. If this is not the case, results may be inaccurate.
+        	</option>
+        	<option name="Region">
+        		One of the regions with predefined population size.
+        	</option>
+        	<option name="Population size">
+        		Population size could be entered manually.
         	</option>
         </tab>
         <tab name="Privacy Models">

@@ -1,24 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+<knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
     <name>Create Hierarchy</name>
     
     <shortDescription>
-        This is an example node provided by KNIME.
+        Node for creating generalization hierarchies.
     </shortDescription>
     
     <fullDescription>
-        <intro>Insert long description here...</intro>
-        
-        <!-- possibly more options that can also be grouped by tabs -->
-        <!--
-        <tab name="Standard Options">
-            <option name="short name of first option (like in the dialog)">description of first option</option>
-            <option name="short name of second option (like in the dialog)">description of second option</option>
-        </tab>
-        <tab name="Advanced Options">
-            <option name="short name of first advanced option (like in the dialog)">description of first advanced option</option>
-        </tab>
-        -->
+        <intro>Node for creating generalization hierarchies.
+        	ARX offers different methods for creating generalization hierarchies for different types of attributes
+        </intro>
+       	<tab name="Masking-based hierarchies">
+       		<description>
+       			Masking is a flexible mechanism that can be applied to many types of attributes and which is especially suitable for alphanumeric codes, such as ZIP codes.
+       		</description>
+       		<option name="Alignment">
+       			Alignment direction
+       		</option>
+       		<option name="Masking">
+       			Masking direction
+       		</option>
+       		<option name="Padding character">
+       			All values are adjusted to a common length by adding padding characters.
+       		</option>
+       		<option name="Masking character">
+       			The character used for masking.
+       		</option>
+       	</tab>
+       	<tab name="Interval-based hierarchies">
+       		<description>
+       			Intervals are a natural means of generalization for values with a ratio scale, such as integers or decimals.
+       			 First a sequence of intervals can be defined on the left side of the view.
+       			 In the next step, subsequent levels consisting of groups of intervals from the previous level can be specified.
+       			 Each group combines a given number of elements from the previous level.
+       			 Any sequence of intervals or groups is automatically repeated to cover the complete range of the attribute.
+       		</description>
+       		<option name="Aggregate Function">
+       			To be able to create labels for intervals, each element must be associated with an aggregate function.
+       			The following aggregate functions are supported:
+       			<ul>
+       				<li>Set: a set-representation of input values is returned.</li>
+       				<li>Prefix: a set of prefixes of the input values is returned. A parameter allows defining the length of these prefixes.</li>
+       				<li>Common-prefix: returns the largest common prefix.</li>
+       				<li>Bounds: returns the first and last elements of the set.</li>
+       				<li>Interval: an interval between the minimal and maximal value is returned.</li>
+       				<li>Constant: returns a predefined-constant value.</li>
+       			</ul>
+       		</option>
+       		<option name="Range">
+       			Interval-based hierarchies might define ranges in which they are to be applied.
+       			Any value out of the range defined by "minimum value" or "maximum value" will produce an error message.
+       			This can be used to implement sanity checks.
+       			Any value between the minimal or maximal value and the "bottom coding" or "top coding" values will be top- or bottom-coded.
+       			If values fall into an interval stretching from the bottom coding or top coding limit to the "snap" limit, it will be extended to the bottom or top coding limit.
+       			Within the remaining range intervals will be repeated.
+       		</option>
+       		<option name="Interval">
+       			Intervals are defined by a minimum (inclusive) and maximum (exclusive) bound.
+       		</option>
+       		<option name="Group">
+       			Groups are defined by their size.
+       		</option>
+       	</tab>
+       	<tab name="Order-based hierarchies">
+       		<description>
+       			Order-based hierarchies follow a similar principle as interval-based hierarchies, but they can be applied to attributes with ordinal scale.
+       			In addition to the types of attributes covered by interval-based hierarchies this includes strings, using their lexicographical order, and ordinals.
+       		</description>
+       		<option name="Order">
+       			First, attributes within the domain are ordered as defined by the user or the data type.
+       			Second, ordered values can be grouped using a mechanism similar to the one used for interval-based hierarchies.
+       			The mechanism can be used to create semantic hierarchies from a pre-defined meaningful ordering of the domain of a discrete variable.
+       			Subsequent generalizations of values from the domain can be labeled with user defined constants.
+       		</option>
+       	</tab>
+       	<tab name="Date-based hierarchies">
+       		<description>
+       			Date-based hierarchies work by specifying the granularity of output data at increasing generalization levels.
+       		</description>
+       		<option name="Bottom coding from">
+       			Any value below this date will be bottom-coded.
+       		</option>
+       		<option name="Top condig from">
+       			Any value above this date will be top-coded.
+       		</option>
+       		<option name="Granularity">
+       			Granularity of output data.
+       			Please note that it is important to specify granularity levels that form an hierarchy
+       			(e.g. day-of-week can typically not be followed by week-of-year, because the same day-of-week can be generalized to different weeks of a year).
+       			When this constraint is violated, ARX will raise an error message during the anonymization process.
+       		</option>
+       		<option name="Format">
+       			Format pattern. Please refer to <a href="https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html">SimpleDateFormat</a>
+       			documentation for available options.
+       		</option>
+       	</tab>
     </fullDescription>
     
     <ports>
@@ -28,10 +104,5 @@
         <outPort index="0" name="Date table">Date table unchanged</outPort>
         <outPort index="1" name="Preview">Hierarchy preview</outPort>
         <outPort index="2" name="Arx Config Overrides">Arx Config Overrides</outPort>
-        <!-- possibly more output ports here-->
-    </ports>    
-    <!--<views>
-         <view index="0" name="name of first view">Description of first view...</view> 
-        <view index="1" name="name of second view">Description of second view...</view>
-    </views>-->
+    </ports>
 </knimeNode>
