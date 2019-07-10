@@ -281,18 +281,20 @@ public class AnonymizationResultProcessor {
 		int partition = 0;
 		long rowIndex = 0;
 		for (AnonymizationResult r : results) {
-			QuasiIdentifierRisk[] risks = getRiskEstimator(r).getAttributeRisks().getAttributeRisks();
-			for (QuasiIdentifierRisk risk : risks) {
-				if (risk.getIdentifier().size() == 1) {
-					List<DataCell> cells = new ArrayList<>();
+			if (r.getArxResult().isResultAvailable()) {
+				QuasiIdentifierRisk[] risks = getRiskEstimator(r).getAttributeRisks().getAttributeRisks();
+				for (QuasiIdentifierRisk risk : risks) {
+					if (risk.getIdentifier().size() == 1) {
+						List<DataCell> cells = new ArrayList<>();
 
-					cells.add(new StringCell(risk.getIdentifier().get(0)));
-					cells.add(new DoubleCell(risk.getDistinction()));
-					cells.add(new DoubleCell(risk.getSeparation()));
-					cells.add(new IntCell(partition));
+						cells.add(new StringCell(risk.getIdentifier().get(0)));
+						cells.add(new DoubleCell(risk.getDistinction()));
+						cells.add(new DoubleCell(risk.getSeparation()));
+						cells.add(new IntCell(partition));
 
-					DataRow row = new DefaultRow(RowKey.createRowKey(rowIndex++), cells);
-					container.addRowToTable(row);
+						DataRow row = new DefaultRow(RowKey.createRowKey(rowIndex++), cells);
+						container.addRowToTable(row);
+					}
 				}
 			}
 			partition++;

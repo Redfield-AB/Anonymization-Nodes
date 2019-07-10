@@ -1,5 +1,6 @@
 package se.redfield.arxnode.anonymize;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,7 +88,9 @@ public class Anonymizer {
 
 			if (c.getAttrType() == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
 				HierarchyBuilder<?> hierarchy = getHierarchy(c);
-				def.setAttributeType(c.getName(), hierarchy);
+				if (hierarchy != null) {
+					def.setAttributeType(c.getName(), hierarchy);
+				}
 
 				TransformationConfig tc = c.getTransformationConfig();
 				if (tc.getMode() == Mode.GENERALIZATION) {
@@ -131,7 +134,11 @@ public class Anonymizer {
 			if (arxPortObject != null && arxPortObject.getHierarchies().containsKey(c.getName())) {
 				return Utils.clone(arxPortObject.getHierarchies().get(c.getName()));
 			}
-			return HierarchyBuilder.create(c.getHierarchyFile());
+			File hierarchyFile = c.getHierarchyFile();
+			if (hierarchyFile == null) {
+				return null;
+			}
+			return HierarchyBuilder.create(hierarchyFile);
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 		}

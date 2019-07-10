@@ -30,8 +30,8 @@ public class LDiversityConfig extends ColumnPrivacyModelConfig {
 	private LDiversityVariant variant;
 
 	public LDiversityConfig() {
-		intL = 1;
-		doubleL = 1;
+		intL = 2;
+		doubleL = 2;
 		c = 0.001;
 		variant = LDiversityVariant.DISTINCT;
 	}

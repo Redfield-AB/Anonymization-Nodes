@@ -113,7 +113,7 @@
 				(Either index or name could be used in flow variables)
         	</option>
         	<option name="Generalization/Suppression Factor">
-        		Value between 0 and 1 specifying whether generalization or suppression should be preferred when transforming data.
+        		Value between 0 (generalization) and 1 (suppression) specifying whether generalization or suppression should be preferred when transforming data.
         	</option>
         	<option name="Enable precomputation">
         		Precomputation is switched on when, for each quasi-identifier, 
@@ -182,12 +182,14 @@
     </fullDescription>
     
     <interactiveView name="Transformation View">
-    	Select transformation from available options
+    	Select transformation from available options. There are two modes for visualization of anonymization models: list and graph. 
+    	In graph mode use left click + drag in order to move the graph, and right-click + drag to zoom in and out. Both modes have filtering options, 
+    	and it is possible to change anonymization model on fly.
     </interactiveView>
     
     <ports>
         <inPort index="0" name="Input table">Input table</inPort>
-        <inPort index="1" name="Arx Config Overrides">Arx Config Overrides</inPort>
+        <inPort index="1" name="Arx Hierarchy Configuration">Arx Hierarchy Configuration</inPort>
         <outPort index="0" name="Anonymized Data">Result table with anonymized data</outPort>
         <outPort index="1" name="Stats">Statistics table</outPort>
         <outPort index="2" name="Suppressed records">Suppressed records</outPort>

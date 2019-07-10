@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.DataType;
 import org.knime.core.node.NodeLogger;
@@ -96,6 +97,10 @@ public class ColumnConfig implements SettingsModelConfig, Comparable<ColumnConfi
 	}
 
 	public File getHierarchyFile() throws InvalidPathException, MalformedURLException {
+		String filename = hierarchyFileModel.getStringValue();
+		if (StringUtils.isEmpty(filename)) {
+			return null;
+		}
 		return FileUtil.getFileFromURL(FileUtil.toURL(hierarchyFileModel.getStringValue()));
 	}
 

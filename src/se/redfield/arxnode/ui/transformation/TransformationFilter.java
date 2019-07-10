@@ -113,7 +113,8 @@ public class TransformationFilter {
 		maxScore = 1d;
 
 		anonymity = new HashSet<>();
-		anonymity.addAll(Arrays.asList(Anonymity.values()));
+		anonymity.addAll(Arrays
+				.asList(new Anonymity[] { Anonymity.ANONYMOUS, Anonymity.PROBABLY_ANONYMOUS, Anonymity.UNKNOWN }));
 
 		levels = new Set[result.getGlobalOptimum().getTransformation().length];
 		for (int i = 0; i < levels.length; i++) {

@@ -31,8 +31,8 @@ public class LDiversityEditor extends ColumnPrivacyModelEditor {
 
 	public LDiversityEditor(LDiversityConfig source, Collection<ColumnConfig> columns) {
 		cbVariant = new JComboBox<>(LDiversityVariant.values());
-		intLInput = new JSpinner(new SpinnerNumberModel(source.getIntL(), 1, Integer.MAX_VALUE, 1));
-		doubleLInput = new JSpinner(new SpinnerNumberModel(source.getDoubleL(), 1, Integer.MAX_VALUE, 0.1));
+		intLInput = new JSpinner(new SpinnerNumberModel(source.getIntL(), 2, Integer.MAX_VALUE, 1));
+		doubleLInput = new JSpinner(new SpinnerNumberModel(source.getDoubleL(), 2, Integer.MAX_VALUE, 0.1));
 		cInput = new JSpinner(new SpinnerNumberModel(source.getC(), 0, Integer.MAX_VALUE, 0.001));
 		cLabel = new JLabel("C:");
 

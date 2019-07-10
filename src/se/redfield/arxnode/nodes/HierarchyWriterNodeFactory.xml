@@ -24,7 +24,7 @@
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Arx Config Overrides">Arx Config Overrides</inPort>
+        <inPort index="0" name="Arx Hierarchy Configuration">Arx Hierarchy Configuration</inPort>
         <!-- possibly more input ports here-->
         <!-- possibly more output ports here-->
     </ports>    
