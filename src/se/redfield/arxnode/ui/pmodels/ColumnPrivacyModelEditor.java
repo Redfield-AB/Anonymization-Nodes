@@ -9,6 +9,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.deidentifier.arx.AttributeType;
+import org.knime.core.node.InvalidSettingsException;
+import org.knime.core.node.NodeLogger;
 
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -18,6 +20,8 @@ import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.ColumnPrivacyModelConfig;
 
 public abstract class ColumnPrivacyModelEditor implements PrivacyModelEditor {
+	@SuppressWarnings("unused")
+	private static final NodeLogger logger = NodeLogger.getLogger(ColumnPrivacyModelEditor.class);
 
 	private JComboBox<String> cbColumn;
 
@@ -40,5 +44,12 @@ public abstract class ColumnPrivacyModelEditor implements PrivacyModelEditor {
 	@Override
 	public void readFromComponent(AbstractPrivacyModelConfig target) {
 		((ColumnPrivacyModelConfig) target).setColumn((String) cbColumn.getSelectedItem());
+	}
+
+	@Override
+	public void validate() throws InvalidSettingsException {
+		if (cbColumn.getSelectedItem() == null) {
+			throw new InvalidSettingsException("Column is not selected");
+		}
 	}
 }

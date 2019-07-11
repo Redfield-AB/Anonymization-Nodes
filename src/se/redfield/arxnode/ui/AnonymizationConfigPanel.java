@@ -29,6 +29,7 @@ public class AnonymizationConfigPanel {
 	private CellConstraints cc;
 
 	private DialogComponentColumnNameSelection columnSelection;
+	private MetricConfigPanel metricPanel;
 	private PopulationConfigPanel populationPanel;
 
 	public AnonymizationConfigPanel(AnonymizationConfig config, AnonymizerNodeDialog dlg) {
@@ -43,7 +44,7 @@ public class AnonymizationConfigPanel {
 		component.add(createPartitioningPanel(), cc.rc(1, 1));
 		component.add(createGeneralPanel(), cc.rc(3, 1));
 		component.add(createSearchStrategyPanel(), cc.rc(5, 1));
-		component.add(new MetricConfigPanel(config.getMeasure()), cc.rc(7, 1));
+		component.add(metricPanel = new MetricConfigPanel(config.getMeasure()), cc.rc(7, 1));
 		component.add(populationPanel = new PopulationConfigPanel(config.getPopulation()), cc.rc(9, 1));
 	}
 
@@ -111,6 +112,7 @@ public class AnonymizationConfigPanel {
 	public void load(NodeSettingsRO settings, PortObjectSpec[] specs) {
 		try {
 			columnSelection.loadSettingsFrom(settings, specs);
+			metricPanel.loadFromConfig();
 			populationPanel.loadFromConfig();
 		} catch (NotConfigurableException e) {
 			logger.error(e.getMessage(), e);

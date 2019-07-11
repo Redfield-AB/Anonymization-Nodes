@@ -7,6 +7,8 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
+import org.knime.core.node.InvalidSettingsException;
+
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -50,4 +52,8 @@ public class DPresenceEditor implements PrivacyModelEditor {
 		c.setdMax((double) dMaxInput.getValue());
 	}
 
+	@Override
+	public void validate() throws InvalidSettingsException {
+
+	}
 }

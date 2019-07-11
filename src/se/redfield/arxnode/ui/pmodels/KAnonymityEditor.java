@@ -6,6 +6,8 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+import org.knime.core.node.InvalidSettingsException;
+
 import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.KAnonymityConfig;
 
@@ -34,4 +36,8 @@ public class KAnonymityEditor implements PrivacyModelEditor {
 		((KAnonymityConfig) target).setFactor((int) factorInput.getValue());
 	}
 
+	@Override
+	public void validate() throws InvalidSettingsException {
+
+	}
 }

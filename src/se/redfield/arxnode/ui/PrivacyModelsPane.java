@@ -1,5 +1,6 @@
 package se.redfield.arxnode.ui;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ComponentAdapter;
@@ -10,6 +11,7 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -18,6 +20,7 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 
 import com.jgoodies.forms.layout.CellConstraints;
@@ -46,6 +49,7 @@ public class PrivacyModelsPane {
 	private PrivacyListModel model;
 
 	private JCheckBox cbSplit;
+	private JLabel lEditorError;
 	private JButton bEdit;
 	private JButton bRemove;
 
@@ -83,24 +87,36 @@ public class PrivacyModelsPane {
 	private JPanel createEditPanel() {
 		cbSplit = new JCheckBox("Split flow variables");
 		JButton bSave = new JButton("Save");
-		bSave.addActionListener(e -> onSave());
 		JButton bCancel = new JButton("Cancel");
+		lEditorError = new JLabel();
+		lEditorError.setForeground(Color.RED);
+
+		bSave.addActionListener(e -> {
+			try {
+				onSave();
+				lEditorError.setText("");
+			} catch (InvalidSettingsException e1) {
+				lEditorError.setText(e1.getMessage());
+			}
+		});
 		bCancel.addActionListener(e -> cancelEdit());
 
 		editComponentContainer = new JPanel();
 
 		CellConstraints cc = new CellConstraints();
-		editPanel = new JPanel(new FormLayout("f:p:g, p:n, 5:n, p:n, f:p:g", "f:p:g, 5:n, p:n, 5:n, p:n"));
+		editPanel = new JPanel(new FormLayout("f:p:g, p:n, 5:n, p:n, f:p:g", "f:p:g, 5:n, p:n, 5:n, p:n, 5:n, p:n"));
 		editPanel.add(editComponentContainer, cc.rcw(1, 1, 5));
 		editPanel.add(cbSplit, cc.rcw(3, 2, 3));
 		editPanel.add(bSave, cc.rc(5, 2));
 		editPanel.add(bCancel, cc.rc(5, 4));
+		editPanel.add(lEditorError, cc.rcw(7, 2, 3));
 
 		editPanel.setVisible(false);
 		return editPanel;
 	}
 
-	private void onSave() {
+	private void onSave() throws InvalidSettingsException {
+		currentEditor.validate();
 		currentEditor.readFromComponent(currentConfig);
 		if (cbSplit.isSelected()) {
 			if (currentConfig.getIndex() == -1) {
@@ -216,6 +232,7 @@ public class PrivacyModelsPane {
 		editComponentContainer.removeAll();
 		editComponentContainer.add(currentEditor.getComponent());
 		cbSplit.setSelected(currentConfig.getIndex() > -1);
+		lEditorError.setText("");
 		editPanel.updateUI();
 		editPanel.setVisible(true);
 	}

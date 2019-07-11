@@ -7,6 +7,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
+import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 
 import com.jgoodies.forms.layout.CellConstraints;
@@ -66,4 +67,8 @@ public class KMapEditor implements PrivacyModelEditor {
 		c.setSignificanceLevel((double) significanceInput.getValue());
 	}
 
+	@Override
+	public void validate() throws InvalidSettingsException {
+
+	}
 }

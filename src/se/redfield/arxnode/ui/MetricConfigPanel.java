@@ -98,4 +98,14 @@ public class MetricConfigPanel extends JPanel {
 		precomputationThresholdInput.setEnabled(cbPrecomputation.isEnabled() && cbPrecomputation.isSelected());
 		cbFunc.setEnabled(desc.isAggregateFunctionSupported());
 	}
+
+	public void loadFromConfig() {
+		cbMeasure.setSelectedItem(config.getMeasure());
+		MetricConfiguration mc = config.getConfiguration();
+		cbMonotonic.setSelected(mc.isMonotonic());
+		gsFactorInput.setValue(mc.getGsFactor());
+		cbPrecomputation.setSelected(mc.isPrecomputed());
+		precomputationThresholdInput.setValue(mc.getPrecomputationThreshold());
+		cbFunc.setSelectedItem(AggregateFunctionOptions.fromString(mc.getAggregateFunction().toString()));
+	}
 }
