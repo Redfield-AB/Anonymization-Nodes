@@ -10,6 +10,7 @@ import org.knime.core.node.NodeSettingsWO;
 import se.redfield.arxnode.util.TitledEnum;
 
 public class TransformationConfig implements SettingsModelConfig {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationConfig.class);
 	public static final String CONFIG_KEY = "transformation";
 	public static final String CONFIG_MODE = "mode";

@@ -8,6 +8,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeLogger;
 
 public class EqualSizePartitioner extends Partitioner {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(EqualSizePartitioner.class);
 
 	private List<Partition> partitions;

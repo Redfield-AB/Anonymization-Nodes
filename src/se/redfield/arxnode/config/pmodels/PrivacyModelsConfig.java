@@ -17,6 +17,7 @@ import se.redfield.arxnode.config.SettingsModelConfig;
 import se.redfield.arxnode.util.InterfaceAdapter;
 
 public class PrivacyModelsConfig implements SettingsModelConfig {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(PrivacyModelsConfig.class);
 	public static final String CONFIG_KEY = "privacyModels";
 	public static final String CONFIG_JSON = "json";

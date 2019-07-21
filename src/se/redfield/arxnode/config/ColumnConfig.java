@@ -18,6 +18,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import org.knime.core.util.FileUtil;
 
 public class ColumnConfig implements SettingsModelConfig, Comparable<ColumnConfig> {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(ColumnConfig.class);
 
 	public static final String CONFIG_HIERARCHY_FILE = "hierarchyFile";

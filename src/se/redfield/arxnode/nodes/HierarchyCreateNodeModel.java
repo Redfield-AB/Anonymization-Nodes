@@ -20,6 +20,7 @@ import se.redfield.arxnode.config.HierarchyCreateNodeConfig;
 import se.redfield.arxnode.hierarchy.HierarchyPreviewBuilder;
 
 public class HierarchyCreateNodeModel extends NodeModel {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyCreateNodeModel.class);
 
 	public static final int PORT_DATA_TABLE = 0;

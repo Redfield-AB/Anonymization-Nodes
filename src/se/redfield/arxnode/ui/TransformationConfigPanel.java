@@ -36,6 +36,7 @@ import se.redfield.arxnode.nodes.AnonymizerNodeDialog;
 
 public class TransformationConfigPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationConfigPanel.class);
 
 	private AnonymizerNodeDialog dlg;

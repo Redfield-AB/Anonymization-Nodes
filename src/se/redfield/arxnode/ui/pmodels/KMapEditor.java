@@ -19,6 +19,7 @@ import se.redfield.arxnode.config.pmodels.KMapConfig.EstimatorOption;
 import se.redfield.arxnode.ui.PrivacyModelsPane;
 
 public class KMapEditor implements PrivacyModelEditor {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(PrivacyModelsPane.class);
 
 	private JPanel panel;

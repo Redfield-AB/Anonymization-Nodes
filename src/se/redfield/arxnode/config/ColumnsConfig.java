@@ -15,6 +15,7 @@ import org.knime.core.node.NodeSettingsRO;
 import se.redfield.arxnode.Utils;
 
 public class ColumnsConfig implements SettingsModelConfig {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(ColumnsConfig.class);
 
 	public static final String CONFIG_KEY = "columns";

@@ -20,6 +20,7 @@ import se.redfield.arxnode.config.pmodels.LDiversityConfig;
 import se.redfield.arxnode.config.pmodels.LDiversityVariant;
 
 public class LDiversityEditor extends ColumnPrivacyModelEditor {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(LDiversityEditor.class);
 
 	private JPanel panel;

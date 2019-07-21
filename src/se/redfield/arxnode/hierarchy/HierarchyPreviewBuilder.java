@@ -26,6 +26,7 @@ import org.knime.core.node.NodeLogger;
 import se.redfield.arxnode.Utils;
 
 public class HierarchyPreviewBuilder {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyPreviewBuilder.class);
 
 	public BufferedDataTable build(BufferedDataTable inTable, String column, HierarchyBuilder<?> hierarchy,

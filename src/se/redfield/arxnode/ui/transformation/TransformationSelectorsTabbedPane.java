@@ -17,6 +17,7 @@ import se.redfield.arxnode.anonymize.AnonymizationResult;
 
 public class TransformationSelectorsTabbedPane extends JPanel {
 	private static final long serialVersionUID = 1L;
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationSelectorsTabbedPane.class);
 
 	private JTabbedPane tabs;

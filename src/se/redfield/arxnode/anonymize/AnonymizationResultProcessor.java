@@ -44,6 +44,7 @@ import se.redfield.arxnode.ui.transformation.InfolossScore;
 import se.redfield.arxnode.util.RowClassifier;
 
 public class AnonymizationResultProcessor {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationResultProcessor.class);
 
 	private Config config;

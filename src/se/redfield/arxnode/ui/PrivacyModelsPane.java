@@ -37,6 +37,7 @@ import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 import se.redfield.arxnode.util.PopupMenuButton;
 
 public class PrivacyModelsPane {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(PrivacyModelsPane.class);
 
 	private Config config;

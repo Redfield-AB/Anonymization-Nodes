@@ -23,6 +23,7 @@ import org.knime.core.node.port.PortType;
 import se.redfield.arxnode.config.HierarchyWriterNodeConfig;
 
 public class HierarchyWriterNodeModel extends NodeModel {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyWriterNodeModel.class);
 
 	private HierarchyWriterNodeConfig config;

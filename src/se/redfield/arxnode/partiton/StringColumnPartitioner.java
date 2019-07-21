@@ -12,6 +12,7 @@ import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeLogger;
 
 public class StringColumnPartitioner extends ColumnPartitioner {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(StringColumnPartitioner.class);
 
 	private Map<String, Partition> partitions;

@@ -23,7 +23,6 @@ import java.util.Set;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -390,8 +389,6 @@ public class TransformationGraph extends JPanel {
 			}
 		});
 		graph.setResult(new AnonymizationResult(getTestResult(), null));
-		JScrollPane scroll = new JScrollPane(graph);
-		// panel.add(graph, CC.rc(1, 1));
 		JTabbedPane tabs = new JTabbedPane();
 		tabs.addTab("1", graph);
 		tabs.addTab("2", new JLabel("test"));

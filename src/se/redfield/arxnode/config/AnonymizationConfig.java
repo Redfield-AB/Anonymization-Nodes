@@ -14,6 +14,7 @@ import org.knime.core.node.defaultnodesettings.SettingsModelString;
 import se.redfield.arxnode.config.pmodels.PopulationConfig;
 
 public class AnonymizationConfig implements SettingsModelConfig {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationConfig.class);
 
 	public static final String CONFIG_KEY = "anonymization";
@@ -30,7 +31,6 @@ public class AnonymizationConfig implements SettingsModelConfig {
 	public static final String CONFIG_OMIT_MISSING_VALUES = "omitMissingValues";
 	public static final String CONFIG_OMIT_IDENTIFYING_COLUMNS = "omitIdentifyingColumns";
 	public static final String CONFIG_NUM_OF_THREADS = "partition.numOfThreads";
-	public static final String CONFIG_PARTITIONS_SINGLE_OPTIMUM = "partition.singleOptimum";
 	public static final String CONFIG_PARTITIONS_GROUP_BY_ENABLED = "partition.group";
 	public static final String CONFIG_PARTITIONS_GROUP_BY_COLUMN = "partition.groupBy";
 

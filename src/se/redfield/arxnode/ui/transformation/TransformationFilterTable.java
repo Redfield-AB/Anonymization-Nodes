@@ -19,6 +19,7 @@ import org.knime.core.node.NodeLogger;
 
 public class TransformationFilterTable extends JTable {
 	private static final long serialVersionUID = 1L;
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(TransformationFilterTable.class);
 
 	public TransformationFilterTable(TransformationFilter filter) {
