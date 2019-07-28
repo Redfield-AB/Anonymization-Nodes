@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Arx Anonymization (JS)</name>
+    
+    <shortDescription>
+        Node for anonymizing data using ARX Data Anonymization Tool.
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        	Node for anonymizing sensitive personal data using <a href="https://arx.deidentifier.org">ARX Data Anonymization Tool</a>
+        	<br></br>
+        	<sub>
+        		Developed by Alex Bondaletov
+        	</sub>
+        	<br></br>
+        	<sup>
+        		&lt;alex.bondaletov@yahoo.com&gt;
+        	</sup>
+        	
+        </intro>
+        
+        <tab name="Columns">
+        	<option name="Type">Attribute type. Possible options:
+<pre>
+0 | Identifying
+1 | Quasi-identifying
+2 | Sensitive
+3 | Insensitive
+</pre>
+				(Either index or name could be used in flow variables)
+        	</option>
+        	<option name="File">Hierarchy file (*.ahs).</option>
+        	<option name="Mode">Transformation mode. Possible options:
+<pre>
+0 | Generalization
+1 | Microaggregation
+2 | Clustering and microaggregation
+</pre>        	
+				(Either index or name could be used in flow variables)	
+        	</option>
+        	<option name="Weight">Attribute weight. Value in range [0.0, 1.0]. Default is 0.5.</option>
+        	<option name="Minimum">Minimum generalization level.</option>
+        	<option name="Maximum">Maximum generalization level.</option>
+        	<option name="Function">Attribute processing function.  Possible options:
+<pre>
+0 | Arithmetic mean
+1 | Geometric mean
+2 | Median
+3 | Interval
+4 | Mode
+</pre>        	
+				(Either index or name could be used in flow variables)	
+        	</option>
+        	<option name="Ignore Missing Data">Should the function ignore missing data.</option>
+        </tab>
+        <tab name="Anonymization Config">
+        	<option name="Number of threads">Number of partitions (threads). Input data will be split into # partitions to run in different threads simultaneously.</option>
+        	<option name="Group by column">
+        		Partition table by specified column. When unchecked - table will be partitioned into <b>Number of threads</b> parts of equal size.
+        		For string columns - table will be partitioned by distinct values for this column, raising an error in case there are more
+        		distinct values than specified number of threads.
+        		For decimal and data/time columns - range of possible values will be split into <b>Number of threads</b> of equal length intervals.
+        	</option>
+        	<option name="Suppression limit">
+        		Define the suppression limit, which is the maximal number of records that can be removed from the input dataset (in fraction). Value between 0.0 and 1.0.
+        	</option>
+        	<option name="Approximate: assume practical monotonicity">
+        		The option "Approximate" can be enabled to compute an approximate solution with potentially significantly reduce execution times. 
+        		The solution is guaranteed to fulfill the given privacy settings, but it might not be optimal regarding the data utility model specified.
+        	</option>
+        	<option name="Re-identification Risk Threshold">Thresholds for the highest risk of any record.
+        		Used for measuring re-identification risks for three different attacker models: (1) the prosecutor scenario, (2) the journalist scenario and (3) the marketer scenario.
+        	</option>
+        	<option name="Add Class column to output table">
+        		Option for including additional column representing equivalence class - a set of records which are indistinguishable regarding the specified quasi-identifying variables.
+        	</option>
+        	<option name="Omit rows with missing cells">
+        		Exclude rows with 'missing cells' from the input table.
+        		Throw an error if table contains missing cell when option is disabled.
+        	</option>
+        	<option name="Omit identifying columns">
+        		Exclude 'identifying' columns from the result table.
+        	</option>
+        	<option name="Heuristic Search Enabled">
+        		Sets whether ARX will use a heuristic search strategy.
+        	</option>
+        	<option name="Limited number of steps">
+        		The heuristic search algorithm will terminate after the given number of transformations have been checked.
+        	</option>
+        	<option name="Limited time [ms]">
+        		The heuristic search algorithm will terminate after the given number of milliseconds.
+        	</option>
+        	<option name="Utility measure">
+        		The model for quantifying data quality which will be used as an optimization function during the anonymization process.
+        	</option>
+        	<option name="Measure">Possible options:
+<pre>
+0 | Average equivalence class size
+1 | Discernability
+2 | Height
+3 | Loss
+4 | Non-uniform entropy
+5 | Precision
+6 | Ambiguity
+7 | Normalized non-uniform entropy
+8 | KL-Divergence
+9 | Publisher payout (prosecutor)
+10| Publisher payout (journalist)
+11| Entropy-based information loss
+12| Classification accuracy
+</pre>        	
+				(Either index or name could be used in flow variables)
+        	</option>
+        	<option name="Generalization/Suppression Factor">
+        		Value between 0 (generalization) and 1 (suppression) specifying whether generalization or suppression should be preferred when transforming data.
+        	</option>
+        	<option name="Enable precomputation">
+        		Precomputation is switched on when, for each quasi-identifier, 
+        		the number of distinct data values divided by the total number of records in the dataset is lower than the configured <b>Precomputation threshold</b>.
+        	</option>
+        	<option name="Precomputation threshold">Value between 0.0 and 1.0.</option>
+        	<option name="Aggregate Function">
+        		Aggregate function will be used to compile the estimates obtained for the individual attributes of a dataset into a global value.
+        		Possible options:
+<pre>
+0 | SUM
+1 | MAX
+2 | ARITHMETIC_MEAN
+3 | GEOMETRIC_MEAN
+4 | RANK
+</pre>        	
+				(Either index or name could be used in flow variables)
+        	</option>
+        	<option name="Population">
+        		Population model is used by K-Map privacy model and for estimating re-identification risks.
+        		Note: Privacy models based on population uniqueness assume that the dataset is a uniform sample of the population. If this is not the case, results may be inaccurate.
+        	</option>
+        	<option name="Region">
+        		One of the regions with predefined population size.
+        	</option>
+        	<option name="Population size">
+        		Population size could be entered manually.
+        	</option>
+        </tab>
+        <tab name="Privacy Models">
+        	<option name="Privacy Models">
+        	 Configure privacy models. Refer <a href="https://arx.deidentifier.org/overview/privacy-criteria/">documentation</a> for details.
+        	</option>
+        </tab>
+        <tab name="Research sample">
+        	<option name="None">
+        		Do not specify research sample. Research sample can be used by δ-presence and k-map privacy models.
+        	</option>
+        	<option name="All">
+        		Use entire input table as sample subset.
+        	</option>
+        	<option name="Random selection">
+        		Selecting records by random sampling.
+        	</option>
+        	<option name="Probability">
+        		Random sampling probability. Value between 0.0 and 1.0.
+        	</option>
+        	<option name="Query selection">
+        		Selecting records by querying the dataset
+        	</option>
+        	<option name="Query">
+        		 The query syntax is as follows: fields and constants must be enclosed in single quotes.
+        		 The following operators are supported: &gt;, &gt;=, &lt;, &lt;=, =, or, and, ( and ).
+        		 Example: <pre>'age'&lt;'40' and 'gender'='M'</pre>
+        	</option>
+        	<option name="mode">
+        		Flow variable holding sample selection mode. Possible values:
+<pre>
+0 | NONE
+1 | ALL
+2 | RANDOM
+3 | QUERY
+</pre>        		
+        	</option>
+        </tab>
+    </fullDescription>
+    
+    <interactiveView name="Transformation View">
+    	Select transformation from available options. There are two modes for visualization of anonymization models: list and graph. 
+    	In graph mode use left click + drag in order to move the graph, and right-click + drag to zoom in and out. Both modes have filtering options, 
+    	and it is possible to change anonymization model on fly.
+    </interactiveView>
+    
+    <ports>
+        <inPort index="0" name="Input table">Input table</inPort>
+        <inPort index="1" name="Arx Hierarchy Configuration">Arx Hierarchy Configuration</inPort>
+        <outPort index="0" name="Anonymized Data">Result table with anonymized data</outPort>
+        <outPort index="1" name="Stats">Statistics table</outPort>
+        <outPort index="2" name="Suppressed records">Suppressed records</outPort>
+        <outPort index="3" name="Attribute Risks">Attribute Risks</outPort>
+        <outPort index="4" name="Stats Variables">Statistics in a form of flow variables. If partitioning is enabled only first row of statistic table is used</outPort>
+    </ports>
+    
+</knimeNode>
