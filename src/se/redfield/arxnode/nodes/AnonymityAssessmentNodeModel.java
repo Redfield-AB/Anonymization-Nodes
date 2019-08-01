@@ -3,7 +3,6 @@ package se.redfield.arxnode.nodes;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,14 +11,18 @@ import org.deidentifier.arx.AttributeType;
 import org.deidentifier.arx.Data;
 import org.deidentifier.arx.Data.DefaultData;
 import org.deidentifier.arx.DataType;
+import org.deidentifier.arx.risk.RiskEstimateBuilder;
 import org.deidentifier.arx.risk.RiskModelAttributes.QuasiIdentifierRisk;
+import org.deidentifier.arx.risk.RiskModelSampleSummary;
+import org.deidentifier.arx.risk.RiskModelSampleSummary.MarketerRisk;
+import org.deidentifier.arx.risk.RiskModelSampleSummary.ProsecutorRisk;
+import org.deidentifier.arx.risk.RiskModelSampleSummary.RiskSummary;
 import org.knime.core.data.DataCell;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataColumnSpecCreator;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
-import org.knime.core.data.RowKey;
-import org.knime.core.data.def.DefaultRow;
+import org.knime.core.data.MissingCell;
 import org.knime.core.data.def.DoubleCell;
 import org.knime.core.data.def.StringCell;
 import org.knime.core.node.BufferedDataContainer;
@@ -47,7 +50,7 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 
 	protected AnonymityAssessmentNodeModel() {
 		super(new PortType[] { BufferedDataTable.TYPE, BufferedDataTable.TYPE_OPTIONAL },
-				new PortType[] { BufferedDataTable.TYPE });
+				new PortType[] { BufferedDataTable.TYPE, BufferedDataTable.TYPE });
 		config = new AnonymityAssessmentNodeConfig();
 	}
 
@@ -90,15 +93,18 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 			setWarningMessage("Autoconfigured: All columns are set as quasi-identifying");
 		}
 
-		if (inSpecs[PORT_ANONYMIZED_TABLE] != null) {
+		config.removeMissingColumns(inSpecs[PORT_DATA_TABLE]);
+
+		boolean hasSecondTable = inSpecs[PORT_ANONYMIZED_TABLE] != null;
+		if (hasSecondTable) {
 			checkSecondTable(inSpecs);
 		}
 
-		return new DataTableSpec[] { createOutSpec(inSpecs[PORT_ANONYMIZED_TABLE] != null) };
+		return new DataTableSpec[] { createQiTableSpec(hasSecondTable), createRiskTableSpec(hasSecondTable) };
 	}
 
 	private void checkSecondTable(DataTableSpec[] inSpecs) throws InvalidSettingsException {
-		List<String> qaColumns = getQAColumns(inSpecs[PORT_DATA_TABLE]);
+		List<String> qaColumns = config.getColumnFilter().getIncludeList();
 		for (String column : qaColumns) {
 			if (!inSpecs[PORT_ANONYMIZED_TABLE].containsName(column)) {
 				throw new InvalidSettingsException("Anonymized table is missing column '" + column + "'");
@@ -106,7 +112,7 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 		}
 	}
 
-	private DataTableSpec createOutSpec(boolean secondTable) {
+	private DataTableSpec createQiTableSpec(boolean secondTable) {
 		List<DataColumnSpec> cols = new ArrayList<>();
 
 		cols.add(new DataColumnSpecCreator("Attribute", StringCell.TYPE).createSpec());
@@ -114,57 +120,86 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 		cols.add(new DataColumnSpecCreator("Separation", DoubleCell.TYPE).createSpec());
 
 		if (secondTable) {
-			cols.add(new DataColumnSpecCreator("Distinction [Anonymized]", DoubleCell.TYPE).createSpec());
-			cols.add(new DataColumnSpecCreator("Separation [Anonymized]", DoubleCell.TYPE).createSpec());
+			cols.add(new DataColumnSpecCreator("Distinction - Anonymized", DoubleCell.TYPE).createSpec());
+			cols.add(new DataColumnSpecCreator("Separation  - Anonymized", DoubleCell.TYPE).createSpec());
 		}
 
 		DataTableSpec spec = new DataTableSpec(cols.toArray(new DataColumnSpec[] {}));
 		return spec;
 	}
 
-	@Override
-	protected BufferedDataTable[] execute(BufferedDataTable[] inObjects, ExecutionContext exec) throws Exception {
-		return new BufferedDataTable[] { process(inObjects[PORT_DATA_TABLE], inObjects[PORT_ANONYMIZED_TABLE], exec) };
-	}
+	private DataTableSpec createRiskTableSpec(boolean secondTable) {
+		List<DataColumnSpec> cols = new ArrayList<>();
 
-	private BufferedDataTable process(BufferedDataTable plain, BufferedDataTable anonymized, ExecutionContext exec) {
-		boolean hasSecondTable = anonymized != null;
-
-		DefaultData data = readToData(plain);
-		QuasiIdentifierRisk[] attrRisks = data.getHandle().getRiskEstimator().getAttributeRisks().getAttributeRisks();
-
-		QuasiIdentifierRisk[] attrRisksSecond = null;
-		if (hasSecondTable) {
-			attrRisksSecond = readToData(anonymized).getHandle().getRiskEstimator().getAttributeRisks()
-					.getAttributeRisks();
+		cols.add(new DataColumnSpecCreator("Attacker", StringCell.TYPE).createSpec());
+		addRiskColumns(cols, "");
+		if (secondTable) {
+			addRiskColumns(cols, " - anonymized");
 		}
 
-		BufferedDataContainer container = exec.createDataContainer(createOutSpec(hasSecondTable));
+		DataTableSpec spec = new DataTableSpec(cols.toArray(new DataColumnSpec[] {}));
+		return spec;
+	}
+
+	private void addRiskColumns(List<DataColumnSpec> cols, String titleSuffix) {
+		cols.add(new DataColumnSpecCreator("Records at Risk" + titleSuffix, DoubleCell.TYPE).createSpec());
+		cols.add(new DataColumnSpecCreator("Highest Risk" + titleSuffix, DoubleCell.TYPE).createSpec());
+		cols.add(new DataColumnSpecCreator("Success Rate" + titleSuffix, DoubleCell.TYPE).createSpec());
+	}
+
+	@Override
+	protected BufferedDataTable[] execute(BufferedDataTable[] inObjects, ExecutionContext exec) throws Exception {
+		return process(inObjects[PORT_DATA_TABLE], inObjects[PORT_ANONYMIZED_TABLE], exec);
+	}
+
+	private BufferedDataTable[] process(BufferedDataTable plain, BufferedDataTable anonymized, ExecutionContext exec) {
+		boolean hasSecondTable = anonymized != null;
+
+		RiskEstimateBuilder riskEstimator = getRiskEstimator(readToData(plain));
+		QuasiIdentifierRisk[] attrRisks = riskEstimator.getAttributeRisks().getAttributeRisks();
+		RiskModelSampleSummary riskSummary = getRiskSummary(riskEstimator);
+
+		RiskEstimateBuilder riskEstimator2 = null;
+		QuasiIdentifierRisk[] attrRisks2 = null;
+		RiskModelSampleSummary riskSummary2 = null;
+		if (hasSecondTable) {
+			riskEstimator2 = getRiskEstimator(readToData(anonymized));
+			attrRisks2 = riskEstimator2.getAttributeRisks().getAttributeRisks();
+			riskSummary2 = getRiskSummary(riskEstimator2);
+		}
+
+		BufferedDataContainer qiContainer = exec.createDataContainer(createQiTableSpec(hasSecondTable));
 		for (int i = 0; i < attrRisks.length; i++) {
 			QuasiIdentifierRisk risk = attrRisks[i];
 			List<DataCell> cells = new ArrayList<>();
 
-			cells.add(new StringCell(Arrays.toString(risk.getIdentifier().toArray())));
-			cells.add(new DoubleCell(risk.getDistinction()));
-			cells.add(new DoubleCell(risk.getSeparation()));
+			cells.add(new StringCell(String.join(", ", risk.getIdentifier())));
+			putDistinctionSeparation(cells, risk);
 
 			if (hasSecondTable) {
-				QuasiIdentifierRisk risk2 = attrRisksSecond[i];
-				cells.add(new DoubleCell(risk2.getDistinction()));
-				cells.add(new DoubleCell(risk2.getSeparation()));
+				putDistinctionSeparation(cells, attrRisks2[i]);
 			}
 
-			DataRow row = new DefaultRow(RowKey.createRowKey((long) i), cells);
-			container.addRowToTable(row);
+			Utils.addRow(qiContainer, cells, i);
 		}
-		container.close();
-		return container.getTable();
+		qiContainer.close();
+
+		BufferedDataContainer riskContainer = exec.createDataContainer(createRiskTableSpec(hasSecondTable));
+		Utils.addRow(riskContainer, populateRiskRow(riskContainer, riskSummary.getProsecutorRisk(),
+				hasSecondTable ? riskSummary2.getProsecutorRisk() : null), 0);
+		Utils.addRow(riskContainer, populateRiskRow(riskContainer, riskSummary.getJournalistRisk(),
+				hasSecondTable ? riskSummary2.getJournalistRisk() : null), 1);
+		Utils.addRow(riskContainer, populateMarketerRiskRow(riskContainer, riskSummary.getMarketerRisk(),
+				hasSecondTable ? riskSummary2.getMarketerRisk() : null), 2);
+		riskContainer.close();
+
+		return new BufferedDataTable[] { qiContainer.getTable(), riskContainer.getTable() };
 	}
 
 	private DefaultData readToData(BufferedDataTable inTable) {
 		DefaultData defData = Data.create();
 
-		List<String> columnNames = getQAColumns(inTable.getDataTableSpec());
+		List<String> columnNames = config.getColumnFilter().getIncludeList();
 		List<Integer> columnIndexes = columnNames.stream().map(name -> inTable.getDataTableSpec().findColumnIndex(name))
 				.collect(Collectors.toList());
 		logger.debug("qa columns: " + Arrays.toString(columnNames.toArray()));
@@ -186,17 +221,53 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 		return defData;
 	}
 
-	private List<String> getQAColumns(DataTableSpec spec) {
-		List<String> columns = new ArrayList<>(config.getColumnFilter().getIncludeList());
-		Iterator<String> iter = columns.iterator();
-		while (iter.hasNext()) {
-			String c = iter.next();
-			if (!spec.containsName(c)) {
-				logger.warn("Skipping missing column: " + c);
-				iter.remove();
-			}
+	private RiskEstimateBuilder getRiskEstimator(Data data) {
+		return data.getHandle().getRiskEstimator(config.getPopulation().getPopulationModel());
+	}
+
+	private RiskModelSampleSummary getRiskSummary(RiskEstimateBuilder riskEstimator) {
+		return riskEstimator.getSampleBasedRiskSummary(config.getRiskThreshold().getDoubleValue());
+	}
+
+	private void putDistinctionSeparation(List<DataCell> cells, QuasiIdentifierRisk risk) {
+		cells.add(new DoubleCell(risk.getDistinction()));
+		cells.add(new DoubleCell(risk.getSeparation()));
+	}
+
+	private List<DataCell> populateRiskRow(BufferedDataContainer contaiter, RiskSummary risk1, RiskSummary risk2) {
+		List<DataCell> cells = new ArrayList<>();
+
+		String attacker = (risk1 instanceof ProsecutorRisk) ? "Prosecutor" : "Journalist";
+		cells.add(new StringCell(attacker));
+
+		putRiskCells(cells, risk1);
+		if (risk2 != null) {
+			putRiskCells(cells, risk2);
 		}
-		return columns;
+		return cells;
+	}
+
+	private void putRiskCells(List<DataCell> cells, RiskSummary risk) {
+		cells.add(new DoubleCell(risk.getRecordsAtRisk()));
+		cells.add(new DoubleCell(risk.getHighestRisk()));
+		cells.add(new DoubleCell(risk.getSuccessRate()));
+	}
+
+	private List<DataCell> populateMarketerRiskRow(BufferedDataContainer container, MarketerRisk risk1,
+			MarketerRisk risk2) {
+		List<DataCell> cells = new ArrayList<>();
+		cells.add(new StringCell("Marketer"));
+		putMarketerRiskCells(cells, risk1);
+		if (risk2 != null) {
+			putMarketerRiskCells(cells, risk2);
+		}
+		return cells;
+	}
+
+	private void putMarketerRiskCells(List<DataCell> cells, MarketerRisk risk) {
+		cells.add(new MissingCell(""));
+		cells.add(new MissingCell(""));
+		cells.add(new DoubleCell(risk.getSuccessRate()));
 	}
 
 }

@@ -3,6 +3,7 @@ package se.redfield.arxnode;
 import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.deidentifier.arx.ARXPopulationModel.Region;
 import org.deidentifier.arx.DataType;
@@ -11,8 +12,11 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
+import org.knime.core.data.RowKey;
+import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
+import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.NodeLogger;
 
 import com.google.gson.Gson;
@@ -86,4 +90,8 @@ public class Utils {
 		return HierarchyBuilder.create(f);
 	}
 
+	public static void addRow(BufferedDataContainer container, List<DataCell> cells, long index) {
+		DefaultRow row = new DefaultRow(RowKey.createRowKey(index), cells);
+		container.addRowToTable(row);
+	}
 }

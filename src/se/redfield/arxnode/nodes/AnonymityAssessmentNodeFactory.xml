@@ -16,9 +16,10 @@
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Plain Data table">Plain Data table</inPort>
+        <inPort index="0" name="Plain Data table">Not Anonymized Data table</inPort>
         <inPort index="1" name="Anonymized Data table">Anonymized Data table</inPort>
         <outPort index="0" name="Anonymity Assessment">Anonymity Assessment</outPort>
+        <outPort index="1" name="Re-identification Risks">Re-identification Risks</outPort>
     </ports>
     
 </knimeNode>
