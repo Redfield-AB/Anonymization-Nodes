@@ -4,11 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.deidentifier.arx.ARXPopulationModel.Region;
 import org.deidentifier.arx.DataType;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
 import org.knime.core.data.DataCell;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.DoubleValue;
 import org.knime.core.data.IntValue;
 import org.knime.core.data.LongValue;
@@ -18,6 +20,7 @@ import org.knime.core.data.time.localdate.LocalDateValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.NodeLogger;
+import org.knime.core.node.defaultnodesettings.SettingsModelFilterString;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -94,4 +97,16 @@ public class Utils {
 		DefaultRow row = new DefaultRow(RowKey.createRowKey(index), cells);
 		container.addRowToTable(row);
 	}
+
+	public static void removeMissingColumns(SettingsModelFilterString filter, DataTableSpec spec) {
+		List<String> filtered = filter.getIncludeList().stream().filter(name -> {
+			boolean present = spec.containsName(name);
+			if (!present) {
+				logger.warn("Column '" + name + "' is missing from table");
+			}
+			return present;
+		}).collect(Collectors.toList());
+		filter.setIncludeList(filtered);
+	}
+
 }

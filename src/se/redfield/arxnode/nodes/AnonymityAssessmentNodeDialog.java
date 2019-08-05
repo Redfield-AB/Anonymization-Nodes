@@ -33,7 +33,8 @@ public class AnonymityAssessmentNodeDialog extends NodeDialogPane {
 	}
 
 	private JPanel createSettingsPanel() {
-		columnFilter = new DialogComponentColumnFilter(config.getColumnFilter(), 0, false);
+		columnFilter = new DialogComponentColumnFilter(config.getColumnFilter(),
+				AnonymityAssessmentNodeModel.PORT_DATA_TABLE, false);
 		columnFilter.setIncludeTitle("Quasi-identifying columns");
 
 		DialogComponentNumber threshold = new DialogComponentNumber(config.getRiskThreshold(),
@@ -50,9 +51,9 @@ public class AnonymityAssessmentNodeDialog extends NodeDialogPane {
 
 	@Override
 	protected void loadSettingsFrom(NodeSettingsRO settings, DataTableSpec[] specs) throws NotConfigurableException {
-		DataTableSpec spec = specs[HierarchyCreateNodeModel.PORT_DATA_TABLE];
+		DataTableSpec spec = specs[AnonymityAssessmentNodeModel.PORT_DATA_TABLE];
 		if ((spec == null) || (spec.getNumColumns() < 1)) {
-			throw new NotConfigurableException("Cannot be configured without" + " input table");
+			throw new NotConfigurableException("Cannot be configured without input table");
 		}
 
 		try {

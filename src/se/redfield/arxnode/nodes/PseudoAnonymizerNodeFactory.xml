@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Pseudoanonymizer Node</name>
+    
+    <shortDescription>
+        Short desc
+    </shortDescription>
+    
+    <fullDescription>
+        <intro>
+        	Full desc
+        	
+        </intro>
+        
+        
+    </fullDescription>
+    
+    <ports>
+        <inPort index="0" name="Data Table">Data Table</inPort>
+        <outPort index="0" name="Anonymized Table">Anonymized table</outPort>
+    </ports>
+    
+</knimeNode>

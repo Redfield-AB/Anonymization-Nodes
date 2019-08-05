@@ -27,10 +27,14 @@
 			category-path="arxNodes/"
         	factory-class="se.redfield.arxnode.nodes.HierarchyWriterNodeFactory">
 		</node>
-				<node
+		<node
 			category-path="arxNodes/"
         	factory-class="se.redfield.arxnode.nodes.AnonymityAssessmentNodeFactory">
 		</node>
+		<node
+			category-path="arxNodes/"
+        	factory-class="se.redfield.arxnode.nodes.PseudoAnonymizerNodeFactory">
+		</node>		
 	</extension>
 	
 	<extension
