@@ -65,12 +65,12 @@ public class PseudoAnonymizerNodeModel extends NodeModel {
 	protected DataTableSpec[] configure(DataTableSpec[] inSpecs) throws InvalidSettingsException {
 		Utils.removeMissingColumns(config.getColumnFilter(), inSpecs[PORT_DATA_TABLE]);
 		return new DataTableSpec[] {
-				Pseudoanonymizer.create(config, inSpecs[PORT_DATA_TABLE]).getColumnRearranger().createSpec() };
+				new Pseudoanonymizer(config, inSpecs[PORT_DATA_TABLE]).getColumnRearranger().createSpec() };
 	}
 
 	@Override
 	protected BufferedDataTable[] execute(BufferedDataTable[] inData, ExecutionContext exec) throws Exception {
-		Pseudoanonymizer worker = Pseudoanonymizer.create(config, inData[PORT_DATA_TABLE].getDataTableSpec());
+		Pseudoanonymizer worker = new Pseudoanonymizer(config, inData[PORT_DATA_TABLE].getDataTableSpec());
 		BufferedDataTable resultTable = worker.process(exec, inData[PORT_DATA_TABLE]);
 		return new BufferedDataTable[] { resultTable };
 	}

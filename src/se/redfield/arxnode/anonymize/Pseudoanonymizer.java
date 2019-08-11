@@ -1,5 +1,7 @@
 package se.redfield.arxnode.anonymize;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -22,14 +24,34 @@ import org.knime.core.node.NodeLogger;
 import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.PseudoAnonymizerNodeConfig;
 
-public abstract class Pseudoanonymizer {
+public class Pseudoanonymizer {
 	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(Pseudoanonymizer.class);
 
 	private ColumnRearranger columnRearranger;
+	private SaltProvider saltProvider;
 
 	public Pseudoanonymizer(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
 		this.columnRearranger = createRearranger(config, spec);
+		this.saltProvider = createSaltProvider(config, spec);
+	}
+
+	private SaltProvider createSaltProvider(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
+		switch (config.getSaltingMode()) {
+		case RANDOM:
+			return new RandomSaltProvider(config);
+		case COLUMN:
+			if (config.getSaltColumn().useRowID()) {
+				return new RowIdSaltProvider();
+			} else {
+				return new ColumnSaltProvider(config, spec);
+			}
+		case TIMESTAMP:
+			return new TimestampSaltProvider(config);
+		case NONE:
+			break;
+		}
+		return row -> "";
 	}
 
 	private ColumnRearranger createRearranger(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
@@ -48,8 +70,10 @@ public abstract class Pseudoanonymizer {
 			@Override
 			public DataCell[] getCells(DataRow row) {
 				List<DataCell> newCells = new ArrayList<DataCell>();
+				String salt = saltProvider.getSalt(row);
+
 				for (int i = 0; i < indexes.length; i++) {
-					String value = getSaltedValue(row.getCell(indexes[i]), row);
+					String value = Utils.toString(row.getCell(indexes[i])) + salt;
 
 					if (debugMode) {
 						newCells.add(new StringCell(value));
@@ -67,8 +91,6 @@ public abstract class Pseudoanonymizer {
 		return rearranger;
 	}
 
-	protected abstract String getSaltedValue(DataCell cell, DataRow row);
-
 	public ColumnRearranger getColumnRearranger() {
 		return columnRearranger;
 	}
@@ -78,59 +100,63 @@ public abstract class Pseudoanonymizer {
 		return exec.createColumnRearrangeTable(inTable, getColumnRearranger(), exec);
 	}
 
-	public static Pseudoanonymizer create(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
-		switch (config.getSaltingMode()) {
-		case NONE:
-			return new NoSaltPseudoanonymizer(config, spec);
-		case RANDOM:
-			return new RandomSaltPseudoanonymizer(config, spec);
-		case COLUMN:
-			return new ColumnSaltPseudoanonymizer(config, spec);
-		}
-		return null;
+	private interface SaltProvider {
+		public String getSalt(DataRow row);
 	}
 
-	private static class NoSaltPseudoanonymizer extends Pseudoanonymizer {
-
-		public NoSaltPseudoanonymizer(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
-			super(config, spec);
-		}
-
-		@Override
-		protected String getSaltedValue(DataCell cell, DataRow row) {
-			return Utils.toString(cell);
-		}
-
-	}
-
-	private static class RandomSaltPseudoanonymizer extends Pseudoanonymizer {
+	private class RandomSaltProvider implements SaltProvider {
 
 		private Random random;
 
-		public RandomSaltPseudoanonymizer(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
-			super(config, spec);
-			this.random = new Random(config.getRandomSeed().getLongValue());
+		public RandomSaltProvider(PseudoAnonymizerNodeConfig config) {
+			this.random = new Random();
+			if (config.getUseSeed().getBooleanValue()) {
+				random.setSeed(config.getRandomSeed().getLongValue());
+			}
 		}
 
 		@Override
-		protected String getSaltedValue(DataCell cell, DataRow row) {
-			return Utils.toString(cell) + random.nextLong();
+		public String getSalt(DataRow row) {
+			return String.valueOf(random.nextLong());
 		}
 
 	}
 
-	private static class ColumnSaltPseudoanonymizer extends Pseudoanonymizer {
-
+	private class ColumnSaltProvider implements SaltProvider {
 		private int saltIdx;
 
-		public ColumnSaltPseudoanonymizer(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
-			super(config, spec);
+		public ColumnSaltProvider(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
 			saltIdx = spec.findColumnIndex(config.getSaltColumn().getStringValue());
 		}
 
 		@Override
-		protected String getSaltedValue(DataCell cell, DataRow row) {
-			return Utils.toString(cell) + Utils.toString(row.getCell(saltIdx));
+		public String getSalt(DataRow row) {
+			return Utils.toString(row.getCell(saltIdx));
+		}
+	}
+
+	private class RowIdSaltProvider implements SaltProvider {
+
+		@Override
+		public String getSalt(DataRow row) {
+			return row.getKey().toString();
+		}
+
+	}
+
+	private class TimestampSaltProvider implements SaltProvider {
+
+		private String salt;
+
+		public TimestampSaltProvider(PseudoAnonymizerNodeConfig config) {
+			LocalDateTime timestamp = config.getAutoTimestamp().getBooleanValue() ? LocalDateTime.now()
+					: config.getTimestamp().getLocalDateTime();
+			salt = timestamp.format(DateTimeFormatter.ISO_DATE_TIME);
+		}
+
+		@Override
+		public String getSalt(DataRow row) {
+			return salt;
 		}
 
 	}
