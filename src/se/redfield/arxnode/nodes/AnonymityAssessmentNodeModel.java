@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.mahout.math.Arrays;
@@ -12,6 +13,8 @@ import org.deidentifier.arx.Data;
 import org.deidentifier.arx.Data.DefaultData;
 import org.deidentifier.arx.DataType;
 import org.deidentifier.arx.risk.RiskEstimateBuilder;
+import org.deidentifier.arx.risk.RiskEstimateBuilderInterruptible;
+import org.deidentifier.arx.risk.RiskModelAttributes;
 import org.deidentifier.arx.risk.RiskModelAttributes.QuasiIdentifierRisk;
 import org.deidentifier.arx.risk.RiskModelSampleSummary;
 import org.deidentifier.arx.risk.RiskModelSampleSummary.MarketerRisk;
@@ -156,7 +159,8 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 		boolean hasSecondTable = anonymized != null;
 
 		RiskEstimateBuilder riskEstimator = getRiskEstimator(readToData(plain));
-		QuasiIdentifierRisk[] attrRisks = riskEstimator.getAttributeRisks().getAttributeRisks();
+		QuasiIdentifierRisk[] attrRisks = getAttributesRisks(riskEstimator.getInterruptibleInstance(), exec,
+				hasSecondTable);
 		RiskModelSampleSummary riskSummary = getRiskSummary(riskEstimator);
 
 		RiskEstimateBuilder riskEstimator2 = null;
@@ -164,7 +168,7 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 		RiskModelSampleSummary riskSummary2 = null;
 		if (hasSecondTable) {
 			riskEstimator2 = getRiskEstimator(readToData(anonymized));
-			attrRisks2 = riskEstimator2.getAttributeRisks().getAttributeRisks();
+			attrRisks2 = getAttributesRisks(riskEstimator2.getInterruptibleInstance(), exec, hasSecondTable);
 			riskSummary2 = getRiskSummary(riskEstimator2);
 		}
 
@@ -223,6 +227,35 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 
 	private RiskEstimateBuilder getRiskEstimator(Data data) {
 		return data.getHandle().getRiskEstimator(config.getPopulation().getPopulationModel());
+	}
+
+	private QuasiIdentifierRisk[] getAttributesRisks(RiskEstimateBuilderInterruptible riskEstimator,
+			ExecutionContext exec, boolean hasSecondTable) {
+		ExecutionContext subContext = exec.createSubExecutionContext(hasSecondTable ? 0.5 : 1);
+		CompletableFuture<RiskModelAttributes> future = CompletableFuture.supplyAsync(() -> {
+			try {
+				return riskEstimator.getAttributeRisks();
+			} catch (InterruptedException e) {
+			}
+			return null;
+		});
+		while (!future.isDone()) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+			}
+			try {
+				exec.checkCanceled();
+			} catch (CanceledExecutionException e) {
+				riskEstimator.interrupt();
+			}
+			subContext.setProgress(riskEstimator.getProgress() / 100.0);
+		}
+		try {
+			return future.get().getAttributeRisks();
+		} catch (Exception e) {
+		}
+		return null;
 	}
 
 	private RiskModelSampleSummary getRiskSummary(RiskEstimateBuilder riskEstimator) {
