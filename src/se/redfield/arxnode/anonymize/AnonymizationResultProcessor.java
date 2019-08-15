@@ -73,14 +73,24 @@ public class AnonymizationResultProcessor {
 		if (config.getAnonymizationConfig().getAddClassColumn().getBooleanValue()) {
 			classifier = new RowClassifier(config);
 		}
+		boolean omitSuppressedRecords = config.getAnonymizationConfig().getOmitSuppressedRecords().getBooleanValue();
 
 		for (AnonymizationResult r : results) {
 			ARXResult res = r.getArxResult();
 			if (res.isResultAvailable()) {
-				Iterator<String[]> iter = res.getOutput(r.getCurrentNode()).iterator();
+				DataHandle outHandle = res.getOutput(r.getCurrentNode());
+				Iterator<String[]> iter = outHandle.iterator();
 				iter.next();
+				int rowIdx = -1;
+
 				while (iter.hasNext()) {
 					String[] row = iter.next();
+					rowIdx += 1;
+
+					if (omitSuppressedRecords && outHandle.isOutlier(rowIdx)) {
+						continue;
+					}
+
 					List<DataCell> cells = new ArrayList<>();
 
 					for (ColumnConfig c : outColumns) {

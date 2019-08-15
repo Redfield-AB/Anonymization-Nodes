@@ -30,6 +30,7 @@ public class AnonymizationConfig implements SettingsModelConfig {
 	public static final String CONFIG_ADD_CLASS_COLUMN = "addClassColumn";
 	public static final String CONFIG_OMIT_MISSING_VALUES = "omitMissingValues";
 	public static final String CONFIG_OMIT_IDENTIFYING_COLUMNS = "omitIdentifyingColumns";
+	public static final String CONFIG_OMIT_SUPPRESSED_RECORDS = "omitSuppresedRecords";
 	public static final String CONFIG_NUM_OF_THREADS = "partition.numOfThreads";
 	public static final String CONFIG_PARTITIONS_GROUP_BY_ENABLED = "partition.group";
 	public static final String CONFIG_PARTITIONS_GROUP_BY_COLUMN = "partition.groupBy";
@@ -48,6 +49,7 @@ public class AnonymizationConfig implements SettingsModelConfig {
 	private SettingsModelBoolean addClassColumn;
 	private SettingsModelBoolean omitMissingValues;
 	private SettingsModelBoolean omitIdentifyingColumns;
+	private SettingsModelBoolean omitSuppressedRecords;
 
 	private SettingsModelIntegerBounded numOfThreads;
 	private SettingsModelBoolean partitionsGroupByEnabled;
@@ -72,6 +74,7 @@ public class AnonymizationConfig implements SettingsModelConfig {
 		addClassColumn = new SettingsModelBoolean(CONFIG_ADD_CLASS_COLUMN, false);
 		omitMissingValues = new SettingsModelBoolean(CONFIG_OMIT_MISSING_VALUES, false);
 		omitIdentifyingColumns = new SettingsModelBoolean(CONFIG_OMIT_IDENTIFYING_COLUMNS, false);
+		omitSuppressedRecords = new SettingsModelBoolean(CONFIG_OMIT_SUPPRESSED_RECORDS, false);
 
 		numOfThreads = new SettingsModelIntegerBounded(CONFIG_NUM_OF_THREADS, 1, 1, 20);
 
@@ -109,8 +112,8 @@ public class AnonymizationConfig implements SettingsModelConfig {
 	public List<SettingsModel> getModels() {
 		return Arrays.asList(heuristicSearchEnabled, limitSearchSteps, limitSearchTime, searchStepsLimit,
 				searchTimeLimit, suppresionLimit, practivalMonotonicity, riskThreshold, addClassColumn,
-				omitMissingValues, omitIdentifyingColumns, numOfThreads, partitionsGroupByEnabled,
-				partitionsGroupByColumn);
+				omitMissingValues, omitIdentifyingColumns, omitSuppressedRecords, numOfThreads,
+				partitionsGroupByEnabled, partitionsGroupByColumn);
 	}
 
 	@Override
@@ -169,6 +172,10 @@ public class AnonymizationConfig implements SettingsModelConfig {
 
 	public SettingsModelBoolean getOmitIdentifyingColumns() {
 		return omitIdentifyingColumns;
+	}
+
+	public SettingsModelBoolean getOmitSuppressedRecords() {
+		return omitSuppressedRecords;
 	}
 
 	public SettingsModelIntegerBounded getNumOfThreads() {

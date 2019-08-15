@@ -82,6 +82,9 @@
         	<option name="Omit identifying columns">
         		Exclude 'identifying' columns from the result table.
         	</option>
+        	<option name="Omit suppressed records">
+        		Exclude suppressed records from the result table.
+        	</option>
         	<option name="Heuristic Search Enabled">
         		Sets whether ARX will use a heuristic search strategy.
         	</option>

@@ -104,7 +104,7 @@ public class AnonymizerNodeModel extends NodeModel
 		outputBuilder = new AnonymizationResultProcessor(config, this);
 
 		return new PortObjectSpec[] { outputBuilder.createOutDataTableSpec(), outputBuilder.createStatsTableSpec(),
-				inSpecs[0], outputBuilder.createRiskTableSpec(), FlowVariablePortObjectSpec.INSTANCE };
+				inSpecs[PORT_DATA_TABLE], outputBuilder.createRiskTableSpec(), FlowVariablePortObjectSpec.INSTANCE };
 	}
 
 	@Override
