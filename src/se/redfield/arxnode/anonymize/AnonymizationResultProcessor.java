@@ -150,7 +150,7 @@ public class AnonymizationResultProcessor {
 				JournalistRisk journalistRisk = riskSummary.getJournalistRisk();
 				MarketerRisk marketerRisk = riskSummary.getMarketerRisk();
 
-				if (!flowVarsPushed) {
+				if (!flowVarsPushed && model != null) {
 					flowVarsPushed = true;
 					model.putVariables(minScore, maxScore, headers, transformation, anonymity, rowCount,
 							suppresedRowsNum, statistics, prosecutorRisk, journalistRisk, marketerRisk);
@@ -192,7 +192,7 @@ public class AnonymizationResultProcessor {
 			}
 		}
 
-		if (totalSuppressedCount > 0) {
+		if (totalSuppressedCount > 0 && model != null) {
 			model.showWarnig("Some records were suppressed");
 		}
 

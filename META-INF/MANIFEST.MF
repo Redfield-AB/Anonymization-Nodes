@@ -16,7 +16,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.knime.workbench.repository,
  org.knime.base,
  org.knime.time,
- com.fasterxml.jackson.core.jackson-core;bundle-version="2.8.9"
+ com.fasterxml.jackson.core.jackson-core,
+ org.knime.js.core
 Bundle-ActivationPolicy: lazy
 Export-Package: se.redfield.arxnode
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

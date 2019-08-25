@@ -181,10 +181,8 @@
         </tab>
     </fullDescription>
     
-    <interactiveView name="Transformation View">
-    	Select transformation from available options. There are two modes for visualization of anonymization models: list and graph. 
-    	In graph mode use left click + drag in order to move the graph, and right-click + drag to zoom in and out. Both modes have filtering options, 
-    	and it is possible to change anonymization model on fly.
+    <interactiveView name="Transformation View (JS)">
+    	Select transformation from available options.
     </interactiveView>
     
     <ports>

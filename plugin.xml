@@ -27,6 +27,10 @@
 			category-path="arxNodes/"
         	factory-class="se.redfield.arxnode.nodes.HierarchyWriterNodeFactory">
 		</node>
+		<node
+			category-path="arxNodes/"
+        	factory-class="se.redfield.arxnode.nodes.AnonymizerJsNodeFactory">
+		</node>
 	</extension>
 	
 	<extension
@@ -39,5 +43,41 @@
         	specClass="se.redfield.arxnode.nodes.ArxPortObjectSpec"
         	specSerializer="se.redfield.arxnode.nodes.ArxPortObjectSpec$Serializer">
 		</portType>
+	</extension>
+	
+	<extension
+	      point="org.knime.js.core.javascriptComponents">
+    <javascriptComponent
+          getComponentValue-method-name="getComponentValue"
+          implementationBundleID="se.redfield.arxnode.nodes.anonymizer.bundle"
+          init-method-name="init"
+          javascriptComponentID="se.redfield.arxnode.nodes.anonymizer"
+          name="Transformation View (JS)"
+          namespace="se_redfield_arxnode_nodes_anonymizer"
+          setValidationError-method-name="setValidationError"
+          validate-method-name="validate">
+    </javascriptComponent>
+	</extension>
+	
+	<extension
+	      point="org.knime.js.core.webResources">
+	      <webResourceBundle
+            debug="true"
+            name="Transformation View (JS)"
+            usesDefine="false"
+            version="0.1.0"
+            webResourceBundleID="se.redfield.arxnode.nodes.anonymizer.bundle">
+         <webResource
+               relativePathSource="js-src/se/redfield/arxnode/nodes/"
+               relativePathTarget="se/redfield/arxnode/nodes/">
+         </webResource>
+         <importResource
+               relativePath="se/redfield/arxnode/nodes/anonymizer.js"
+               type="JAVASCRIPT">
+         </importResource>
+         <webDependency
+               webResourceBundleID="bootstrap_3.3.6">
+         </webDependency>
+      </webResourceBundle>
 	</extension>
 </plugin>
