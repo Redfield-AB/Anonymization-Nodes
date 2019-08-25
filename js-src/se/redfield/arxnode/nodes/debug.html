@@ -1,0 +1,73 @@
+<html>
+
+<head>
+    <link rel="stylesheet"
+        href="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/bootstrap/4_1_3/debug/css/bootstrap.css">
+    <script src="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/jQuery/jquery-3.3.1.js"></script>
+    <script
+        src="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/bootstrap/4_1_3/debug/js/bootstrap.js"></script>
+    <script src="anonymizer.js"></script>
+</head>
+
+<body>
+    <script>
+        var rep = {
+            "@class": "se.redfield.arxnode.nodes.js.AnonymizerJsNodeViewRep",
+            "partitions": [
+                {
+                    "levels": [
+                        [
+                            { "transformation": [0, 0], "anonymity": "ANONYMOUS", active:true }
+                        ],
+                        [
+                            { "transformation": [0, 1], "anonymity": "ANONYMOUS" }
+                        ],
+                        [],
+                        [],
+                        [
+                            { "transformation": [0, 4], "anonymity": "ANONYMOUS" }
+                        ],
+                        [],
+                        [],
+                        [],
+                        [
+                            { "transformation": [2, 6], "anonymity": "ANONYMOUS" }
+                        ]
+                    ]
+                },
+                //copy
+                {
+                    "levels": [
+                        [
+                            { "transformation": [0, 0], "anonymity": "ANONYMOUS" }
+                        ],
+                        [
+                            { "transformation": [0, 1], "anonymity": "ANONYMOUS" }
+                        ],
+                        [],
+                        [],
+                        [
+                            { "transformation": [0, 4], "anonymity": "ANONYMOUS" }
+                        ],
+                        [],
+                        [],
+                        [],
+                        [
+                            { "transformation": [2, 6], "anonymity": "ANONYMOUS" }
+                        ]
+                    ]
+                }
+            ]
+        };
+        var val = {
+            selectedTransformations: [
+                [0,0],
+                [0,0]
+            ]
+        };
+
+        se_redfield_arxnode_nodes_js.init(rep, val);
+    </script>
+</body>
+
+</html>

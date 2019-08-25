@@ -45,7 +45,7 @@ public class AnonymizerNodeDialog extends DefaultNodeSettingsPane {
 	private PrivacyModelsPane privacyPanel;
 	private AnonymizationConfigPanel anonConfigPanel;
 
-	protected AnonymizerNodeDialog() {
+	public AnonymizerNodeDialog() {
 		super();
 		logger.info("Dialog.constructor");
 
