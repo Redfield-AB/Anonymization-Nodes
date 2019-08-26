@@ -39,8 +39,9 @@ import org.knime.core.node.port.flowvariable.FlowVariablePortObject;
 
 import se.redfield.arxnode.config.ColumnConfig;
 import se.redfield.arxnode.config.Config;
-import se.redfield.arxnode.nodes.AnonymizerNodeModel;
 import se.redfield.arxnode.ui.transformation.InfolossScore;
+import se.redfield.arxnode.util.FlowVariablesPusher;
+import se.redfield.arxnode.util.MessageWarningController;
 import se.redfield.arxnode.util.RowClassifier;
 
 public class AnonymizationResultProcessor {
@@ -48,13 +49,16 @@ public class AnonymizationResultProcessor {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationResultProcessor.class);
 
 	private Config config;
-	private AnonymizerNodeModel model;
+	private MessageWarningController warnings;
+	private FlowVariablesPusher fwPusher;
 
 	private Set<String> suppressedRows;
 
-	public AnonymizationResultProcessor(Config config, AnonymizerNodeModel model) {
+	public AnonymizationResultProcessor(Config config, MessageWarningController warnings,
+			FlowVariablesPusher fwPusher) {
 		this.config = config;
-		this.model = model;
+		this.warnings = warnings;
+		this.fwPusher = fwPusher;
 	}
 
 	public PortObject[] process(BufferedDataTable inTable, List<AnonymizationResult> results, ExecutionContext exec)
@@ -160,10 +164,10 @@ public class AnonymizationResultProcessor {
 				JournalistRisk journalistRisk = riskSummary.getJournalistRisk();
 				MarketerRisk marketerRisk = riskSummary.getMarketerRisk();
 
-				if (!flowVarsPushed && model != null) {
+				if (!flowVarsPushed) {
 					flowVarsPushed = true;
-					model.putVariables(minScore, maxScore, headers, transformation, anonymity, rowCount,
-							suppresedRowsNum, statistics, prosecutorRisk, journalistRisk, marketerRisk);
+					putVariables(minScore, maxScore, headers, transformation, anonymity, rowCount, suppresedRowsNum,
+							statistics, prosecutorRisk, journalistRisk, marketerRisk);
 				}
 
 				List<DataCell> cells = new ArrayList<>();
@@ -202,12 +206,44 @@ public class AnonymizationResultProcessor {
 			}
 		}
 
-		if (totalSuppressedCount > 0 && model != null) {
-			model.showWarnig("Some records were suppressed");
+		if (totalSuppressedCount > 0) {
+			warnings.showWarning("Some records were suppressed");
 		}
 
 		container.close();
 		return container.getTable();
+	}
+
+	private void putVariables(InfolossScore minScore, InfolossScore maxScore, String headers, String transformation,
+			String anonymity, long rowCount, long suppresedRecords, StatisticsEquivalenceClasses statistics,
+			ProsecutorRisk prosecutor, JournalistRisk journalist, MarketerRisk marketer) {
+		fwPusher.pushString("minScore", minScore.getValue());
+		fwPusher.pushDouble("minScoreRelative", minScore.getRelativePercent());
+		fwPusher.pushString("maxScore", maxScore.getValue());
+		fwPusher.pushDouble("maxScoreRelative", maxScore.getRelativePercent());
+
+		fwPusher.pushString("headers", headers);
+		fwPusher.pushString("transformation", transformation);
+		fwPusher.pushString("anonymity", anonymity);
+		fwPusher.pushInt("rowCount", (int) rowCount);
+		fwPusher.pushInt("suppresedRecords", (int) suppresedRecords);
+
+		fwPusher.pushDouble("avgClassSize", statistics.getAverageEquivalenceClassSize());
+		fwPusher.pushInt("minClassSize", statistics.getMinimalEquivalenceClassSize());
+		fwPusher.pushInt("maxClassSize", statistics.getMaximalEquivalenceClassSize());
+		fwPusher.pushInt("numberofClasses", statistics.getNumberOfEquivalenceClasses());
+		fwPusher.pushDouble("avgClassSizeInclOutliers", statistics.getAverageEquivalenceClassSizeIncludingOutliers());
+		fwPusher.pushInt("minClassSizeInclOutliers", statistics.getMinimalEquivalenceClassSizeIncludingOutliers());
+		fwPusher.pushInt("maxClassSizeInclOutliers", statistics.getMaximalEquivalenceClassSizeIncludingOutliers());
+		fwPusher.pushInt("numberofClassesInclOutliers", statistics.getNumberOfEquivalenceClassesIncludingOutliers());
+
+		fwPusher.pushDouble("prosecutorRecordsAtRisk", prosecutor.getRecordsAtRisk());
+		fwPusher.pushDouble("prosecutorHighestRisk", prosecutor.getHighestRisk());
+		fwPusher.pushDouble("prosecutorSuccessRate", prosecutor.getSuccessRate());
+		fwPusher.pushDouble("journalistRecordsAtRisk", journalist.getRecordsAtRisk());
+		fwPusher.pushDouble("journalistHighestRisk", journalist.getHighestRisk());
+		fwPusher.pushDouble("journalistSuccessRate", journalist.getSuccessRate());
+		fwPusher.pushDouble("marketerSuccessRate", marketer.getSuccessRate());
 	}
 
 	private RiskEstimateBuilder getRiskEstimator(AnonymizationResult r) {

@@ -2,15 +2,9 @@ package se.redfield.arxnode.nodes;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.deidentifier.arx.aggregates.StatisticsEquivalenceClasses;
-import org.deidentifier.arx.risk.RiskModelSampleSummary.JournalistRisk;
-import org.deidentifier.arx.risk.RiskModelSampleSummary.MarketerRisk;
-import org.deidentifier.arx.risk.RiskModelSampleSummary.ProsecutorRisk;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
@@ -34,7 +28,8 @@ import se.redfield.arxnode.anonymize.AnonymizationResultProcessor;
 import se.redfield.arxnode.anonymize.Anonymizer;
 import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.nodes.AnonymizerNodeView.AnonymizerNodeViewValue;
-import se.redfield.arxnode.ui.transformation.InfolossScore;
+import se.redfield.arxnode.util.FlowVariablesPusher;
+import se.redfield.arxnode.util.MessageWarningController;
 
 public class AnonymizerNodeModel extends NodeModel
 		implements InteractiveNode<AnonymizerNodeViewValue, AnonymizerNodeViewValue> {
@@ -46,7 +41,8 @@ public class AnonymizerNodeModel extends NodeModel
 
 	private Config config;
 	private AnonymizationResultProcessor outputBuilder;
-	private Set<String> warnings;
+	private MessageWarningController warnings;
+	private FlowVariablesPusher fwPusher;
 	private List<AnonymizationResult> results;
 	private AnonymizerNodeViewValue viewValue;
 
@@ -55,7 +51,9 @@ public class AnonymizerNodeModel extends NodeModel
 				new PortType[] { BufferedDataTable.TYPE, BufferedDataTable.TYPE, BufferedDataTable.TYPE,
 						BufferedDataTable.TYPE, FlowVariablePortObject.TYPE });
 		config = new Config();
-		warnings = new HashSet<>();
+		warnings = new MessageWarningController(this::setWarningMessage);
+		fwPusher = new FlowVariablesPusher(this::pushFlowVariableString, this::pushFlowVariableDouble,
+				this::pushFlowVariableInt);
 	}
 
 	public List<AnonymizationResult> getResults() {
@@ -66,7 +64,7 @@ public class AnonymizerNodeModel extends NodeModel
 	protected PortObject[] execute(final PortObject[] inData, final ExecutionContext exec) throws Exception {
 		logger.debug("execute");
 		try {
-			warnings.clear();
+			warnings.reset();
 			if (results == null) {
 				logger.debug("anonymizing");
 				Anonymizer anonymizer = new Anonymizer(config);
@@ -76,7 +74,7 @@ public class AnonymizerNodeModel extends NodeModel
 			logger.debug("processing result");
 
 			if (viewValue != null && StringUtils.isNotEmpty(viewValue.getWarning())) {
-				showWarnig(viewValue.getWarning());
+				warnings.showWarning(viewValue.getWarning());
 			}
 
 			return outputBuilder.process((BufferedDataTable) inData[PORT_DATA_TABLE], results, exec);
@@ -89,7 +87,7 @@ public class AnonymizerNodeModel extends NodeModel
 	@Override
 	protected void reset() {
 		logger.debug("reset");
-		warnings.clear();
+		warnings.reset();
 		results = null;
 		// selectedTransformation = null;
 	}
@@ -101,7 +99,7 @@ public class AnonymizerNodeModel extends NodeModel
 		config.configure((DataTableSpec) inSpecs[PORT_DATA_TABLE], (ArxPortObjectSpec) inSpecs[PORT_ARX]);
 		config.validate();
 
-		outputBuilder = new AnonymizationResultProcessor(config, this);
+		outputBuilder = new AnonymizationResultProcessor(config, warnings, fwPusher);
 
 		return new PortObjectSpec[] { outputBuilder.createOutDataTableSpec(), outputBuilder.createStatsTableSpec(),
 				inSpecs[PORT_DATA_TABLE], outputBuilder.createRiskTableSpec(), FlowVariablePortObjectSpec.INSTANCE };
@@ -149,47 +147,6 @@ public class AnonymizerNodeModel extends NodeModel
 		// of). Save here only the other internals that need to be preserved
 		// (e.g. data used by the views).
 
-	}
-
-	public void putVariables(InfolossScore minScore, InfolossScore maxScore, String headers, String transformation,
-			String anonymity, long rowCount, long suppresedRecords, StatisticsEquivalenceClasses statistics,
-			ProsecutorRisk prosecutor, JournalistRisk journalist, MarketerRisk marketer) {
-		pushFlowVariableString("minScore", minScore.getValue());
-		pushFlowVariableDouble("minScoreRelative", minScore.getRelativePercent());
-		pushFlowVariableString("maxScore", maxScore.getValue());
-		pushFlowVariableDouble("maxScoreRelative", maxScore.getRelativePercent());
-
-		pushFlowVariableString("headers", headers);
-		pushFlowVariableString("transformation", transformation);
-		pushFlowVariableString("anonymity", anonymity);
-		pushFlowVariableInt("rowCount", (int) rowCount);
-		pushFlowVariableInt("suppresedRecords", (int) suppresedRecords);
-
-		pushFlowVariableDouble("avgClassSize", statistics.getAverageEquivalenceClassSize());
-		pushFlowVariableInt("minClassSize", statistics.getMinimalEquivalenceClassSize());
-		pushFlowVariableInt("maxClassSize", statistics.getMaximalEquivalenceClassSize());
-		pushFlowVariableInt("numberofClasses", statistics.getNumberOfEquivalenceClasses());
-		pushFlowVariableDouble("avgClassSizeInclOutliers",
-				statistics.getAverageEquivalenceClassSizeIncludingOutliers());
-		pushFlowVariableInt("minClassSizeInclOutliers", statistics.getMinimalEquivalenceClassSizeIncludingOutliers());
-		pushFlowVariableInt("maxClassSizeInclOutliers", statistics.getMaximalEquivalenceClassSizeIncludingOutliers());
-		pushFlowVariableInt("numberofClassesInclOutliers", statistics.getNumberOfEquivalenceClassesIncludingOutliers());
-
-		pushFlowVariableDouble("prosecutorRecordsAtRisk", prosecutor.getRecordsAtRisk());
-		pushFlowVariableDouble("prosecutorHighestRisk", prosecutor.getHighestRisk());
-		pushFlowVariableDouble("prosecutorSuccessRate", prosecutor.getSuccessRate());
-		pushFlowVariableDouble("journalistRecordsAtRisk", journalist.getRecordsAtRisk());
-		pushFlowVariableDouble("journalistHighestRisk", journalist.getHighestRisk());
-		pushFlowVariableDouble("journalistSuccessRate", journalist.getSuccessRate());
-		pushFlowVariableDouble("marketerSuccessRate", marketer.getSuccessRate());
-	}
-
-	public void showWarnig(String message) {
-		if (!warnings.contains(message)) {
-			warnings.add(message);
-			String joined = StringUtils.join(warnings, ";\n");
-			setWarningMessage(joined);
-		}
 	}
 
 	@Override

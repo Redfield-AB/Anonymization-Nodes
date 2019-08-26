@@ -1,8 +1,6 @@
 package se.redfield.arxnode.nodes;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
@@ -23,6 +21,8 @@ import se.redfield.arxnode.anonymize.AnonymizationResult;
 import se.redfield.arxnode.anonymize.AnonymizationResultProcessor;
 import se.redfield.arxnode.anonymize.Anonymizer;
 import se.redfield.arxnode.config.Config;
+import se.redfield.arxnode.util.FlowVariablesPusher;
+import se.redfield.arxnode.util.MessageWarningController;
 
 public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsNodeViewRep, AnonymizerJsNodeViewVal> {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizerJsNodeModel.class);
@@ -31,7 +31,8 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 	public static final int PORT_ARX = 1;
 
 	private Config config;
-	private Set<String> warnings;
+	private MessageWarningController warnings;
+	private FlowVariablesPusher fwPusher;
 	private AnonymizationResultProcessor outputBuilder;
 	private List<AnonymizationResult> results;
 
@@ -42,7 +43,9 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 				viewName);
 		logger.info("create JsModel: " + viewName);
 		config = new Config();
-		warnings = new HashSet<>();
+		warnings = new MessageWarningController(this::setWarningMessage);
+		fwPusher = new FlowVariablesPusher(this::pushFlowVariableString, this::pushFlowVariableDouble,
+				this::pushFlowVariableInt);
 	}
 
 	@Override
@@ -87,7 +90,7 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 	@Override
 	protected void performReset() {
 		logger.debug("performReset");
-		warnings.clear();
+		warnings.reset();
 		results = null;
 
 	}
@@ -123,7 +126,7 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 		config.configure((DataTableSpec) inSpecs[PORT_DATA_TABLE], (ArxPortObjectSpec) inSpecs[PORT_ARX]);
 		config.validate();
 
-		outputBuilder = new AnonymizationResultProcessor(config, null);
+		outputBuilder = new AnonymizationResultProcessor(config, warnings, fwPusher);
 
 		return new PortObjectSpec[] { outputBuilder.createOutDataTableSpec(), outputBuilder.createStatsTableSpec(),
 				inSpecs[0], outputBuilder.createRiskTableSpec(), FlowVariablePortObjectSpec.INSTANCE };
@@ -133,7 +136,7 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 	protected PortObject[] performExecute(PortObject[] inObjects, ExecutionContext exec) throws Exception {
 		logger.debug("performExecute");
 		try {
-			warnings.clear();
+			warnings.reset();
 			if (results == null) {
 				logger.debug("anonymizing");
 				Anonymizer anonymizer = new Anonymizer(config);
