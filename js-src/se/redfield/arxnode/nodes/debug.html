@@ -2,10 +2,14 @@
 
 <head>
     <link rel="stylesheet"
-        href="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/bootstrap/4_1_3/debug/css/bootstrap.css">
-    <script src="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/jQuery/jquery-3.3.1.js"></script>
+        href="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/bootstrap/3_3_6/debug/css/bootstrap.css">
+    <link rel="stylesheet"
+        href="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/dataTables/1_10_11/bootstrap/datatables.css">
+    <script src="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/jQuery/jquery-1.11.3.js"></script>
     <script
-        src="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/bootstrap/4_1_3/debug/js/bootstrap.js"></script>
+        src="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/bootstrap/3_3_6/debug/js/bootstrap.js"></script>
+    <script
+        src="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/dataTables/1_10_11/bootstrap/datatables.js"></script>
     <script src="anonymizer.js"></script>
 </head>
 
@@ -13,60 +17,16 @@
     <script>
         var rep = {
             "@class": "se.redfield.arxnode.nodes.js.AnonymizerJsNodeViewRep",
-            "partitions": [
-                {
-                    "levels": [
-                        [
-                            { "transformation": [0, 0], "anonymity": "ANONYMOUS", active:true }
-                        ],
-                        [
-                            { "transformation": [0, 1], "anonymity": "ANONYMOUS" }
-                        ],
-                        [],
-                        [],
-                        [
-                            { "transformation": [0, 4], "anonymity": "ANONYMOUS" }
-                        ],
-                        [],
-                        [],
-                        [],
-                        [
-                            { "transformation": [2, 6], "anonymity": "ANONYMOUS" }
-                        ]
-                    ]
-                },
-                //copy
-                {
-                    "levels": [
-                        [
-                            { "transformation": [0, 0], "anonymity": "ANONYMOUS" }
-                        ],
-                        [
-                            { "transformation": [0, 1], "anonymity": "ANONYMOUS" }
-                        ],
-                        [],
-                        [],
-                        [
-                            { "transformation": [0, 4], "anonymity": "ANONYMOUS" }
-                        ],
-                        [],
-                        [],
-                        [],
-                        [
-                            { "transformation": [2, 6], "anonymity": "ANONYMOUS" }
-                        ]
-                    ]
-                }
-            ]
+            "partitions": [{"levels":[[{"transformation":[0,0],"anonymity":"ANONYMOUS","minScore":{"value":"0.0","relative":0.0},"maxScore":{"value":"0.0","relative":0.0}}],[{"transformation":[0,1],"anonymity":"ANONYMOUS","minScore":{"value":"0.0253914685","relative":0.0253914685},"maxScore":{"value":"0.0253914685","relative":0.0253914685}}],[],[],[{"transformation":[0,4],"anonymity":"ANONYMOUS","minScore":{"value":"0.1900504325","relative":0.1900504325},"maxScore":{"value":"0.1900504325","relative":0.1900504325}}],[],[],[],[{"transformation":[2,6],"anonymity":"ANONYMOUS","minScore":{"value":"1.0","relative":1.0},"maxScore":{"value":"1.0","relative":1.0}}]]}],
         };
         var val = {
             selectedTransformations: [
-                [0,0],
-                [0,0]
+                [0, 0],
+                [0, 0]
             ]
         };
 
-        se_redfield_arxnode_nodes_js.init(rep, val);
+        se_redfield_arxnode_nodes_anonymizer.init(rep, val);
     </script>
 </body>
 

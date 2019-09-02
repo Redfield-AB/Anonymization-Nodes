@@ -8,9 +8,14 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.js.core.JSONViewContent;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import se.redfield.arxnode.anonymize.AnonymizationResult;
 
 public class AnonymizerJsNodeViewVal extends JSONViewContent {
+
+	public static final String CONFIG_VIEW_VAL = "viewVal";
 
 	private int[][] selectedTransformations;
 
@@ -40,14 +45,17 @@ public class AnonymizerJsNodeViewVal extends JSONViewContent {
 
 	@Override
 	public void saveToNodeSettings(NodeSettingsWO settings) {
-		// TODO Auto-generated method stub
-
+		Gson gson = new GsonBuilder().create();
+		settings.addString(CONFIG_VIEW_VAL, gson.toJson(selectedTransformations));
 	}
 
 	@Override
 	public void loadFromNodeSettings(NodeSettingsRO settings) throws InvalidSettingsException {
-		// TODO Auto-generated method stub
-
+		String json = settings.getString(CONFIG_VIEW_VAL, null);
+		if (json != null) {
+			Gson gson = new GsonBuilder().create();
+			selectedTransformations = gson.fromJson(json, int[][].class);
+		}
 	}
 
 	@Override

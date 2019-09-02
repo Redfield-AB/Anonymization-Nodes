@@ -2,7 +2,6 @@ package se.redfield.arxnode.nodes;
 
 import java.util.List;
 
-import org.apache.mahout.math.Arrays;
 import org.deidentifier.arx.ARXLattice;
 import org.deidentifier.arx.ARXLattice.ARXNode;
 import org.deidentifier.arx.ARXLattice.Anonymity;
@@ -11,9 +10,14 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.js.core.JSONViewContent;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import se.redfield.arxnode.anonymize.AnonymizationResult;
+import se.redfield.arxnode.ui.transformation.InfolossScore;
 
 public class AnonymizerJsNodeViewRep extends JSONViewContent {
+	public static final String CONFIG_VIEW_REP = "viewRep";
 
 	private AnonymizationResultRep[] partitions;
 
@@ -34,14 +38,20 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 
 	@Override
 	public void saveToNodeSettings(NodeSettingsWO settings) {
-		// TODO Auto-generated method stub
-
+		Gson gson = new GsonBuilder().create();
+		String json = gson.toJson(partitions);
+		// System.out.println("json");
+		// System.out.println(json);
+		settings.addString(CONFIG_VIEW_REP, json);
 	}
 
 	@Override
 	public void loadFromNodeSettings(NodeSettingsRO settings) throws InvalidSettingsException {
-		// TODO Auto-generated method stub
-
+		String json = settings.getString(CONFIG_VIEW_REP, null);
+		if (json != null) {
+			Gson gson = new GsonBuilder().create();
+			partitions = gson.fromJson(json, AnonymizationResultRep[].class);
+		}
 	}
 
 	@Override
@@ -66,15 +76,13 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 		private ArxNodeRep[][] levels;
 
 		AnonymizationResultRep(AnonymizationResult result) {
-			ARXNode active = result.getCurrentNode();
-			System.out.println("active: " + Arrays.toString(active.getTransformation()));
 			ARXLattice lattice = result.getArxResult().getLattice();
 			levels = new ArxNodeRep[lattice.getLevels().length][];
 			for (int i = 0; i < levels.length; i++) {
 				ARXNode[] nodes = lattice.getLevels()[i];
 				levels[i] = new ArxNodeRep[nodes.length];
 				for (int j = 0; j < levels[i].length; j++) {
-					levels[i][j] = new ArxNodeRep(nodes[j], nodes[j] == active);
+					levels[i][j] = new ArxNodeRep(nodes[j], lattice);
 				}
 			}
 		}
@@ -91,12 +99,14 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 	public static class ArxNodeRep {
 		private int[] transformation;
 		private Anonymity anonymity;
-		private boolean active;
+		private InfolossScore minScore;
+		private InfolossScore maxScore;
 
-		ArxNodeRep(ARXNode node, boolean active) {
+		ArxNodeRep(ARXNode node, ARXLattice lattice) {
 			this.transformation = node.getTransformation();
 			this.anonymity = node.getAnonymity();
-			this.active = active;
+			this.minScore = InfolossScore.createFrom(lattice, node.getLowestScore());
+			this.maxScore = InfolossScore.createFrom(lattice, node.getHighestScore());
 		}
 
 		public int[] getTransformation() {
@@ -115,12 +125,20 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 			this.anonymity = anonymity;
 		}
 
-		public boolean isActive() {
-			return active;
+		public InfolossScore getMinScore() {
+			return minScore;
 		}
 
-		public void setActive(boolean active) {
-			this.active = active;
+		public void setMinScore(InfolossScore minScore) {
+			this.minScore = minScore;
+		}
+
+		public InfolossScore getMaxScore() {
+			return maxScore;
+		}
+
+		public void setMaxScore(InfolossScore maxScore) {
+			this.maxScore = maxScore;
 		}
 	}
 }

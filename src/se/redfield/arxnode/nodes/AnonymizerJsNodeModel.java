@@ -65,26 +65,22 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 
 	@Override
 	public boolean isHideInWizard() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void setHideInWizard(boolean hide) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public ValidationError validateViewValue(AnonymizerJsNodeViewVal viewContent) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void saveCurrentValue(NodeSettingsWO content) {
-		// TODO Auto-generated method stub
-
+		getViewValue().saveToNodeSettings(content);
 	}
 
 	@Override
@@ -126,10 +122,16 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 		config.configure((DataTableSpec) inSpecs[PORT_DATA_TABLE], (ArxPortObjectSpec) inSpecs[PORT_ARX]);
 		config.validate();
 
-		outputBuilder = new AnonymizationResultProcessor(config, warnings, fwPusher);
+		return new PortObjectSpec[] { getOutputBuilder().createOutDataTableSpec(),
+				getOutputBuilder().createStatsTableSpec(), inSpecs[0], getOutputBuilder().createRiskTableSpec(),
+				FlowVariablePortObjectSpec.INSTANCE };
+	}
 
-		return new PortObjectSpec[] { outputBuilder.createOutDataTableSpec(), outputBuilder.createStatsTableSpec(),
-				inSpecs[0], outputBuilder.createRiskTableSpec(), FlowVariablePortObjectSpec.INSTANCE };
+	private AnonymizationResultProcessor getOutputBuilder() {
+		if (outputBuilder == null) {
+			outputBuilder = new AnonymizationResultProcessor(config, warnings, fwPusher);
+		}
+		return outputBuilder;
 	}
 
 	@Override
@@ -147,7 +149,7 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 			logger.debug("processing result");
 			getViewValue().assignTo(results);
 			getViewValue().updateFrom(results);
-			return outputBuilder.process((BufferedDataTable) inObjects[PORT_DATA_TABLE], results, exec);
+			return getOutputBuilder().process((BufferedDataTable) inObjects[PORT_DATA_TABLE], results, exec);
 		} catch (Throwable e) {
 			logger.error(e.getMessage(), e);
 			throw e;

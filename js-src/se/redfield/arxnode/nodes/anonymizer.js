@@ -1,5 +1,6 @@
 /// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/jQuery/jquery-3.3.1.js" />
-/// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/bootstrap/4_1_3/debug/js/bootstrap.js" />
+/// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/bootstrap/3_3_6/debug/js/bootstrap.js" />
+/// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/dataTables/1_10_11/bootstrap/datatables.js" />
 
 se_redfield_arxnode_nodes_anonymizer = function () {
 
@@ -38,41 +39,68 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 
 	function createPartitionTabContent(partition, index) {
 		var table = $('<table class="table table-bordered"></table>');
-		var thead = $('<thead></thead>')
-			.append($('<tr></tr>')
-				//.append('<th scope="col">Active</th>')
-				.append('<th scope="col">Transformation</th>')
-				.append('<th scope="col">Anonymity</th>')
-			);
-		var tbody = $('<tbody></tbody');
-
-		table.append(thead);
-		table.append(tbody);
+		let data = [];
 
 		for (let i in partition.levels) {
-			var level = partition.levels[i];
-			for (var j in level) {
+			let level = partition.levels[i];
+			for (let j in level) {
 				let node = level[j];
-				console.log('node', node, j);
-				let tr = $('<tr></tr>')
-					//.append('<th scope="row"></th>')
-					.append($(`<td>${node.transformation}</td>`))
-					.append($(`<td>${node.anonymity}</td>`));
-				
-				if(node.transformation.toString() == model.selectedTransformations[index].toString()) {
-					tr.addClass('success');
+				data.push(node);
+				if (node.transformation.toString() == model.selectedTransformations[index].toString()) {
+					node.$active = true;
 				}
-
-				tr.on('click', function (e) {
-					console.log(table.children('tr'));
-					table.find('tr').removeClass('success');
-					tr.addClass('success');
-					model.selectedTransformations[index] = node.transformation;
-				});
-
-				tbody.append(tr);
 			}
 		}
+
+		var thead = $('<thead></thead>')
+			.append($('<tr></tr>')
+				.append('<th scope="col">Active</th>')
+				.append('<th scope="col">Transformation</th>')
+				.append('<th scope="col">Anonymity</th>')
+				.append('<th scope="col">Min Score</th>')
+				.append('<th scope="col">Max Score</th>')
+			);
+
+		table.append(thead);
+
+		let dt = table.DataTable({
+			data: data,
+			select: true,
+			order: [[0, 'desc']],
+			columns: [
+				{
+					data: '$active',
+					defaultContent: "",
+					render: function (data, type, row) {
+						if (type === 'display' && data) {
+							return '<i class="glyphicon glyphicon-ok"></i>';
+						}
+						return data;
+					}
+				},
+				{ data: 'transformation' },
+				{ data: 'anonymity' },
+				{ data: 'minScore', render: renderScore},
+				{ data: 'maxScore', render: renderScore},
+			]
+		});
+
+		function renderScore(data, type, row) {
+			if (type == 'display') {
+				return data.value + '(' + (data.relative * 100).toFixed(2) + '%)';
+			}
+			return data.relative;
+		}
+
+		table.on('click', 'tr', function (e) {
+			var data = dt.row(this).data();
+			console.log('data', data);
+			if (data) {
+				table.find('tr').removeClass('success');
+				$(this).addClass('success');
+				model.selectedTransformations[index] = data.transformation;
+			}
+		});
 
 		return table;
 	}
@@ -86,9 +114,9 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 		console.log('init', rep, val);
 		console.log(JSON.stringify(rep));
 		model = val;
-		if(model.selectedTransformations) {
+		if (model.selectedTransformations) {
 			initUI(rep);
-		}else{
+		} else {
 			$('body').append('<h1>Please restart node</h1>');
 		}
 		console.log('model', model);
