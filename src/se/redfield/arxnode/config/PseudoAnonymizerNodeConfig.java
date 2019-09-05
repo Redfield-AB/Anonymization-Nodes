@@ -27,6 +27,7 @@ public class PseudoAnonymizerNodeConfig implements SettingsModelConfig {
 	public static final String KEY_TIMESTAMP = "timestamp";
 	public static final String KEY_TIMESTAMP_AUTO = "autoTimestamp";
 	public static final String KEY_DEBUG = "debug";
+	public static final String KEY_REPLACE_MODE = "outputMode";
 
 	private SettingsModelFilterString columnFilter;
 	private SettingsModelString saltingModeModel;
@@ -36,6 +37,7 @@ public class PseudoAnonymizerNodeConfig implements SettingsModelConfig {
 	private SettingsModelDateTime timestamp;
 	private SettingsModelBoolean autoTimestamp;
 	private SettingsModelBoolean debugMode;
+	private SettingsModelString replaceModeModel;
 
 	public PseudoAnonymizerNodeConfig() {
 		columnFilter = new SettingsModelFilterString(KEY_COLUMNS);
@@ -46,6 +48,7 @@ public class PseudoAnonymizerNodeConfig implements SettingsModelConfig {
 		timestamp = new SettingsModelDateTime(KEY_TIMESTAMP, LocalDateTime.now());
 		autoTimestamp = new SettingsModelBoolean(KEY_TIMESTAMP_AUTO, false);
 		debugMode = new SettingsModelBoolean(KEY_DEBUG, false);
+		replaceModeModel = new SettingsModelString(KEY_REPLACE_MODE, ReplaceMode.REPLACE.getTitle());
 
 		useSeed.setEnabled(false);
 		randomSeed.setEnabled(false);
@@ -114,10 +117,22 @@ public class PseudoAnonymizerNodeConfig implements SettingsModelConfig {
 		return debugMode;
 	}
 
+	public SettingsModelString getReplaceModeModel() {
+		return replaceModeModel;
+	}
+
+	public ReplaceMode getReplaceMode() {
+		return ReplaceMode.fromString(replaceModeModel.getStringValue());
+	}
+
+	public void setReplaceMode(ReplaceMode mode) {
+		replaceModeModel.setStringValue(mode.getTitle());
+	}
+
 	@Override
 	public List<SettingsModel> getModels() {
 		return Arrays.asList(columnFilter, saltingModeModel, useSeed, randomSeed, saltColumn, timestamp, autoTimestamp,
-				debugMode);
+				debugMode, replaceModeModel);
 	}
 
 	@Override
@@ -151,6 +166,25 @@ public class PseudoAnonymizerNodeConfig implements SettingsModelConfig {
 
 		public static SaltingMode fromString(String str) {
 			return TitledEnum.fromString(values(), str, NONE);
+		}
+	}
+
+	public static enum ReplaceMode implements TitledEnum {
+		REPLACE("Replace"), APPEND("Append");
+
+		private String title;
+
+		private ReplaceMode(String title) {
+			this.title = title;
+		}
+
+		@Override
+		public String getTitle() {
+			return title;
+		}
+
+		public static ReplaceMode fromString(String str) {
+			return TitledEnum.fromString(values(), str, REPLACE);
 		}
 	}
 }

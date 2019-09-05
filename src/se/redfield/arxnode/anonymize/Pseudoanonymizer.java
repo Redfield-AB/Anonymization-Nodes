@@ -23,6 +23,7 @@ import org.knime.core.node.NodeLogger;
 
 import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.PseudoAnonymizerNodeConfig;
+import se.redfield.arxnode.config.PseudoAnonymizerNodeConfig.ReplaceMode;
 
 public class Pseudoanonymizer {
 	@SuppressWarnings("unused")
@@ -62,7 +63,12 @@ public class Pseudoanonymizer {
 		for (int i = 0; i < includeList.size(); i++) {
 			String name = includeList.get(i);
 			indexes[i] = spec.findColumnIndex(name);
-			newSpecs.add(new DataColumnSpecCreator(name, StringCell.TYPE).createSpec());
+
+			String newName = name;
+			if (config.getReplaceMode() == ReplaceMode.APPEND) {
+				newName += "-anonymized";
+			}
+			newSpecs.add(new DataColumnSpecCreator(newName, StringCell.TYPE).createSpec());
 		}
 
 		boolean debugMode = config.getDebugMode().getBooleanValue();
@@ -87,7 +93,11 @@ public class Pseudoanonymizer {
 		};
 
 		ColumnRearranger rearranger = new ColumnRearranger(spec);
-		rearranger.replace(factory, indexes);
+		if (config.getReplaceMode() == ReplaceMode.REPLACE) {
+			rearranger.replace(factory, indexes);
+		} else {
+			rearranger.append(factory);
+		}
 		return rearranger;
 	}
 

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Random;
 
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -29,6 +30,7 @@ import com.jgoodies.forms.factories.CC;
 import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.config.PseudoAnonymizerNodeConfig;
+import se.redfield.arxnode.config.PseudoAnonymizerNodeConfig.ReplaceMode;
 import se.redfield.arxnode.config.PseudoAnonymizerNodeConfig.SaltingMode;
 
 public class PseudoAnonymizerNodeDialog extends NodeDialogPane {
@@ -51,10 +53,31 @@ public class PseudoAnonymizerNodeDialog extends NodeDialogPane {
 		DialogComponentBoolean debugModeInput = new DialogComponentBoolean(config.getDebugMode(),
 				"Debug Mode (Output salted values before hashing instead of hash)");
 
-		JPanel panel = new JPanel(new FormLayout("5:n, f:p:g, 5:n", "5:n, f:p:g, 5:n, p:n, 5:n, p:n, 5:n"));
+		JPanel panel = new JPanel(new FormLayout("5:n, f:p:g, 5:n", "5:n, f:p:g, 5:n, p:n, 5:n, p:n, 5:n, p:n, 5:n"));
 		panel.add(columnFilter.getComponentPanel(), CC.rc(2, 2));
 		panel.add(createSaltingPanel(), CC.rc(4, 2));
-		panel.add(debugModeInput.getComponentPanel(), CC.rc(6, 2, "c,l"));
+		panel.add(createOuputModePanel(), CC.rc(6, 2));
+		panel.add(debugModeInput.getComponentPanel(), CC.rc(8, 2, "c,l"));
+		return panel;
+	}
+
+	private JPanel createOuputModePanel() {
+		JPanel panel = new JPanel(new FormLayout("p:n, 5:g", "p:n, 5:n, p:n"));
+
+		JRadioButton rbReplace = new JRadioButton("Replace existing columns");
+		rbReplace.setSelected(config.getReplaceMode() == ReplaceMode.REPLACE);
+		rbReplace.addActionListener(e -> config.setReplaceMode(ReplaceMode.REPLACE));
+		JRadioButton rbAppend = new JRadioButton("Append new columns");
+		rbAppend.setSelected(config.getReplaceMode() == ReplaceMode.APPEND);
+		rbAppend.addActionListener(e -> config.setReplaceMode(ReplaceMode.APPEND));
+
+		ButtonGroup group = new ButtonGroup();
+		group.add(rbAppend);
+		group.add(rbReplace);
+
+		panel.add(rbReplace, CC.rc(1, 1));
+		panel.add(rbAppend, CC.rc(3, 1));
+		panel.setBorder(BorderFactory.createTitledBorder("Output Mode"));
 		return panel;
 	}
 
