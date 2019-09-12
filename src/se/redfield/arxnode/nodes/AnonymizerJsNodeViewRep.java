@@ -1,6 +1,9 @@
 package se.redfield.arxnode.nodes;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.deidentifier.arx.ARXLattice;
 import org.deidentifier.arx.ARXLattice.ARXNode;
@@ -20,12 +23,46 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 	public static final String CONFIG_VIEW_REP = "viewRep";
 
 	private AnonymizationResultRep[] partitions;
+	private String[] attributes;
+	private List<Set<Integer>> levels;
+	private int maxLevel;
 
 	public void updateFrom(List<AnonymizationResult> results) {
 		partitions = new AnonymizationResultRep[results.size()];
 		for (int i = 0; i < partitions.length; i++) {
 			partitions[i] = new AnonymizationResultRep(results.get(i));
 		}
+		processLevels(results);
+	}
+
+	private void processLevels(List<AnonymizationResult> results) {
+		levels = new ArrayList<>();
+
+		attributes = results.get(0).getArxResult().getGlobalOptimum().getQuasiIdentifyingAttributes();
+		for (int i = 0; i < attributes.length; i++) {
+			levels.add(new HashSet<>());
+		}
+
+		for (AnonymizationResult result : results) {
+			for (ARXNode[] level : result.getArxResult().getLattice().getLevels()) {
+				for (ARXNode node : level) {
+					int[] transformation = node.getTransformation();
+					for (int i = 0; i < transformation.length; i++) {
+						levels.get(i).add(transformation[i]);
+					}
+				}
+			}
+		}
+
+		maxLevel = 0;
+		for (Set<Integer> row : levels) {
+			for (Integer i : row) {
+				if (i > maxLevel) {
+					maxLevel = i;
+				}
+			}
+		}
+
 	}
 
 	public AnonymizationResultRep[] getPartitions() {
@@ -36,11 +73,35 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 		this.partitions = partitions;
 	}
 
+	public String[] getAttributes() {
+		return attributes;
+	}
+
+	public void setAttributes(String[] attributes) {
+		this.attributes = attributes;
+	}
+
+	public List<Set<Integer>> getLevels() {
+		return levels;
+	}
+
+	public void setLevels(List<Set<Integer>> levels) {
+		this.levels = levels;
+	}
+
+	public int getMaxLevel() {
+		return maxLevel;
+	}
+
+	public void setMaxLevel(int maxLevel) {
+		this.maxLevel = maxLevel;
+	}
+
 	@Override
 	public void saveToNodeSettings(NodeSettingsWO settings) {
 		Gson gson = new GsonBuilder().create();
-		String json = gson.toJson(partitions);
-		// System.out.println("json");
+		String json = gson.toJson(this);
+		// System.out.println("rep.json");
 		// System.out.println(json);
 		settings.addString(CONFIG_VIEW_REP, json);
 	}
@@ -48,10 +109,17 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 	@Override
 	public void loadFromNodeSettings(NodeSettingsRO settings) throws InvalidSettingsException {
 		String json = settings.getString(CONFIG_VIEW_REP, null);
-		if (json != null) {
-			Gson gson = new GsonBuilder().create();
-			partitions = gson.fromJson(json, AnonymizationResultRep[].class);
+		Gson gson = new GsonBuilder().create();
+		try {
+			AnonymizerJsNodeViewRep temp = gson.fromJson(json, AnonymizerJsNodeViewRep.class);
+			this.partitions = temp.partitions;
+			this.attributes = temp.attributes;
+			this.levels = temp.levels;
+			this.maxLevel = temp.maxLevel;
+		} catch (Throwable e) {
+
 		}
+
 	}
 
 	@Override
