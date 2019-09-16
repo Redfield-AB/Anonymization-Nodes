@@ -1,6 +1,7 @@
 /// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/jQuery/jquery-3.3.1.js" />
 /// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/bootstrap/3_3_6/debug/js/bootstrap.js" />
 /// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/dataTables/1_10_11/bootstrap/datatables.js" />
+/// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/d3/4_13_0/d3.js" />
 
 se_redfield_arxnode_nodes_anonymizer = function () {
 
@@ -13,7 +14,8 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			$('body').append($('<div class="container-fluid"></div>').append(this.container));
 
 			this.filter = new TransformationFilter(this, this.container);
-			this.initPartitionsTabs()
+			this.initPartitionsTabs();
+			this.filtersUpdated();
 		}
 
 		initPartitionsTabs() {
@@ -31,6 +33,11 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			if (this.partitions.length <= 1) {
 				tabsHeader.addClass('hide');
 			}
+
+			$('.nav-link').on('click', e => {
+				e.preventDefault();
+				$(e.target).tab('show');
+			});
 		}
 
 		filtersUpdated() {
@@ -45,15 +52,10 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			this.processNodes(partition);
 
 			var link = $(`<a class="nav-link" role="tab" href="#partiton-tab-${index}">${index}</a>`);
-			link.on('click', e => {
-				e.preventDefault();
-				$(e.target).tab('show');
-			});
-
 			var header = $('<li class="nav-item"></li>')
 				.append(link);
 			tabsHeader.append(header);
-			tabsContent.append(this.createTabContent());
+			this.createTabContent(tabsContent);
 
 			if (this.index == 0) {
 				link.tab('show');
@@ -77,6 +79,7 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 					if (node.$selected) {
 						this.selectedNode = node;
 					}
+					node.$visible = true;
 
 					this.nodes[uid] = node;
 				}
@@ -87,11 +90,30 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			return `node-${this.index}-` + transformation.join('-');
 		}
 
-		createTabContent() {
-			var content = $(`<div class="tab-pane" role="tabpanel" id="partiton-tab-${this.index}"></div>`);
-			this.transformationsTable = new TransformationsTable(this, content);
-			this.transformationsTable.reloadData();
-			return content;
+		createTabContent(container) {
+			var tableContent = $(`<div class="tab-pane" role="tabpanel", id="table-view-${this.index}"></div>"`);
+			var graphContent = $(`<div class="tab-pane active" role="tabpanel", id="graph-view-${this.index}"></div>"`);
+
+			var graphLink = $(`<a class="nav-link" role="tab" href="#graph-view-${this.index}">Graph</a>`);
+			graphLink.on('shown.bs.tab', e => {
+				this.transformationsGraph.update();
+			});
+
+			var content = $(`<div class="tab-pane" role="tabpanel" id="partiton-tab-${this.index}"></div>`).append(
+				$('<ul class="nav nav-pills"></ul>').append(
+					$('<li class="nav-item"></li>').append(
+						$(`<a class="nav-link" role="tab" href="#table-view-${this.index}">Table</a>`)
+					),
+					$('<li class="nav-item active"></li>').append(
+						graphLink
+					)
+				),
+				$('<div class="tab-content"></div>').append(tableContent, graphContent)
+			);
+			container.append(content);
+
+			this.transformationsTable = new TransformationsTable(this, tableContent);
+			this.transformationsGraph = new TransformationsGraph(this, graphContent);
 		}
 
 		selectTransformation(node) {
@@ -102,11 +124,17 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			this.selectedNode.$selected = true;
 
 			this.view.val.selectedTransformations[this.index] = node.transformation;
+
 			this.transformationsTable.updateSelected(node);
+			this.transformationsGraph.update();
 		}
 
 		filtersUpdated() {
+			for (var i in this.nodes) {
+				this.nodes[i].$visible = this.view.filter.isVisible(this.nodes[i]);
+			}
 			this.transformationsTable.reloadData();
+			this.transformationsGraph.update();
 		}
 	}
 
@@ -129,7 +157,7 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 					panelBody
 				)
 			);
-			
+
 			this.scoreFilter = new ScoreFilter(this, form);
 			this.anonymityFilter = new AnonymityFilter(this, form);
 			this.levelsTable = new TransformationLevelsFilter(this, panelBody);
@@ -144,7 +172,7 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 				return true;
 			}
 
-			return this.anonymityFilter.match(node) 
+			return this.anonymityFilter.match(node)
 				&& this.scoreFilter.match(node)
 				&& this.levelsTable.match(node);
 		}
@@ -440,7 +468,6 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			let thisRef = this;
 			table.on('click', 'tr', function () {
 				var node = thisRef.dt.row(this).data();
-				console.log('data', node);
 				if (node) {
 					thisRef.partition.selectTransformation(node);
 				}
@@ -453,7 +480,7 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			let data = [];
 			for (let key in this.partition.nodes) {
 				let node = this.partition.nodes[key];
-				if (this.partition.view.filter.isVisible(node)) {
+				if (node.$visible) {
 					data.push(node);
 				}
 			}
@@ -471,6 +498,159 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			this.dt.rows.add(this.populateData());
 			this.dt.draw();
 			this.updateSelected(this.partition.selectedNode);
+		}
+	}
+
+	class TransformationsGraph {
+		constructor(partition, container) {
+			this.partition = partition;
+
+			this.svgContainer = $(`<div id="svg-container-${partition.index}"></div>`);
+			container.append(this.svgContainer);
+
+			this.svg = d3.select("#svg-container-" + partition.index).append("svg")
+				.attr('width', '100%');
+			this.edgesGroup = this.svg.append('g');
+			this.ovalsGroup = this.svg.append('g');
+			this.labelsGroup = this.svg.append('g');
+
+			var thisRef = this;
+			$(window).resize(function () {
+				thisRef.update();
+			});
+		}
+
+		update() {
+			this.processNodes();
+			var NODE_FACTOR = 0.8;
+			var LABEL_FACTOR = 0.4;
+			var partition = this.partition;
+
+			var edge = this.edgesGroup.selectAll('line').data(this.edgesData);
+			edge.exit().remove();
+			edge.enter()
+				.append('line')
+				.merge(edge)
+				.attr('stroke', 'black')
+				.attr('stroke-width', 2)
+				.attr('x1', d => d.fromX)
+				.attr('y1', d => d.fromY)
+				.attr('x2', d => d.toX)
+				.attr('y2', d => d.toY);
+
+			var oval = this.ovalsGroup.selectAll(".oval").data(this.nodesData, d => d.$uid);
+			oval.enter()
+				.append('ellipse')
+				.attr('class', 'oval')
+				.style('cursor', 'pointer')
+				.attr('stroke-width', 3)
+				.merge(oval)
+				.attr('rx', this.nodeWidth * NODE_FACTOR / 2)
+				.attr('ry', this.nodeHeight * NODE_FACTOR / 2)
+				.attr('cx', d => d.$centerX)
+				.attr('cy', d => d.$centerY)
+				.attr('fill', d => {
+					if (d.optimum) {
+						return 'yellow';
+					}
+					if (d.anonymity == 'ANONYMOUS' || d.anonymity == 'PROBABLY_ANONYMOUS') {
+						return 'lightgreen';
+					}
+					return 'red';
+				})
+				.attr('stroke', d => d.$selected ? 'blue' : 'black')
+				.on('click', node => {
+					partition.selectTransformation(node);
+				});
+			oval.exit().remove();
+
+			var label = this.labelsGroup.selectAll('.caption').data(this.nodesData, d => d.$uid);
+			var targetLabelWidth = this.nodeWidth * NODE_FACTOR * LABEL_FACTOR;
+			label.exit().remove();
+			label.enter()
+				.append('text')
+				.attr('class', 'caption')
+				.text(d => d.transformation)
+				.attr("dy", ".35em")
+				.style('cursor', 'pointer')
+				.merge(label)
+				.attr('transform', function (d) {
+					var factor = (targetLabelWidth) / this.getComputedTextLength();
+					var x = d.$centerX - targetLabelWidth / 2;
+					var y = d.$centerY;
+					return `translate(${x}, ${y}) scale(${factor}) `;
+				})
+				.on('click', node => {
+					partition.selectTransformation(node);
+				});
+		}
+
+		processNodes() {
+			var visibleLevels = [];
+			var maxLevelLength = 0;
+			for (var i in this.partition.levels) {
+				var level = this.partition.levels[i].filter(n => n.$visible);
+				if (level.length > 0) {
+					visibleLevels.push(level);
+					if (level.length > maxLevelLength) {
+						maxLevelLength = level.length;
+					}
+				}
+			}
+
+			var nodeWidth = 150;
+			var nodeHeight = 45;
+			var screenWidth = this.svgContainer.width();
+
+			var factor = screenWidth / (maxLevelLength * nodeWidth);
+			if (factor < 1) {
+				nodeWidth *= factor;
+				nodeHeight *= factor;
+			}
+
+			this.nodeWidth = nodeWidth;
+			this.nodeHeight = nodeHeight;
+
+			var screenHeight = nodeHeight * visibleLevels.length;
+			this.svg = this.svg.attr('height', screenHeight);
+
+			var offsetX = (screenWidth - maxLevelLength * nodeWidth) / 2;
+			var positionY = visibleLevels.length - 1;
+			this.nodesData = [];
+			this.edgesData = [];
+
+			for (var i in visibleLevels) {
+				var level = visibleLevels[i];
+				var centerY = (positionY * nodeHeight) + nodeHeight / 2;
+				var positionX = 0;
+				for (var j in level) {
+					var node = level[j];
+					var offset = (maxLevelLength - level.length) * nodeWidth;
+					var centerX = offsetX + (positionX * nodeWidth) + nodeWidth / 2 + offset / 2;
+					node.$centerX = centerX;
+					node.$centerY = centerY;
+					this.nodesData.push(node);
+					positionX += 1;
+				}
+				positionY -= 1;
+			}
+
+			visibleLevels.forEach(level => {
+				level.forEach(node => {
+					node.successors.forEach(uid => {
+						var toNode = this.partition.nodes[uid];
+						if(toNode.$visible) {
+							this.edgesData.push({
+								fromX: node.$centerX,
+								fromY: node.$centerY,
+								toX: toNode.$centerX,
+								toY: toNode.$centerY
+							});	
+						}
+					});
+				});
+			});
+
 		}
 	}
 

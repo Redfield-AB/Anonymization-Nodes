@@ -1,9 +1,11 @@
 package se.redfield.arxnode.nodes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.deidentifier.arx.ARXLattice;
 import org.deidentifier.arx.ARXLattice.ARXNode;
@@ -30,7 +32,7 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 	public void updateFrom(List<AnonymizationResult> results) {
 		partitions = new AnonymizationResultRep[results.size()];
 		for (int i = 0; i < partitions.length; i++) {
-			partitions[i] = new AnonymizationResultRep(results.get(i));
+			partitions[i] = new AnonymizationResultRep(results.get(i), i);
 		}
 		processLevels(results);
 	}
@@ -143,14 +145,16 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 
 		private ArxNodeRep[][] levels;
 
-		AnonymizationResultRep(AnonymizationResult result) {
+		AnonymizationResultRep(AnonymizationResult result, int partitionIndex) {
 			ARXLattice lattice = result.getArxResult().getLattice();
 			levels = new ArxNodeRep[lattice.getLevels().length][];
+			ARXNode optimum = result.getArxResult().getGlobalOptimum();
+
 			for (int i = 0; i < levels.length; i++) {
 				ARXNode[] nodes = lattice.getLevels()[i];
 				levels[i] = new ArxNodeRep[nodes.length];
 				for (int j = 0; j < levels[i].length; j++) {
-					levels[i][j] = new ArxNodeRep(nodes[j], lattice);
+					levels[i][j] = new ArxNodeRep(nodes[j], lattice, optimum, partitionIndex);
 				}
 			}
 		}
@@ -169,12 +173,28 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 		private Anonymity anonymity;
 		private InfolossScore minScore;
 		private InfolossScore maxScore;
+		private boolean optimum;
+		private String[] successors;
 
-		ArxNodeRep(ARXNode node, ARXLattice lattice) {
+		ArxNodeRep(ARXNode node, ARXLattice lattice, ARXNode optimum, int partitionIndex) {
 			this.transformation = node.getTransformation();
 			this.anonymity = node.getAnonymity();
 			this.minScore = InfolossScore.createFrom(lattice, node.getLowestScore());
 			this.maxScore = InfolossScore.createFrom(lattice, node.getHighestScore());
+			this.optimum = node == optimum;
+			this.successors = Arrays.stream(node.getSuccessors()).map(n -> generateUID(n, partitionIndex))
+					.collect(Collectors.toList()).toArray(new String[] {});
+		}
+
+		private String generateUID(ARXNode node, int partitionIndex) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("node-");
+			sb.append(partitionIndex);
+			for (int i = 0; i < node.getTransformation().length; i++) {
+				sb.append("-");
+				sb.append(node.getTransformation()[i]);
+			}
+			return sb.toString();
 		}
 
 		public int[] getTransformation() {
@@ -207,6 +227,22 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 
 		public void setMaxScore(InfolossScore maxScore) {
 			this.maxScore = maxScore;
+		}
+
+		public boolean isOptimum() {
+			return optimum;
+		}
+
+		public void setOptimum(boolean optimum) {
+			this.optimum = optimum;
+		}
+
+		public String[] getSuccessors() {
+			return successors;
+		}
+
+		public void setSuccessors(String[] successors) {
+			this.successors = successors;
 		}
 	}
 }

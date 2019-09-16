@@ -86,6 +86,9 @@
          <webDependency
                webResourceBundleID="dataTables_1_10_11_bootstrap">
          </webDependency>
+         <webDependency
+               webResourceBundleID="D3_4.13.0">
+         </webDependency>
       </webResourceBundle>
 	</extension>
 </plugin>
