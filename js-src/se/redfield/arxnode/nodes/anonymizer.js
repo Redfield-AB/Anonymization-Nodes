@@ -94,18 +94,13 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			var tableContent = $(`<div class="tab-pane" role="tabpanel", id="table-view-${this.index}"></div>"`);
 			var graphContent = $(`<div class="tab-pane active" role="tabpanel", id="graph-view-${this.index}"></div>"`);
 
-			var graphLink = $(`<a class="nav-link" role="tab" href="#graph-view-${this.index}">Graph</a>`);
-			graphLink.on('shown.bs.tab', e => {
-				this.transformationsGraph.update();
-			});
-
 			var content = $(`<div class="tab-pane" role="tabpanel" id="partiton-tab-${this.index}"></div>`).append(
 				$('<ul class="nav nav-pills"></ul>').append(
 					$('<li class="nav-item"></li>').append(
 						$(`<a class="nav-link" role="tab" href="#table-view-${this.index}">Table</a>`)
 					),
 					$('<li class="nav-item active"></li>').append(
-						graphLink
+						$(`<a class="nav-link" role="tab" href="#graph-view-${this.index}">Graph</a>`)
 					)
 				),
 				$('<div class="tab-content"></div>').append(tableContent, graphContent)
@@ -114,6 +109,10 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 
 			this.transformationsTable = new TransformationsTable(this, tableContent);
 			this.transformationsGraph = new TransformationsGraph(this, graphContent);
+
+			$('body').on('shown.bs.tab', e => {
+				this.transformationsGraph.update();
+			});
 		}
 
 		selectTransformation(node) {
@@ -355,7 +354,7 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 				tr.append(`<td>${attr.name}</td>`);
 
 				for (let i in attr.availableLevels) {
-					var td = $(`<td id="${attr.name}-${i}-level-cell" style="text-align:center"></td>`);
+					var td = $(`<td id="${attr.index}-${i}-level-cell" style="text-align:center"></td>`);
 					tr.append(td);
 
 					if (attr.availableLevels[i]) {
@@ -382,7 +381,7 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 		onLevelClicked(attr, index) {
 			attr.selectedLevels[index] = !attr.selectedLevels[index];
 
-			var td = $(`#${attr.name}-${index}-level-cell`);
+			var td = $(`#${attr.index}-${index}-level-cell`);
 			td.empty();
 			td.append(this.getCellContents(attr, index));
 
@@ -505,14 +504,30 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 		constructor(partition, container) {
 			this.partition = partition;
 
+			this.NODE_FACTOR = 0.8;
+			this.LABEL_FACTOR = 0.4;
+			this.Y_OFFSET = 30;
+
 			this.svgContainer = $(`<div id="svg-container-${partition.index}"></div>`);
 			container.append(this.svgContainer);
 
 			this.svg = d3.select("#svg-container-" + partition.index).append("svg")
 				.attr('width', '100%');
-			this.edgesGroup = this.svg.append('g');
-			this.ovalsGroup = this.svg.append('g');
-			this.labelsGroup = this.svg.append('g');
+
+			let zoomRect = this.svg.append("rect")
+				.attr("fill", "#f8f8f8")
+				.attr("pointer-events", "all")
+				.attr("width", '100%')
+				.attr("height", '100%');
+			let parentGroup = this.svg.append('g');
+			zoomRect.call(d3.zoom().on('zoom', function () {
+				parentGroup.attr('transform', d3.event.transform);
+			}))
+
+
+			this.edgesGroup = parentGroup.append('g');
+			this.ovalsGroup = parentGroup.append('g');
+			this.labelsGroup = parentGroup.append('g');
 
 			var thisRef = this;
 			$(window).resize(function () {
@@ -521,68 +536,14 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 		}
 
 		update() {
+			if (!this.svgContainer.width()) {
+				return;
+			}
+
 			this.processNodes();
-			var NODE_FACTOR = 0.8;
-			var LABEL_FACTOR = 0.4;
-			var partition = this.partition;
-
-			var edge = this.edgesGroup.selectAll('line').data(this.edgesData);
-			edge.exit().remove();
-			edge.enter()
-				.append('line')
-				.merge(edge)
-				.attr('stroke', 'black')
-				.attr('stroke-width', 2)
-				.attr('x1', d => d.fromX)
-				.attr('y1', d => d.fromY)
-				.attr('x2', d => d.toX)
-				.attr('y2', d => d.toY);
-
-			var oval = this.ovalsGroup.selectAll(".oval").data(this.nodesData, d => d.$uid);
-			oval.enter()
-				.append('ellipse')
-				.attr('class', 'oval')
-				.style('cursor', 'pointer')
-				.attr('stroke-width', 3)
-				.merge(oval)
-				.attr('rx', this.nodeWidth * NODE_FACTOR / 2)
-				.attr('ry', this.nodeHeight * NODE_FACTOR / 2)
-				.attr('cx', d => d.$centerX)
-				.attr('cy', d => d.$centerY)
-				.attr('fill', d => {
-					if (d.optimum) {
-						return 'yellow';
-					}
-					if (d.anonymity == 'ANONYMOUS' || d.anonymity == 'PROBABLY_ANONYMOUS') {
-						return 'lightgreen';
-					}
-					return 'red';
-				})
-				.attr('stroke', d => d.$selected ? 'blue' : 'black')
-				.on('click', node => {
-					partition.selectTransformation(node);
-				});
-			oval.exit().remove();
-
-			var label = this.labelsGroup.selectAll('.caption').data(this.nodesData, d => d.$uid);
-			var targetLabelWidth = this.nodeWidth * NODE_FACTOR * LABEL_FACTOR;
-			label.exit().remove();
-			label.enter()
-				.append('text')
-				.attr('class', 'caption')
-				.text(d => d.transformation)
-				.attr("dy", ".35em")
-				.style('cursor', 'pointer')
-				.merge(label)
-				.attr('transform', function (d) {
-					var factor = (targetLabelWidth) / this.getComputedTextLength();
-					var x = d.$centerX - targetLabelWidth / 2;
-					var y = d.$centerY;
-					return `translate(${x}, ${y}) scale(${factor}) `;
-				})
-				.on('click', node => {
-					partition.selectTransformation(node);
-				});
+			this.drawEdges();
+			this.drawOvals();
+			this.drawLabels();
 		}
 
 		processNodes() {
@@ -612,7 +573,7 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 			this.nodeHeight = nodeHeight;
 
 			var screenHeight = nodeHeight * visibleLevels.length;
-			this.svg = this.svg.attr('height', screenHeight);
+			this.svg = this.svg.attr('height', screenHeight + 2 * this.Y_OFFSET);
 
 			var offsetX = (screenWidth - maxLevelLength * nodeWidth) / 2;
 			var positionY = visibleLevels.length - 1;
@@ -621,7 +582,7 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 
 			for (var i in visibleLevels) {
 				var level = visibleLevels[i];
-				var centerY = (positionY * nodeHeight) + nodeHeight / 2;
+				var centerY = (positionY * nodeHeight) + nodeHeight / 2 + this.Y_OFFSET;
 				var positionX = 0;
 				for (var j in level) {
 					var node = level[j];
@@ -639,18 +600,104 @@ se_redfield_arxnode_nodes_anonymizer = function () {
 				level.forEach(node => {
 					node.successors.forEach(uid => {
 						var toNode = this.partition.nodes[uid];
-						if(toNode.$visible) {
+						if (toNode.$visible) {
 							this.edgesData.push({
 								fromX: node.$centerX,
 								fromY: node.$centerY,
 								toX: toNode.$centerX,
-								toY: toNode.$centerY
-							});	
+								toY: toNode.$centerY,
+								uid: node.$uid + ':' + toNode.$uid
+							});
 						}
 					});
 				});
 			});
 
+		}
+
+		drawEdges() {
+			var edge = this.edgesGroup.selectAll('line').data(this.edgesData, d => d.uid);
+			edge.exit().remove();
+			edge.enter()
+				.append('line')
+				.attr('stroke', 'white')
+				.attr('stroke-width', 2)
+				.attr('x1', d => d.fromX)
+				.attr('y1', d => d.fromY)
+				.attr('x2', d => d.toX)
+				.attr('y2', d => d.toY)
+				.merge(edge)
+				.transition()
+				.attr('stroke', 'black')
+				.attr('x1', d => d.fromX)
+				.attr('y1', d => d.fromY)
+				.attr('x2', d => d.toX)
+				.attr('y2', d => d.toY);
+		}
+
+		drawOvals() {
+			var oval = this.ovalsGroup.selectAll("ellipse").data(this.nodesData, d => d.$uid);
+			oval.exit()
+				.transition()
+				.attr('rx', 0)
+				.attr('ry', 0)
+				.remove();
+
+			oval.enter()
+				.append('ellipse')
+				.style('cursor', 'pointer')
+				.attr('stroke-width', 3)
+				.attr('rx', 0)
+				.attr('ry', 0)
+				.attr('cx', d => d.$centerX)
+				.attr('cy', d => d.$centerY)
+				.attr('fill', d => {
+					if (d.optimum) {
+						return 'yellow';
+					}
+					if (d.anonymity == 'ANONYMOUS' || d.anonymity == 'PROBABLY_ANONYMOUS') {
+						return 'lightgreen';
+					}
+					return 'red';
+				})
+				.attr('stroke', d => d.$selected ? 'blue' : 'black')
+				.on('click', node => {
+					this.partition.selectTransformation(node);
+				})
+				.merge(oval)
+				.transition()
+				.attr('rx', this.nodeWidth * this.NODE_FACTOR / 2)
+				.attr('ry', this.nodeHeight * this.NODE_FACTOR / 2)
+				.attr('cx', d => d.$centerX)
+				.attr('cy', d => d.$centerY)
+				.attr('stroke', d => d.$selected ? 'blue' : 'black')
+		}
+
+		drawLabels() {
+			var label = this.labelsGroup.selectAll('text').data(this.nodesData, d => d.$uid);
+			var targetLabelWidth = this.nodeWidth * this.NODE_FACTOR * this.LABEL_FACTOR;
+			label.exit().remove();
+			label.enter()
+				.append('text')
+				.text(d => d.transformation)
+				.attr("dy", ".35em")
+				.style('cursor', 'pointer')
+				.attr('transform', function (d) {
+					var x = d.$centerX - targetLabelWidth / 2;
+					var y = d.$centerY;
+					return `translate(${x}, ${y}) scale(0) `;
+				})
+				.on('click', node => {
+					this.partition.selectTransformation(node);
+				})
+				.merge(label)
+				.transition()
+				.attr('transform', function (d) {
+					var factor = (targetLabelWidth) / this.getComputedTextLength();
+					var x = d.$centerX - targetLabelWidth / 2;
+					var y = d.$centerY;
+					return `translate(${x}, ${y}) scale(${factor}) `;
+				})
 		}
 	}
 
