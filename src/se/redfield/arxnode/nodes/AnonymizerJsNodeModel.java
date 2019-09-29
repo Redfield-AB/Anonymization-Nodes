@@ -93,7 +93,6 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 
 	@Override
 	protected void useCurrentValueAsDefault() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -118,6 +117,9 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		logger.debug("configure");
+		if ((inSpecs[PORT_DATA_TABLE] == null) || (((DataTableSpec) inSpecs[PORT_DATA_TABLE]).getNumColumns() < 1)) {
+			throw new InvalidSettingsException("Input table is missing or empty");
+		}
 
 		config.configure((DataTableSpec) inSpecs[PORT_DATA_TABLE], (ArxPortObjectSpec) inSpecs[PORT_ARX]);
 		config.validate();

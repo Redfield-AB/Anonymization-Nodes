@@ -13,13 +13,11 @@ public class HierarchyCreateNodeFactory extends NodeFactory<HierarchyCreateNodeM
 
 	@Override
 	protected int getNrNodeViews() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public NodeView<HierarchyCreateNodeModel> createNodeView(int viewIndex, HierarchyCreateNodeModel nodeModel) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

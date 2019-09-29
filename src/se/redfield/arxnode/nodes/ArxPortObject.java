@@ -57,7 +57,6 @@ public class ArxPortObject extends AbstractPortObject {
 
 	@Override
 	public JComponent[] getViews() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

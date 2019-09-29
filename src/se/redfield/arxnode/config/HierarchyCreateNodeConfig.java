@@ -103,7 +103,6 @@ public class HierarchyCreateNodeConfig implements SettingsModelConfig {
 
 	@Override
 	public String getKey() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

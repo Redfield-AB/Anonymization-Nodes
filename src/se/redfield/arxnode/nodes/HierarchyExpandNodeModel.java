@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -44,14 +45,12 @@ public class HierarchyExpandNodeModel extends NodeModel {
 	@Override
 	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -83,6 +82,9 @@ public class HierarchyExpandNodeModel extends NodeModel {
 	@Override
 	protected PortObjectSpec[] configure(PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		logger.debug("configure");
+		if ((inSpecs[PORT_DATA_TABLE] == null) || (((DataTableSpec) inSpecs[PORT_DATA_TABLE]).getNumColumns() < 1)) {
+			throw new InvalidSettingsException("Input table is missing or empty");
+		}
 		ArxPortObjectSpec inSpec = (ArxPortObjectSpec) inSpecs[PORT_ARX_OBJECT];
 		validateFiles(inSpec);
 		return new PortObjectSpec[] { inSpecs[PORT_DATA_TABLE], null, prepareSpec(inSpec) };
@@ -133,6 +135,9 @@ public class HierarchyExpandNodeModel extends NodeModel {
 
 	private Map<String, HierarchyBuilder<?>> expandHierarchies(BufferedDataTable inTable, ArxPortObject inArxObject)
 			throws IOException {
+		if (inTable.size() <= 0) {
+			throw new IllegalStateException("Input table is empty");
+		}
 		return HierarchyExpander.expand(inTable, config,
 				inArxObject == null ? Collections.emptyMap() : inArxObject.getHierarchies());
 	}

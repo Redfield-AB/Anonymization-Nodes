@@ -18,7 +18,6 @@ public class HierarchyExpandNodeFactory extends NodeFactory<HierarchyExpandNodeM
 
 	@Override
 	public NodeView<HierarchyExpandNodeModel> createNodeView(int viewIndex, HierarchyExpandNodeModel nodeModel) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

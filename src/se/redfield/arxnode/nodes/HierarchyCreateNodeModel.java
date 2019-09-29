@@ -3,6 +3,7 @@ package se.redfield.arxnode.nodes;
 import java.io.File;
 import java.io.IOException;
 
+import org.knime.core.data.DataTableSpec;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -38,14 +39,12 @@ public class HierarchyCreateNodeModel extends NodeModel {
 	@Override
 	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -68,7 +67,6 @@ public class HierarchyCreateNodeModel extends NodeModel {
 
 	@Override
 	protected void reset() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -77,6 +75,10 @@ public class HierarchyCreateNodeModel extends NodeModel {
 		if (config.getBuilder() == null) {
 			throw new InvalidSettingsException("Hierarchy is not initialized");
 		}
+		if ((inSpecs[PORT_DATA_TABLE] == null) || (((DataTableSpec) inSpecs[PORT_DATA_TABLE]).getNumColumns() < 1)) {
+			throw new InvalidSettingsException("Input table is missing or empty");
+		}
+
 		ArxPortObjectSpec inSpec = (ArxPortObjectSpec) inSpecs[PORT_ARX_OBJECT];
 		if (inSpec == null) {
 			outSpec = new ArxPortObjectSpec();
@@ -89,6 +91,10 @@ public class HierarchyCreateNodeModel extends NodeModel {
 
 	@Override
 	protected PortObject[] execute(PortObject[] inObjects, ExecutionContext exec) throws Exception {
+		if (((BufferedDataTable) inObjects[PORT_DATA_TABLE]).size() <= 0) {
+			throw new IllegalStateException("Input table is empty");
+		}
+
 		ArxPortObject out = ArxPortObject.create(outSpec, (ArxPortObject) inObjects[PORT_ARX_OBJECT]);
 		out.getHierarchies().put(config.getColumnName(), config.getBuilder());
 

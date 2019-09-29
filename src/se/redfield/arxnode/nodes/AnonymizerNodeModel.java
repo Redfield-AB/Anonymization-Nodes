@@ -95,6 +95,9 @@ public class AnonymizerNodeModel extends NodeModel
 	@Override
 	protected PortObjectSpec[] configure(final PortObjectSpec[] inSpecs) throws InvalidSettingsException {
 		logger.debug("configure");
+		if ((inSpecs[PORT_DATA_TABLE] == null) || (((DataTableSpec) inSpecs[PORT_DATA_TABLE]).getNumColumns() < 1)) {
+			throw new InvalidSettingsException("Input table is missing or empty");
+		}
 
 		config.configure((DataTableSpec) inSpecs[PORT_DATA_TABLE], (ArxPortObjectSpec) inSpecs[PORT_ARX]);
 		config.validate();
@@ -127,52 +130,33 @@ public class AnonymizerNodeModel extends NodeModel
 	protected void loadInternals(final File internDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
 
-		// TODO load internal data.
-		// Everything handed to output ports is loaded automatically (data
-		// returned by the execute method, models loaded in loadModelContent,
-		// and user settings set through loadSettingsFrom - is all taken care
-		// of). Load here only the other internals that need to be restored
-		// (e.g. data used by the views).
-
 	}
 
 	@Override
 	protected void saveInternals(final File internDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-
-		// TODO save internal models.
-		// Everything written to output ports is saved automatically (data
-		// returned by the execute method, models saved in the saveModelContent,
-		// and user settings saved through saveSettingsTo - is all taken care
-		// of). Save here only the other internals that need to be preserved
-		// (e.g. data used by the views).
-
 	}
 
 	@Override
 	public AnonymizerNodeViewValue getViewRepresentation() {
-		// TODO Auto-generated method stub
 		logger.debug("getViewRepresentation");
 		return null;
 	}
 
 	@Override
 	public AnonymizerNodeViewValue getViewValue() {
-		// TODO Auto-generated method stub
 		logger.debug("getViewValue");
 		return null;
 	}
 
 	@Override
 	public ValidationError validateViewValue(AnonymizerNodeViewValue viewContent) {
-		// TODO Auto-generated method stub
 		logger.debug("validateViewValue");
 		return null;
 	}
 
 	@Override
 	public void loadViewValue(AnonymizerNodeViewValue viewContent, boolean useAsDefault) {
-		// TODO Auto-generated method stub
 		logger.debug("loadViewValue: ");
 		this.viewValue = viewContent;
 		// selectedTransformation = viewContent.getTransformation();

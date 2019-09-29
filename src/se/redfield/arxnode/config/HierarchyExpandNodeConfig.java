@@ -6,7 +6,6 @@ public class HierarchyExpandNodeConfig extends ListSettingsModelConfig<Hierarchy
 
 	@Override
 	public String getKey() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

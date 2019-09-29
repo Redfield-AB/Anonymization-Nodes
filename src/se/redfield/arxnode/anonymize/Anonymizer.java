@@ -56,6 +56,16 @@ public class Anonymizer {
 		List<Partition> parts = partitioner.partition(inTable,
 				config.getAnonymizationConfig().getOmitMissingValues().getBooleanValue());
 
+		for (Partition partition : parts) {
+			if (partition.getInfo().getRows() == 0) {
+				String message = "Input table is empty.";
+				if (parts.size() > 1) {
+					message = "One of the partitions is empty.";
+				}
+				throw new IllegalStateException(message);
+			}
+		}
+
 		ExecutorService executor = Executors.newFixedThreadPool(parts.size());
 		CompletionService<AnonymizationResult> service = new ExecutorCompletionService<>(executor);
 		for (Partition pair : parts) {

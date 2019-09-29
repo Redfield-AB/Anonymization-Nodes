@@ -20,6 +20,9 @@ public class EqualSizePartitioner extends Partitioner {
 
 	@Override
 	protected void init(BufferedDataTable source) {
+		if (source.size() < partsNum) {
+			partsNum = (int) source.size();
+		}
 		partitionSize = source.size() / partsNum;
 		partitions = new ArrayList<>();
 		for (int i = 0; i < partsNum; i++) {

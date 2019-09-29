@@ -36,14 +36,12 @@ public class HierarchyWriterNodeModel extends NodeModel {
 	@Override
 	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -66,7 +64,6 @@ public class HierarchyWriterNodeModel extends NodeModel {
 
 	@Override
 	protected void reset() {
-		// TODO Auto-generated method stub
 
 	}
 
