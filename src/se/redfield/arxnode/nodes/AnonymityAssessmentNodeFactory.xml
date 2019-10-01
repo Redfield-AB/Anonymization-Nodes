@@ -1,25 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+<knimeNode icon="./icons/assessment.png" type="Manipulator" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
     <name>Anonymity Assessment</name>
     
     <shortDescription>
-        Short desc
+        Anonymity Assessment
     </shortDescription>
     
     <fullDescription>
         <intro>
-        	Full desc
-        	
+        	Two types of risks are considered:
+        	<ol>
+        		<li>
+        			combinations of quasi-identifiers that can be analyzed regarding associated risks of re-identification;<br></br><br></br>
+					The view provides information about the degree to which combinations of variables separate the records from each other and to which degree the variables make records distinct.
+					<a href="https://arx.deidentifier.org/anonymization-tool/risk-analysis/">Risk Analysis</a>
+        		</li>
+        		<li>
+        			estimations for three different attacker models:
+        			<br/><br/>1) The risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset. (The “prosecutor scenario.”)
+					<br/><br/>2) The risk that there exists at least one person in the dataset who can be re-identified. The point is to prove that someone can be re-identified. In this case, the goal of the re- identification is frequently to embarrass or discredit the organization that performed the de-identification. (The “journalist scenario.25”)
+					<br/><br/>3)  The percentage of identities in the dataset that can be correctly re-identified. (The “marketer scenario.”) <a href="http://dx.doi.org/10.6028/NIST.IR.8053">Mode Details</a>						
+        		</li>
+        	</ol>
+			If two tables are provided then, additional columns are shown in the output tables.
         </intro>
         
         
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Plain Data table">Not Anonymized Data table</inPort>
-        <inPort index="1" name="Anonymized Data table">Anonymized Data table</inPort>
-        <outPort index="0" name="Anonymity Assessment">Anonymity Assessment</outPort>
-        <outPort index="1" name="Re-identification Risks">Re-identification Risks</outPort>
+        <inPort index="0" name="Non-anonymized table">Non-anonymized table</inPort>
+        <inPort index="1" name=" Anonymized table"> Anonymized table</inPort>
+        <outPort index="0" name="Quasi-identifiers re-identification risks">Quasi-identifiers re-identification risks</outPort>
+        <outPort index="1" name="Attacker models re-identification risks">Attacker models re-identification risks</outPort>
     </ports>
     
 </knimeNode>

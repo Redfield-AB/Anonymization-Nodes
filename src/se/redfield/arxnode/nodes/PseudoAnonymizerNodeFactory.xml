@@ -1,23 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<knimeNode icon="./default.png" type="Manipulator" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
-    <name>Pseudoanonymizer Node</name>
+<knimeNode icon="./icons/pseudo.png" type="Manipulator" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
+    <name>Pseudoanonymization</name>
     
     <shortDescription>
-        Short desc
+        Node for hashing (SHA-1) the values in the columns with multiple salting strategies.
     </shortDescription>
     
     <fullDescription>
         <intro>
-        	Full desc
-        	
+        	Node for hashing (SHA-1) the values in the columns with multiple salting strategies.
         </intro>
-        
-        
+        <tab name="Options">
+        	<option name="Salting">
+        		The node applies SHA-1 algorithm for hashing values in selected columns.
+        		All values are converted to string then additional information might be concatenated to this string for salting.
+				There are four salting strategies:
+				<ul>
+					<li>
+						None - values in selected are hashed as they are, no additional concatenation is used;
+					</li>
+					<li>
+						Random - random seed is used for salting every time node is executed. It is possbile to use fixed seed value.
+					</li>
+					<li>
+						Column - values for additional column is used for salting. Values from selected columns are concatenated row-wise.
+					</li>
+					<li>
+						Timestamp - selected date and time are used for salting. Values from selected columns are concatenated row-wise.
+					</li>
+				</ul>
+        	</option>
+        	<option name="Debug Mode">
+        		If activated no hashing will be applied, instead only values with or without salting will be returned.
+        	</option>
+        </tab>
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Data Table">Data Table</inPort>
-        <outPort index="0" name="Anonymized Table">Anonymized table</outPort>
+        <inPort index="0" name="Table for pseudoanonymization">Table for pseudoanonymization</inPort>
+        <outPort index="0" name="Table with pseudoanonymized data">Table with pseudoanonymized data</outPort>
     </ports>
     
 </knimeNode>
