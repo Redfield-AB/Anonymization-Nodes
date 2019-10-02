@@ -8,35 +8,35 @@
 			icon="icons/arx.png"
 			level-id="arxNodes"
 			name="Arx"
-			path="/"/>
+			path="/community"/>
 	</extension>
    
 	<extension
 		point="org.knime.workbench.repository.nodes">
 		<node
-			category-path="arxNodes/"
+			category-path="/community/arxNodes/"
 			factory-class="se.redfield.arxnode.nodes.AnonymizerNodeFactory"/>
 		<node
-			category-path="arxNodes/"
+			category-path="/community/arxNodes/"
 			factory-class="se.redfield.arxnode.nodes.HierarchyExpandNodeFactory"/>
 		<node
-			category-path="arxNodes/"
+			category-path="/community/arxNodes/"
         	factory-class="se.redfield.arxnode.nodes.HierarchyCreateNodeFactory">
 		</node>
 		<node
-			category-path="arxNodes/"
+			category-path="/community/arxNodes/"
         	factory-class="se.redfield.arxnode.nodes.HierarchyWriterNodeFactory">
 		</node>
 		<node
-			category-path="arxNodes/"
+			category-path="/community/arxNodes/"
         	factory-class="se.redfield.arxnode.nodes.AnonymityAssessmentNodeFactory">
 		</node>
 		<node
-			category-path="arxNodes/"
+			category-path="/community/arxNodes/"
         	factory-class="se.redfield.arxnode.nodes.PseudoAnonymizerNodeFactory">
 		</node>		
 		<node
-			category-path="arxNodes/"
+			category-path="/community/arxNodes/"
         	factory-class="se.redfield.arxnode.nodes.AnonymizerJsNodeFactory">
 		</node>
 	</extension>
