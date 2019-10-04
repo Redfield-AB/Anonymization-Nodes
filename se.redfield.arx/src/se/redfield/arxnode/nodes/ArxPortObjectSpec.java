@@ -44,10 +44,6 @@ public class ArxPortObjectSpec extends AbstractSimplePortObjectSpec {
 		return hierarchies;
 	}
 
-	public ArxPortObjectSpec clone() {
-		return new ArxPortObjectSpec(this);
-	}
-
 	@Override
 	public String toString() {
 		return "ArxPortObjectSpec: {hierarchies: [" + String.join(",", hierarchies) + "]}";

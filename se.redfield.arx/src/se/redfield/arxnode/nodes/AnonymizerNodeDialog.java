@@ -79,20 +79,20 @@ public class AnonymizerNodeDialog extends DefaultNodeSettingsPane {
 			logger.debug(e.getMessage(), e);
 		}
 		config.configure(inTableSpec, (ArxPortObjectSpec) specs[AnonymizerNodeModel.PORT_ARX]);
-		initColumnsPanel(settings, inTableSpec);
+		initColumnsPanel();
 		anonConfigPanel.load(settings, specs);
 	}
 
-	private void initColumnsPanel(NodeSettingsRO settings, DataTableSpec spec) {
+	private void initColumnsPanel() {
 		columnsPanel.removeAll();
 
-		String rowSpec = "15:n, p:n";
+		StringBuilder rowSpec = new StringBuilder("15:n, p:n");
 		for (int i = 0; i < config.getColumns().size() - 1; i++) {
-			rowSpec += ",5:n, p:n";
+			rowSpec.append(",5:n, p:n");
 		}
-		rowSpec += ",15:n";
+		rowSpec.append(",15:n");
 		CellConstraints cc = new CellConstraints();
-		columnsPanel.setLayout(new FormLayout("15:n, f:p:g, 15:n", rowSpec));
+		columnsPanel.setLayout(new FormLayout("15:n, f:p:g, 15:n", rowSpec.toString()));
 
 		ColumnConfig[] columns = new ColumnConfig[config.getColumns().size()];
 		config.getColumns().forEach(c -> columns[c.getIndex()] = c);
@@ -119,9 +119,8 @@ public class AnonymizerNodeDialog extends DefaultNodeSettingsPane {
 
 		TransformationConfigPanel transformationPanel = new TransformationConfigPanel(this, c);
 
-		attrTypeModel.addChangeListener(
-				e -> onAttrTypeChanged(fileModel, attrTypeModel, fileChooser, transformationPanel, false));
-		onAttrTypeChanged(fileModel, attrTypeModel, fileChooser, transformationPanel, true);
+		attrTypeModel.addChangeListener(e -> onAttrTypeChanged(attrTypeModel, fileChooser, transformationPanel, false));
+		onAttrTypeChanged(attrTypeModel, fileChooser, transformationPanel, true);
 
 		JLabel columnLabel = new JLabel(createHtmlLabel(c));
 		Font font = UIManager.getFont("Label.font");
@@ -143,8 +142,8 @@ public class AnonymizerNodeDialog extends DefaultNodeSettingsPane {
 		return String.format(html, c.getName(), asterisk);
 	}
 
-	private void onAttrTypeChanged(SettingsModelString fileModel, SettingsModelString attrTypeModel,
-			DialogComponentFileChooser fileChooser, TransformationConfigPanel transformationConfig, boolean init) {
+	private void onAttrTypeChanged(SettingsModelString attrTypeModel, DialogComponentFileChooser fileChooser,
+			TransformationConfigPanel transformationConfig, boolean init) {
 		AttributeTypeOptions opt = AttributeTypeOptions.fromName(attrTypeModel.getStringValue());
 		boolean qiAttr = opt == AttributeTypeOptions.QUASI_IDENTIFYING_ATTRIBUTE;
 		fileChooser.getComponentPanel().setVisible(qiAttr);

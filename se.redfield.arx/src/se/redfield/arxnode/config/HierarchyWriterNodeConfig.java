@@ -46,7 +46,7 @@ public class HierarchyWriterNodeConfig implements SettingsModelConfig {
 		return overwrite;
 	}
 
-	public File getDirFile() throws InvalidPathException, MalformedURLException {
+	public File getDirFile() throws MalformedURLException {
 		return FileUtil.getFileFromURL(FileUtil.toURL(dir.getStringValue()));
 	}
 

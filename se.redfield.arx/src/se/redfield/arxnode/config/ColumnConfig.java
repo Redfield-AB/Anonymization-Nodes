@@ -2,7 +2,6 @@ package se.redfield.arxnode.config;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.nio.file.InvalidPathException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -69,7 +68,7 @@ public class ColumnConfig implements SettingsModelConfig, Comparable<ColumnConfi
 
 	@Override
 	public String getKey() {
-		return name;
+		return getName();
 	}
 
 	@Override
@@ -97,7 +96,7 @@ public class ColumnConfig implements SettingsModelConfig, Comparable<ColumnConfi
 		this.dataType = dataType;
 	}
 
-	public File getHierarchyFile() throws InvalidPathException, MalformedURLException {
+	public File getHierarchyFile() throws MalformedURLException {
 		String filename = hierarchyFileModel.getStringValue();
 		if (StringUtils.isEmpty(filename)) {
 			return null;
@@ -142,4 +141,5 @@ public class ColumnConfig implements SettingsModelConfig, Comparable<ColumnConfi
 	public int compareTo(ColumnConfig o) {
 		return Integer.compare(index, o.index);
 	}
+
 }

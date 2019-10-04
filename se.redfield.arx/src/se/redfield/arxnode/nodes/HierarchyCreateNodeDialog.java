@@ -3,9 +3,10 @@ package se.redfield.arxnode.nodes;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.swing.ButtonGroup;
@@ -19,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.DataType;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
 import org.deidentifier.arx.gui.swing.HierarchyModelAbstract;
-import org.deidentifier.arx.gui.swing.HierarchyModelAbstract.HierarchyWizardView;
 import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -95,7 +95,7 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 	private JPanel createTypeSelector() {
 		String rows = StringUtils.repeat("p:n, 5:n, ", HierarchyTypeOptions.values().length - 1) + "p:n";
 		JPanel panel = new JPanel(new FormLayout("f:p:g", rows));
-		buttons = new HashMap<>();
+		buttons = new EnumMap<>(HierarchyTypeOptions.class);
 		ButtonGroup group = new ButtonGroup();
 		int i = 1;
 		for (HierarchyTypeOptions opt : HierarchyTypeOptions.values()) {
@@ -108,9 +108,7 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 			i += 2;
 		}
 
-		config.getColumn().addChangeListener(e -> {
-			refreshRadioButtonsEnabled();
-		});
+		config.getColumn().addChangeListener(e -> refreshRadioButtonsEnabled());
 
 		return panel;
 	}
@@ -121,9 +119,9 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 		}
 
 		org.knime.core.data.DataType dataType = spec.getColumnSpec(config.getColumnName()).getType();
-		for (HierarchyTypeOptions opt : buttons.keySet()) {
-			buttons.get(opt).setSelected(opt == config.getType());
-			buttons.get(opt).setEnabled(opt.isCompatible(dataType));
+		for (Entry<HierarchyTypeOptions, JRadioButton> e : buttons.entrySet()) {
+			e.getValue().setSelected(e.getKey() == config.getType());
+			e.getValue().setEnabled(e.getKey().isCompatible(dataType));
 		}
 
 		JRadioButton firstEnabled = null;
@@ -136,7 +134,7 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 				selected = true;
 			}
 		}
-		if (!selected) {
+		if (!selected && firstEnabled != null) {
 			firstEnabled.setSelected(true);
 			firstEnabled.doClick();
 		}
@@ -151,13 +149,7 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 		DataType<?> type = Utils.knimeToArxType(spec.getColumnSpec(config.getColumnName()).getType());
 		HierarchyModelFactory<?, ?> factory = createFactory(type);
 		model = factory.getModel();
-		model.setView(new HierarchyWizardView() {
-
-			@Override
-			public void update() {
-				lError.setText(model.getError());
-			}
-		});
+		model.setView(() -> lError.setText(model.getError()));
 		model.setVisible(true);
 
 		editorPanel.removeAll();
@@ -171,16 +163,12 @@ public class HierarchyCreateNodeDialog extends NodeDialogPane {
 		String errorTemplate = "Insufficient domain information.\nPlease use 'Domain Calculator' on data table to fill %s for column '%s'";
 		DataColumnDomain domain = spec.getColumnSpec(config.getColumnName()).getDomain();
 
-		if (config.getType() == HierarchyTypeOptions.ORDER) {
-			if (!domain.hasValues()) {
-				error = "possible values";
-			}
+		if (config.getType() == HierarchyTypeOptions.ORDER && !domain.hasValues()) {
+			error = "possible values";
 		}
 
-		if (config.getType() == HierarchyTypeOptions.INTERVAL) {
-			if (!domain.hasValues() && !domain.hasBounds()) {
-				error = "min/max values";
-			}
+		if (config.getType() == HierarchyTypeOptions.INTERVAL && !domain.hasValues() && !domain.hasBounds()) {
+			error = "min/max values";
 		}
 
 		if (StringUtils.isNotEmpty(error)) {

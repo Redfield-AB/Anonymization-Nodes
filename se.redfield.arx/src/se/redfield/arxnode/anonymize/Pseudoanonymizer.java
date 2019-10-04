@@ -75,7 +75,7 @@ public class Pseudoanonymizer {
 		CellFactory factory = new AbstractCellFactory(newSpecs.toArray(new DataColumnSpec[] {})) {
 			@Override
 			public DataCell[] getCells(DataRow row) {
-				List<DataCell> newCells = new ArrayList<DataCell>();
+				List<DataCell> newCells = new ArrayList<>();
 				String salt = saltProvider.getSalt(row);
 
 				for (int i = 0; i < indexes.length; i++) {

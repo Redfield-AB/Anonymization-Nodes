@@ -9,6 +9,7 @@ import java.util.Set;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -39,7 +40,7 @@ public class TransformationFilterTable extends JTable {
 
 		public LevelCellRenderer() {
 			renderCb = new JCheckBox();
-			renderCb.setHorizontalAlignment(JLabel.CENTER);
+			renderCb.setHorizontalAlignment(SwingConstants.CENTER);
 			renderCb.setBorderPainted(true);
 			renderCb.setBorder(new EmptyBorder(1, 1, 1, 1));
 
@@ -55,7 +56,7 @@ public class TransformationFilterTable extends JTable {
 			renderCb.setForeground(table.getForeground());
 			renderCb.setBackground(table.getBackground());
 
-			renderCb.setSelected((value != null && ((Boolean) value).booleanValue()));
+			renderCb.setSelected(((Boolean) value).booleanValue());
 
 			return renderCb;
 		}

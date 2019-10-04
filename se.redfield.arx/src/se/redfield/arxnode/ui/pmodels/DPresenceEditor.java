@@ -54,6 +54,6 @@ public class DPresenceEditor implements PrivacyModelEditor {
 
 	@Override
 	public void validate() throws InvalidSettingsException {
-
+		// nothing to validate
 	}
 }

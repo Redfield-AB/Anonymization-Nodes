@@ -39,13 +39,13 @@ public class HierarchyCreateNodeModel extends NodeModel {
 	@Override
 	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-
+		// Node doesn't have any internals
 	}
 
 	@Override
 	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-
+		// Node doesn't have any internals
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class HierarchyCreateNodeModel extends NodeModel {
 
 	@Override
 	protected void reset() {
-
+		// No data to reset
 	}
 
 	@Override
@@ -80,11 +80,7 @@ public class HierarchyCreateNodeModel extends NodeModel {
 		}
 
 		ArxPortObjectSpec inSpec = (ArxPortObjectSpec) inSpecs[PORT_ARX_OBJECT];
-		if (inSpec == null) {
-			outSpec = new ArxPortObjectSpec();
-		} else {
-			outSpec = inSpec.clone();
-		}
+		outSpec = new ArxPortObjectSpec(inSpec);
 		outSpec.getHierarchies().add(config.getColumnName());
 		return new PortObjectSpec[] { inSpecs[PORT_DATA_TABLE], null, outSpec };
 	}

@@ -38,6 +38,6 @@ public class KAnonymityEditor implements PrivacyModelEditor {
 
 	@Override
 	public void validate() throws InvalidSettingsException {
-
+		// nothing to validate
 	}
 }

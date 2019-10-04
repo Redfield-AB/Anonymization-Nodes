@@ -5,6 +5,7 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
 public abstract class ColumnPrivacyModelConfig extends AbstractPrivacyModelConfig {
+	private static final long serialVersionUID = 331842865009291153L;
 
 	public static final String CONFIG_COLUMN = "column";
 

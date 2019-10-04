@@ -71,7 +71,7 @@ public class MetricConfig implements SettingsModelConfig {
 		return CONFIG_KEY;
 	}
 
-	public static enum AggregateFunctionOptions implements TitledEnum {
+	public enum AggregateFunctionOptions implements TitledEnum {
 		SUM(AggregateFunction.SUM), MAX(AggregateFunction.MAXIMUM), ARITHMETIC_MEAN(AggregateFunction.ARITHMETIC_MEAN),
 		GEOMETRIC_MEAN(AggregateFunction.GEOMETRIC_MEAN), RANK(AggregateFunction.RANK);
 

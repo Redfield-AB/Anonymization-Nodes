@@ -2,7 +2,6 @@ package se.redfield.arxnode.nodes;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.InvalidPathException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -36,13 +35,13 @@ public class HierarchyWriterNodeModel extends NodeModel {
 	@Override
 	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-
+		// Node doesn't have any internals
 	}
 
 	@Override
 	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-
+		// Node doesn't have any internals
 	}
 
 	@Override
@@ -64,7 +63,7 @@ public class HierarchyWriterNodeModel extends NodeModel {
 
 	@Override
 	protected void reset() {
-
+		// No data to reset
 	}
 
 	@Override
@@ -81,7 +80,7 @@ public class HierarchyWriterNodeModel extends NodeModel {
 		return new PortObject[] {};
 	}
 
-	private void writeHierarchies(ArxPortObject arxObject) throws InvalidPathException, IOException {
+	private void writeHierarchies(ArxPortObject arxObject) throws IOException {
 		File dir = config.getDirFile();
 		boolean overwrite = config.getOverwrite().getBooleanValue();
 		String nameFormat = config.getPrefix().getStringValue() + "%s.ahs";
@@ -96,7 +95,7 @@ public class HierarchyWriterNodeModel extends NodeModel {
 			}
 		}
 
-		if (skipped.size() > 0) {
+		if (!skipped.isEmpty()) {
 			showSkippedWarning(skipped);
 		}
 	}

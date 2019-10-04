@@ -3,7 +3,7 @@
 /// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/dataTables/1_10_11/bootstrap/datatables.js" />
 /// <reference path="../../../../../../knime-src/knime-js-core/org.knime.js.core/js-lib/d3/4_13_0/d3.js" />
 
-se_redfield_arxnode_nodes_anonymizer = function () {
+var se_redfield_arxnode_nodes_anonymizer = function () {
 
 	class View {
 		constructor(rep, val) {

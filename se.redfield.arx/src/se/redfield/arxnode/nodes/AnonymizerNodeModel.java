@@ -69,7 +69,7 @@ public class AnonymizerNodeModel extends NodeModel
 				logger.debug("anonymizing");
 				Anonymizer anonymizer = new Anonymizer(config);
 				results = anonymizer.process((BufferedDataTable) inData[PORT_DATA_TABLE],
-						(ArxPortObject) inData[PORT_ARX], exec);
+						(ArxPortObject) inData[PORT_ARX]);
 			}
 			logger.debug("processing result");
 
@@ -78,7 +78,7 @@ public class AnonymizerNodeModel extends NodeModel
 			}
 
 			return outputBuilder.process((BufferedDataTable) inData[PORT_DATA_TABLE], results, exec);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			throw e;
 		}
@@ -89,7 +89,6 @@ public class AnonymizerNodeModel extends NodeModel
 		logger.debug("reset");
 		warnings.reset();
 		results = null;
-		// selectedTransformation = null;
 	}
 
 	@Override
@@ -129,12 +128,13 @@ public class AnonymizerNodeModel extends NodeModel
 	@Override
 	protected void loadInternals(final File internDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-
+		// Node doesn't have any internals
 	}
 
 	@Override
 	protected void saveInternals(final File internDir, final ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
+		// Node doesn't have any internals
 	}
 
 	@Override
@@ -159,6 +159,5 @@ public class AnonymizerNodeModel extends NodeModel
 	public void loadViewValue(AnonymizerNodeViewValue viewContent, boolean useAsDefault) {
 		logger.debug("loadViewValue: ");
 		this.viewValue = viewContent;
-		// selectedTransformation = viewContent.getTransformation();
 	}
 }

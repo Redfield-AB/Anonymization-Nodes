@@ -15,8 +15,8 @@ public interface TitledEnum {
 			try {
 				int index = Integer.parseInt(str);
 				return values[index];
-			} catch (Throwable e) {
-
+			} catch (Exception e) {
+				// ignore
 			}
 			for (E val : values) {
 				if (str.equals(val.name()) || str.equals(val.getTitle())) {

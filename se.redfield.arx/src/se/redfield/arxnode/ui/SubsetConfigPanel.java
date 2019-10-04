@@ -1,6 +1,6 @@
 package se.redfield.arxnode.ui;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -31,7 +31,7 @@ public class SubsetConfigPanel extends JPanel {
 
 		SamplingMode mode = SamplingMode.fromString(config.getMode().getStringValue());
 		ButtonGroup group = new ButtonGroup();
-		radionButtons = new HashMap<>();
+		radionButtons = new EnumMap<>(SamplingMode.class);
 		JRadioButton bNone = createRadioButton(SamplingMode.NONE, mode, group);
 		JRadioButton bAll = createRadioButton(SamplingMode.ALL, mode, group);
 		JRadioButton bRandom = createRadioButton(SamplingMode.RANDOM, mode, group);

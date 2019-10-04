@@ -17,7 +17,7 @@ import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 import se.redfield.arxnode.util.TitledEnum;
 
 public class KMapConfig extends AbstractPrivacyModelConfig {
-
+	private static final long serialVersionUID = -8105941374251980610L;
 	public static final String CONFIG_K = "k";
 	public static final String CONFIG_ESTIMATOR = "estimator";
 	public static final String CONFIG_SIGNIFICANCE_LEVEL = "significanceLevel";

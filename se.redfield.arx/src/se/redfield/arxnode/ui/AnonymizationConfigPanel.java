@@ -39,13 +39,16 @@ public class AnonymizationConfigPanel {
 	}
 
 	private void initUi() {
+		metricPanel = new MetricConfigPanel(config.getMeasure());
+		populationPanel = new PopulationConfigPanel(config.getPopulation());
+
 		cc = new CellConstraints();
 		component = new JPanel(new FormLayout("f:p:g", "f:p:n, 5:n, f:p:n, 5:n, f:p:n, 5:n, f:p:n, 5:n, f:p:n"));
 		component.add(createPartitioningPanel(), cc.rc(1, 1));
 		component.add(createGeneralPanel(), cc.rc(3, 1));
 		component.add(createSearchStrategyPanel(), cc.rc(5, 1));
-		component.add(metricPanel = new MetricConfigPanel(config.getMeasure()), cc.rc(7, 1));
-		component.add(populationPanel = new PopulationConfigPanel(config.getPopulation()), cc.rc(9, 1));
+		component.add(metricPanel, cc.rc(7, 1));
+		component.add(populationPanel, cc.rc(9, 1));
 	}
 
 	@SuppressWarnings("unchecked")

@@ -7,6 +7,7 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 
 import org.knime.core.node.NodeLogger;
 
@@ -30,15 +31,15 @@ public class TransformationSelectorsTabbedPane extends JPanel {
 		selectors = new ArrayList<>();
 
 		tabs = new JTabbedPane();
-		tabs.setTabPlacement(JTabbedPane.LEFT);
+		tabs.setTabPlacement(SwingConstants.LEFT);
 
 		errorLabel = new JLabel("No transformations available. Prease re-execute the node");
-		errorLabel.setHorizontalAlignment(JLabel.CENTER);
-		errorLabel.setVerticalAlignment(JLabel.CENTER);
+		errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		errorLabel.setVerticalAlignment(SwingConstants.CENTER);
 	}
 
 	public void setModel(List<AnonymizationResult> results) {
-		if (results == null || results.size() == 0) {
+		if (results == null || results.isEmpty()) {
 			setContent(errorLabel);
 			return;
 		}

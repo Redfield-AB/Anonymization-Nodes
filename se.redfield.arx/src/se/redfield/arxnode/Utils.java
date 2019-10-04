@@ -32,6 +32,10 @@ public class Utils {
 
 	private static long time = 0;
 
+	private Utils() {
+		// empty constructor
+	}
+
 	public static void time() {
 		time = System.currentTimeMillis();
 	}

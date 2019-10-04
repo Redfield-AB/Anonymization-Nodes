@@ -53,7 +53,7 @@ public class HierarchyPreviewBuilder {
 			}
 		}
 
-		int levelsCount = previews.stream().map(hp -> hp.getColumnCount()).max(Integer::compare).orElse(0);
+		int levelsCount = previews.stream().map(HierarchyPreview::getColumnCount).max(Integer::compare).orElse(0);
 		boolean multiplePreviews = previews.size() > 1;
 
 		BufferedDataContainer container = exec.createDataContainer(createSpec(multiplePreviews, levelsCount));
@@ -84,7 +84,7 @@ public class HierarchyPreviewBuilder {
 	}
 
 	private DataTableSpec createSpec(boolean hasAttribute, int levelsCount) {
-		List<DataColumnSpec> specss = new ArrayList<DataColumnSpec>();
+		List<DataColumnSpec> specss = new ArrayList<>();
 		if (hasAttribute) {
 			specss.add(new DataColumnSpecCreator("Attribute", StringCell.TYPE).createSpec());
 		}
@@ -112,7 +112,7 @@ public class HierarchyPreviewBuilder {
 			this.name = name;
 			this.index = index;
 			this.hierarchy = hierarchy;
-			this.data = new HashSet<String>();
+			this.data = new HashSet<>();
 		}
 
 		public String getName() {
@@ -138,6 +138,7 @@ public class HierarchyPreviewBuilder {
 			try {
 				return getPreview()[0].length;
 			} catch (Exception e) {
+				// ignore
 			}
 			return 0;
 		}

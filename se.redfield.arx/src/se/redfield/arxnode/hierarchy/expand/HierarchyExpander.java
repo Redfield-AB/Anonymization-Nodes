@@ -24,13 +24,13 @@ import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.HierarchyBinding;
 import se.redfield.arxnode.config.HierarchyExpandNodeConfig;
 
-public abstract class HierarchyExpander<T, HB extends HierarchyBuilderGroupingBased<T>> {
+public abstract class HierarchyExpander<T, H extends HierarchyBuilderGroupingBased<T>> {
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyExpander.class);
 
-	protected HB src;
+	protected H src;
 	protected int columnIndex;
 
-	protected HierarchyExpander(HB src, int columnIndex) {
+	protected HierarchyExpander(H src, int columnIndex) {
 		this.src = src;
 		this.columnIndex = columnIndex;
 	}

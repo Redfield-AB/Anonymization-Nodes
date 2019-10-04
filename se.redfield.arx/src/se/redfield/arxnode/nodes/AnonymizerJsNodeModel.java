@@ -70,7 +70,7 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 
 	@Override
 	public void setHideInWizard(boolean hide) {
-
+		// ignore
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 
 	@Override
 	protected void useCurrentValueAsDefault() {
-
+		// ignore
 	}
 
 	@Override
@@ -145,14 +145,14 @@ public class AnonymizerJsNodeModel extends AbstractWizardNodeModel<AnonymizerJsN
 				logger.debug("anonymizing");
 				Anonymizer anonymizer = new Anonymizer(config);
 				results = anonymizer.process((BufferedDataTable) inObjects[PORT_DATA_TABLE],
-						(ArxPortObject) inObjects[PORT_ARX], exec);
+						(ArxPortObject) inObjects[PORT_ARX]);
 				getViewRepresentation().updateFrom(results);
 			}
 			logger.debug("processing result");
 			getViewValue().assignTo(results);
 			getViewValue().updateFrom(results);
 			return getOutputBuilder().process((BufferedDataTable) inObjects[PORT_DATA_TABLE], results, exec);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			throw e;
 		}

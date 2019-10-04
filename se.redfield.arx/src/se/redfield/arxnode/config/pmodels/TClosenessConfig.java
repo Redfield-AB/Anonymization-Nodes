@@ -22,6 +22,8 @@ import se.redfield.arxnode.ui.pmodels.TClosenessEditor;
 import se.redfield.arxnode.util.TitledEnum;
 
 public class TClosenessConfig extends ColumnPrivacyModelConfig {
+	private static final long serialVersionUID = -1026752408988358289L;
+
 	private static final NodeLogger logger = NodeLogger.getLogger(TClosenessConfig.class);
 
 	public static final String CONFIG_T = "t";
@@ -73,6 +75,7 @@ public class TClosenessConfig extends ColumnPrivacyModelConfig {
 		case EQUAL:
 			return new EqualDistanceTCloseness(getColumn(), t);
 		case HIERARCHICAL:
+			// TODO think of moving hierarchy to column config
 			try {
 				DataHandle handle = data.getHandle();
 				return new HierarchicalDistanceTCloseness(getColumn(), t, HierarchyBuilder.create(hierarchy)
@@ -80,6 +83,7 @@ public class TClosenessConfig extends ColumnPrivacyModelConfig {
 			} catch (IOException e) {
 				logger.error(e.getMessage(), e);
 			}
+			break;
 		case ORDERED:
 			return new OrderedDistanceTCloseness(getColumn(), t);
 		}
@@ -96,10 +100,11 @@ public class TClosenessConfig extends ColumnPrivacyModelConfig {
 		return String.format("%.3f-Closeness (%s)", t, measure.suffix);
 	}
 
-	public static enum TClosenessMeasure implements TitledEnum {
+	public enum TClosenessMeasure implements TitledEnum {
 		EQUAL("EMD with equal ground-distance", "equal ground-distance"), //
 		HIERARCHICAL("EMD with hierarchical ground-distance", "hierarchical ground-distance"), //
 		ORDERED("EMD with ordered distance", "ordered distance");
+
 		private String title;
 		private String suffix;
 

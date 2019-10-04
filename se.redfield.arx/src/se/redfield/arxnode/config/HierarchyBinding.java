@@ -2,7 +2,6 @@ package se.redfield.arxnode.config;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.nio.file.InvalidPathException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,7 +37,7 @@ public class HierarchyBinding implements SettingsModelConfig {
 		return fileModel;
 	}
 
-	public File getFile() throws InvalidPathException, MalformedURLException {
+	public File getFile() throws MalformedURLException {
 		return FileUtil.getFileFromURL(FileUtil.toURL(fileModel.getStringValue()));
 	}
 

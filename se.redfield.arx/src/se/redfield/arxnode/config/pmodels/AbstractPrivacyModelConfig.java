@@ -1,5 +1,6 @@
 package se.redfield.arxnode.config.pmodels;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -12,7 +13,8 @@ import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.config.SettingsModelConfig;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
-public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig {
+public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig, Serializable {
+	private static final long serialVersionUID = -6856452803075188914L;
 	private static final NodeLogger logger = NodeLogger.getLogger(AbstractPrivacyModelConfig.class);
 
 	private transient int index;
@@ -37,7 +39,7 @@ public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig 
 	public static AbstractPrivacyModelConfig newInstance(String configKey) {
 		try {
 			String[] arr = configKey.split("-");
-			int index = Integer.valueOf(arr[0]);
+			int index = Integer.parseInt(arr[0]);
 			String className = arr[1];
 			Class<?> clazz = Class.forName("se.redfield.arxnode.config.pmodels." + className);
 			AbstractPrivacyModelConfig instance = (AbstractPrivacyModelConfig) clazz.newInstance();
@@ -52,7 +54,7 @@ public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig 
 	public void assignIndex(List<AbstractPrivacyModelConfig> models) {
 		if (index == -1) {
 			index = models.stream().map(AbstractPrivacyModelConfig::getIndex).filter(i -> i > -1).sorted().reduce(0,
-					(acc, index) -> acc == index ? acc + 1 : acc);
+					(acc, i) -> acc.equals(i) ? acc + 1 : acc);
 		}
 	}
 

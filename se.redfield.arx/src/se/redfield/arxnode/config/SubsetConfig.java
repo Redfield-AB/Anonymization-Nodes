@@ -62,8 +62,8 @@ public class SubsetConfig implements SettingsModelConfig {
 	}
 
 	public DataSubset createDataSubset(Data data) {
-		SamplingMode mode = SamplingMode.fromString(this.mode.getStringValue());
-		switch (mode) {
+		SamplingMode m = SamplingMode.fromString(this.mode.getStringValue());
+		switch (m) {
 		case ALL:
 			return DataSubset.create(data, data);
 		case QUERY:
@@ -71,12 +71,12 @@ public class SubsetConfig implements SettingsModelConfig {
 				DataSelector selector = DataSelector.create(data, query.getStringValue());
 				selector.build();
 				return DataSubset.create(data, selector);
-			} catch (Throwable e) {
+			} catch (Exception e) {
 				logger.error("Failed to create query: " + e.getMessage(), e);
 			}
 			break;
 		case RANDOM:
-			Set<Integer> subsetIndices = new HashSet<Integer>();
+			Set<Integer> subsetIndices = new HashSet<>();
 			Random random = new SecureRandom();
 			int records = data.getHandle().getNumRows();
 			for (int i = 0; i < records; ++i) {

@@ -52,12 +52,12 @@ public class TransformationGraph extends JPanel {
 	private double nodeHeight;
 
 	private Color bgColor;
-	private Font font;
+	private Font labelFont;
 
 	public TransformationGraph(TransformationFilter filter) {
 		super();
 		bgColor = UIManager.getColor("List.background");
-		font = UIManager.getFont("Label.font");
+		labelFont = UIManager.getFont("Label.font");
 
 		this.filter = filter;
 		this.filter.addChangeListener(e -> onFilterChanged());
@@ -69,10 +69,11 @@ public class TransformationGraph extends JPanel {
 			}
 		});
 		addComponentListener(new ComponentAdapter() {
+			@Override
 			public void componentResized(java.awt.event.ComponentEvent e) {
 				initDimensions();
 				repaint();
-			};
+			}
 		});
 
 		DragMouseListener dragListener = new DragMouseListener();
@@ -132,7 +133,8 @@ public class TransformationGraph extends JPanel {
 				boolean visible = filter.isAllowed(node);
 
 				node.getAttributes().put(ATTRIBUTE_VISIBLE, visible);
-				node.getAttributes().put(ATTRIBUTE_ACTIVE, node.getTransformation().equals(transformation));
+				node.getAttributes().put(ATTRIBUTE_ACTIVE,
+						java.util.Arrays.equals(node.getTransformation(), transformation));
 
 				if (visible) {
 					level.add(node);
@@ -165,10 +167,10 @@ public class TransformationGraph extends JPanel {
 		double offsetX = (screen.width - width * maxLevelWidth) / 2d;
 		double offsetY = (screen.height - height * levels.size()) / 2d;
 
-		double positionY = levels.size() - 1;
+		int positionY = levels.size() - 1;
 		for (List<ARXNode> level : levels) {
 			double centerY = offsetY + (positionY * height) + (height / 2d);
-			double positionX = 0;
+			int positionX = 0;
 			for (ARXNode node : level) {
 				double offset = (maxLevelWidth * width) - (level.size() * width);
 				double centerX = offsetX + (positionX * width) + (width / 2d) + (offset / 2d);
@@ -243,7 +245,7 @@ public class TransformationGraph extends JPanel {
 				}
 
 				if (rect.height > MIN_TITLED_HEIGHT) {
-					g2d.setFont(font);
+					g2d.setFont(labelFont);
 					g2d.setColor(Color.BLACK);
 					drawString(g2d, getTransformationString(node), rect);
 				}
@@ -343,7 +345,6 @@ public class TransformationGraph extends JPanel {
 		}
 
 		private double trimZoom(double zoom, double val, double min, double max) {
-			double result = zoom;
 			double zoomed = val + zoom * val;
 			if (zoomed > max) {
 				return (max - val) / val;
@@ -351,7 +352,7 @@ public class TransformationGraph extends JPanel {
 			if (zoomed < min) {
 				return (min - val) / val;
 			}
-			return result;
+			return zoom;
 		}
 
 		private double zoomCenter(double val, double zoom, double start) {

@@ -15,6 +15,7 @@ import se.redfield.arxnode.ui.pmodels.KAnonymityEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
 public class KAnonymityConfig extends AbstractPrivacyModelConfig {
+	private static final long serialVersionUID = 1L;
 
 	public static final String CONFIG_FACTOR = "factor";
 

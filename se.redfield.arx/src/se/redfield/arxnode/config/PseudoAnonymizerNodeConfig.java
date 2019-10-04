@@ -150,7 +150,7 @@ public class PseudoAnonymizerNodeConfig implements SettingsModelConfig {
 		}
 	}
 
-	public static enum SaltingMode implements TitledEnum {
+	public enum SaltingMode implements TitledEnum {
 		NONE("None"), RANDOM("Random"), COLUMN("Column"), TIMESTAMP("Timestamp");
 
 		private String title;
@@ -169,7 +169,7 @@ public class PseudoAnonymizerNodeConfig implements SettingsModelConfig {
 		}
 	}
 
-	public static enum ReplaceMode implements TitledEnum {
+	public enum ReplaceMode implements TitledEnum {
 		REPLACE("Replace"), APPEND("Append");
 
 		private String title;

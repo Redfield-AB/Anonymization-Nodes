@@ -113,8 +113,7 @@ public class TransformationFilter {
 		maxScore = 1d;
 
 		anonymity = new HashSet<>();
-		anonymity.addAll(Arrays
-				.asList(new Anonymity[] { Anonymity.ANONYMOUS, Anonymity.PROBABLY_ANONYMOUS, Anonymity.UNKNOWN }));
+		anonymity.addAll(Arrays.asList(Anonymity.ANONYMOUS, Anonymity.PROBABLY_ANONYMOUS, Anonymity.UNKNOWN));
 
 		levels = new Set[result.getGlobalOptimum().getTransformation().length];
 		for (int i = 0; i < levels.length; i++) {
@@ -141,11 +140,10 @@ public class TransformationFilter {
 		double min = node.getLowestScore().relativeTo(result.getLattice().getLowestScore(),
 				result.getLattice().getHighestScore());
 
-		if (max < minScore || min > maxScore) {
-			return false;
-		} else if (!anonymity.contains(node.getAnonymity())) {
+		if (max < minScore || min > maxScore || !anonymity.contains(node.getAnonymity())) {
 			return false;
 		}
+
 		int[] transformation = node.getTransformation();
 		for (int i = 0; i < transformation.length; i++) {
 			if (!levels[i].contains(transformation[i])) {

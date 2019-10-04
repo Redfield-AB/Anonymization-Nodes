@@ -5,11 +5,14 @@ import java.util.Arrays;
 import javax.swing.table.AbstractTableModel;
 
 import org.deidentifier.arx.ARXLattice.ARXNode;
+import org.knime.core.node.NodeLogger;
 
 import se.redfield.arxnode.anonymize.AnonymizationResult;
 
 public class TransformationTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1L;
+	private static final NodeLogger logger = NodeLogger.getLogger(TransformationTableModel.class);
+
 	public static final int COLUMN_SELECTED = 0;
 	public static final int COLUMN_TRANSFROMATION = 1;
 	public static final int COLUMN_ANONYMITY = 2;
@@ -59,6 +62,9 @@ public class TransformationTableModel extends AbstractTableModel {
 				return InfolossScore.createFrom(result.getArxResult().getLattice(), node.getLowestScore());
 			case COLUMN_MAX_SCORE:
 				return InfolossScore.createFrom(result.getArxResult().getLattice(), node.getHighestScore());
+			default:
+				logger.warn("Unknown column index: " + columnIndex);
+				return null;
 			}
 		}
 		return null;
@@ -96,8 +102,9 @@ public class TransformationTableModel extends AbstractTableModel {
 			return "Min Score";
 		case COLUMN_MAX_SCORE:
 			return "Max Score";
+		default:
+			return "";
 		}
-		return "";
 	}
 
 	@Override
@@ -110,7 +117,8 @@ public class TransformationTableModel extends AbstractTableModel {
 		case COLUMN_MAX_SCORE:
 		case COLUMN_MIN_SCORE:
 			return InfolossScore.class;
+		default:
+			return String.class;
 		}
-		return String.class;
 	}
 }

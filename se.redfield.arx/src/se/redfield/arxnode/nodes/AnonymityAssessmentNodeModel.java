@@ -60,13 +60,13 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 	@Override
 	protected void loadInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-
+		// Node doesn't have any internals
 	}
 
 	@Override
 	protected void saveInternals(File nodeInternDir, ExecutionMonitor exec)
 			throws IOException, CanceledExecutionException {
-
+		// Node doesn't have any internals
 	}
 
 	@Override
@@ -76,7 +76,9 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 
 	@Override
 	protected void validateSettings(NodeSettingsRO settings) throws InvalidSettingsException {
-
+		AnonymityAssessmentNodeConfig temp = new AnonymityAssessmentNodeConfig();
+		temp.load(settings);
+		temp.validate();
 	}
 
 	@Override
@@ -86,7 +88,7 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 
 	@Override
 	protected void reset() {
-
+		// No data to reset
 	}
 
 	@Override
@@ -127,8 +129,7 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 			cols.add(new DataColumnSpecCreator("Separation  - Anonymized", DoubleCell.TYPE).createSpec());
 		}
 
-		DataTableSpec spec = new DataTableSpec(cols.toArray(new DataColumnSpec[] {}));
-		return spec;
+		return new DataTableSpec(cols.toArray(new DataColumnSpec[] {}));
 	}
 
 	private DataTableSpec createRiskTableSpec(boolean secondTable) {
@@ -140,8 +141,7 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 			addRiskColumns(cols, " - anonymized");
 		}
 
-		DataTableSpec spec = new DataTableSpec(cols.toArray(new DataColumnSpec[] {}));
-		return spec;
+		return new DataTableSpec(cols.toArray(new DataColumnSpec[] {}));
 	}
 
 	private void addRiskColumns(List<DataColumnSpec> cols, String titleSuffix) {
@@ -189,11 +189,11 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 		qiContainer.close();
 
 		BufferedDataContainer riskContainer = exec.createDataContainer(createRiskTableSpec(hasSecondTable));
-		Utils.addRow(riskContainer, populateRiskRow(riskContainer, riskSummary.getProsecutorRisk(),
+		Utils.addRow(riskContainer, populateRiskRow(riskSummary.getProsecutorRisk(),
 				hasSecondTable ? riskSummary2.getProsecutorRisk() : null), 0);
-		Utils.addRow(riskContainer, populateRiskRow(riskContainer, riskSummary.getJournalistRisk(),
+		Utils.addRow(riskContainer, populateRiskRow(riskSummary.getJournalistRisk(),
 				hasSecondTable ? riskSummary2.getJournalistRisk() : null), 1);
-		Utils.addRow(riskContainer, populateMarketerRiskRow(riskContainer, riskSummary.getMarketerRisk(),
+		Utils.addRow(riskContainer, populateMarketerRiskRow(riskSummary.getMarketerRisk(),
 				hasSecondTable ? riskSummary2.getMarketerRisk() : null), 2);
 		riskContainer.close();
 
@@ -267,7 +267,7 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 		cells.add(new DoubleCell(risk.getSeparation()));
 	}
 
-	private List<DataCell> populateRiskRow(BufferedDataContainer contaiter, RiskSummary risk1, RiskSummary risk2) {
+	private List<DataCell> populateRiskRow(RiskSummary risk1, RiskSummary risk2) {
 		List<DataCell> cells = new ArrayList<>();
 
 		String attacker = (risk1 instanceof ProsecutorRisk) ? "Prosecutor" : "Journalist";
@@ -286,8 +286,7 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 		cells.add(new DoubleCell(risk.getSuccessRate()));
 	}
 
-	private List<DataCell> populateMarketerRiskRow(BufferedDataContainer container, MarketerRisk risk1,
-			MarketerRisk risk2) {
+	private List<DataCell> populateMarketerRiskRow(MarketerRisk risk1, MarketerRisk risk2) {
 		List<DataCell> cells = new ArrayList<>();
 		cells.add(new StringCell("Marketer"));
 		putMarketerRiskCells(cells, risk1);

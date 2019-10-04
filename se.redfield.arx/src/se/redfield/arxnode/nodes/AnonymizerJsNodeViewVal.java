@@ -98,7 +98,7 @@ public class AnonymizerJsNodeViewVal extends JSONViewContent {
 	public int hashCode() {
 		int result = 0;
 		if (selectedTransformations != null) {
-			result += selectedTransformations.hashCode();
+			result += Arrays.hashCode(selectedTransformations);
 		}
 		if (state != null) {
 			result = result * 31 + state.hashCode();
@@ -129,12 +129,12 @@ public class AnonymizerJsNodeViewVal extends JSONViewContent {
 
 		@Override
 		public int hashCode() {
-			return filter.hashCode() * 31 + partitions.hashCode();
+			return filter.hashCode() * 31 + Arrays.hashCode(partitions);
 		}
 
 		@Override
 		public boolean equals(Object obj) {
-			if (obj != null && obj instanceof ViewState) {
+			if (obj instanceof ViewState) {
 				ViewState other = (ViewState) obj;
 				return ObjectUtils.equals(filter, other.filter) && ObjectUtils.equals(partitions, other.partitions);
 			}
@@ -192,7 +192,7 @@ public class AnonymizerJsNodeViewVal extends JSONViewContent {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (obj != null && obj instanceof FilterState) {
+			if (obj instanceof FilterState) {
 				FilterState other = (FilterState) obj;
 				return panelExpanded == other.panelExpanded && ObjectUtils.equals(anonymity, other.anonymity)
 						&& ObjectUtils.equals(levels, other.levels) && ObjectUtils.equals(score, other.score);
@@ -228,7 +228,7 @@ public class AnonymizerJsNodeViewVal extends JSONViewContent {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (obj != null && obj instanceof FilterScore) {
+			if (obj instanceof FilterScore) {
 				FilterScore other = (FilterScore) obj;
 				return min == other.min && max == other.max;
 			}
@@ -281,7 +281,7 @@ public class AnonymizerJsNodeViewVal extends JSONViewContent {
 
 		@Override
 		public boolean equals(Object obj) {
-			if (obj != null && obj instanceof PartitionState) {
+			if (obj instanceof PartitionState) {
 				PartitionState other = (PartitionState) obj;
 				return active == other.active && tableView == other.tableView && ObjectUtils.equals(table, other.table)
 						&& ObjectUtils.equals(graph, other.graph);

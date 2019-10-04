@@ -48,8 +48,8 @@ public class MetricDescriptionWrap {
 		List<MetricDescription> descriptions = Metric.list();
 		try {
 			return descriptions.get(Integer.valueOf(str));
-		} catch (Throwable e) {
-
+		} catch (Exception e) {
+			// ignore
 		}
 		return descriptions.stream().filter(m -> m.getName().equals(str)).findFirst().orElse(descriptions.get(0));
 	}

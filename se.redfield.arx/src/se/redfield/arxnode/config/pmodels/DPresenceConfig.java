@@ -15,7 +15,7 @@ import se.redfield.arxnode.ui.pmodels.DPresenceEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
 public class DPresenceConfig extends AbstractPrivacyModelConfig {
-
+	private static final long serialVersionUID = 1L;
 	public static final String CONFIG_D_MIN = "dMin";
 	public static final String CONFIG_D_MAX = "dMax";
 

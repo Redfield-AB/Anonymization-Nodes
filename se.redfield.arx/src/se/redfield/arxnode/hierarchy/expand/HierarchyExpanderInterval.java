@@ -1,6 +1,6 @@
 package se.redfield.arxnode.hierarchy.expand;
 
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.Date;
 
 import org.deidentifier.arx.aggregates.HierarchyBuilderGroupingBased;
@@ -17,6 +17,7 @@ import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.node.NodeLogger;
 
 public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, HierarchyBuilderIntervalBased<T>> {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyExpanderInterval.class);
 
 	protected T min;
@@ -47,7 +48,7 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 	}
 
 	protected Range<T> createRange(Range<T> from, T minMax) {
-		return new Range<T>(from.getSnapFrom(), from.getBottomTopCodingFrom(), minMax);
+		return new Range<>(from.getSnapFrom(), from.getBottomTopCodingFrom(), minMax);
 	}
 
 	static class HierarchyExpanderArxInteger extends HierarchyExpanderInterval<Long> {
@@ -66,11 +67,9 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 			long val = longCell.getLongValue();
 			if (val <= min) {
 				min = val - 1;
-				logger.debug("new min: " + val);
 			}
 			if (val >= max) {
 				max = val + 1;
-				logger.debug("new max: " + val);
 			}
 		}
 	}
@@ -92,11 +91,9 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 			double val = doubleCell.getDoubleValue();
 			if (val <= min) {
 				min = val - 1;
-				logger.debug("new min: " + val);
 			}
 			if (val >= max) {
 				max = val + 1;
-				logger.debug("new max: " + val);
 			}
 		}
 
@@ -104,7 +101,7 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 
 	static class HierarcyExpanderArxDate extends HierarchyExpanderInterval<Date> {
 
-		private static long HOUR = 60 * 60 * 1000;
+		private static final int HOUR = 60 * 60 * 1000;
 
 		protected HierarcyExpanderArxDate(HierarchyBuilderIntervalBased<Date> src, int columnIndex) {
 			super(src, columnIndex);
@@ -113,14 +110,12 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 		@Override
 		protected void processCell(DataCell cell) {
 			LocalDateTimeValue dateCell = (LocalDateTimeValue) cell;
-			long time = Date.from(dateCell.getLocalDateTime().atZone(ZoneOffset.systemDefault()).toInstant()).getTime();
+			long time = Date.from(dateCell.getLocalDateTime().atZone(ZoneId.systemDefault()).toInstant()).getTime();
 			if (time <= min.getTime()) {
 				min = new Date(time - HOUR);
 			}
 			if (time >= max.getTime()) {
-				logger.debug("old max: " + max);
 				max = new Date(time + HOUR);
-				logger.debug("new max: " + max);
 			}
 		}
 

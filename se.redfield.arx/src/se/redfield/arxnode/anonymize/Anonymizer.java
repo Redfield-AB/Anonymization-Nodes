@@ -19,7 +19,6 @@ import org.deidentifier.arx.Data;
 import org.deidentifier.arx.DataDefinition;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
 import org.knime.core.node.BufferedDataTable;
-import org.knime.core.node.ExecutionContext;
 import org.knime.core.node.NodeLogger;
 
 import se.redfield.arxnode.Utils;
@@ -44,8 +43,8 @@ public class Anonymizer {
 		this.config = config;
 	}
 
-	public List<AnonymizationResult> process(BufferedDataTable inTable, ArxPortObject arxObject, ExecutionContext exec)
-			throws Exception {
+	public List<AnonymizationResult> process(BufferedDataTable inTable, ArxPortObject arxObject)
+			throws InterruptedException, ExecutionException {
 		this.arxPortObject = arxObject;
 		AnonymizationConfig anonConfig = config.getAnonymizationConfig();
 		Partitioner partitioner = Partitioner.createPartitioner(anonConfig.getNumOfThreads().getIntValue(),

@@ -18,7 +18,7 @@ import se.redfield.arxnode.ui.pmodels.LDiversityEditor;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
 public class LDiversityConfig extends ColumnPrivacyModelConfig {
-
+	private static final long serialVersionUID = -2249011880726677319L;
 	public static final String CONFIG_INT_L = "intL";
 	public static final String CONFIG_DOUBLE_L = "doubleL";
 	public static final String CONFIG_C = "c";

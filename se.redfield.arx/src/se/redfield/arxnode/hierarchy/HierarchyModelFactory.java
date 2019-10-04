@@ -18,9 +18,9 @@ import org.deidentifier.arx.gui.swing.HierarchyRedactionBasedEditor;
 
 import se.redfield.arxnode.config.HierarchyTypeOptions;
 
-public abstract class HierarchyModelFactory<T, HM extends HierarchyModelAbstract<T>> {
+public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<T>> {
 
-	private HM model;
+	private H model;
 	private JComponent editor;
 
 	protected DataType<T> type;
@@ -31,7 +31,7 @@ public abstract class HierarchyModelFactory<T, HM extends HierarchyModelAbstract
 		this.data = data;
 	}
 
-	public HM getModel() {
+	public H getModel() {
 		if (model == null) {
 			model = createModel();
 		}
@@ -45,7 +45,7 @@ public abstract class HierarchyModelFactory<T, HM extends HierarchyModelAbstract
 		return editor;
 	}
 
-	public abstract HM createModel();
+	public abstract H createModel();
 
 	public abstract JComponent createEditor();
 

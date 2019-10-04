@@ -108,7 +108,7 @@ public class TransformationConfig implements SettingsModelConfig {
 		}
 	}
 
-	public static enum Mode implements TitledEnum {
+	public enum Mode implements TitledEnum {
 		GENERALIZATION("Generalization"), //
 		MICROAGGREGATION("Microaggregation"), //
 		CLUSTERING_AND_MICROAGGREGATION("Clustering and microaggregation");
@@ -134,7 +134,7 @@ public class TransformationConfig implements SettingsModelConfig {
 		}
 	}
 
-	public static enum MicroaggregationFunction implements TitledEnum {
+	public enum MicroaggregationFunction implements TitledEnum {
 		ARITHMETIC_MEAN("Arithmetic mean"), //
 		GEOMETRIC_MEAN("Geometric mean"), //
 		MEDIAN("Median"), //

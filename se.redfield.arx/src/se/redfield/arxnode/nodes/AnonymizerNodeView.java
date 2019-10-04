@@ -25,8 +25,6 @@ public class AnonymizerNodeView
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizerNodeView.class);
 
 	private JCheckBox cbSingleTransformation;
-	private JButton bRun;
-	private JButton bReset;
 	private TransformationSelectorsTabbedPane selectorsPanel;
 	private List<AnonymizationResult> results;
 
@@ -42,10 +40,10 @@ public class AnonymizerNodeView
 	}
 
 	private JPanel createButtonsPanel() {
-		bRun = new JButton("Apply Selected");
+		JButton bRun = new JButton("Apply Selected");
 		bRun.addActionListener(e -> onApply());
 
-		bReset = new JButton("Reset to Optimum");
+		JButton bReset = new JButton("Reset to Optimum");
 		bReset.addActionListener(e -> onReset());
 
 		cbSingleTransformation = new JCheckBox("Use the same transformation for all partitions");
@@ -58,7 +56,7 @@ public class AnonymizerNodeView
 	}
 
 	private void onApply() {
-		if (results == null || results.size() == 0) {
+		if (results == null || results.isEmpty()) {
 			return;
 		}
 

@@ -59,7 +59,7 @@ public class FlowVariablesButton extends JButton implements ActionListener, Chan
 	}
 
 	private void updateIcon() {
-		boolean enabled = this.models.stream().anyMatch(m -> m.isVariableReplacementEnabled());
+		boolean enabled = this.models.stream().anyMatch(FlowVariableModel::isVariableReplacementEnabled);
 		Icon icon = enabled ? SharedIcons.FLOWVAR_ACTIVE.get() : SharedIcons.FLOWVAR_INACTIVE.get();
 		setIcon(icon);
 	}
@@ -67,9 +67,9 @@ public class FlowVariablesButton extends JButton implements ActionListener, Chan
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Frame parent = (Frame) SwingUtilities.getAncestorOfClass(Frame.class, this);
-		FlowVariablesDlg dlg = new FlowVariablesDlg(parent);
-		dlg.setLocationRelativeTo(this);
-		dlg.setVisible(true);
+		FlowVariablesDlg fwDlg = new FlowVariablesDlg(parent);
+		fwDlg.setLocationRelativeTo(this);
+		fwDlg.setVisible(true);
 	}
 
 	public void setModels(Collection<FlowVariableModel> models) {
@@ -189,7 +189,7 @@ public class FlowVariablesButton extends JButton implements ActionListener, Chan
 		private JPanel createButtonsPanel() {
 			JButton bOk = new JButton("Ok");
 			bOk.addActionListener(e -> {
-				bindings.forEach(b -> b.readFromControls());
+				bindings.forEach(FlowVarControlsBinding::readFromControls);
 				setVisible(false);
 			});
 
@@ -210,7 +210,7 @@ public class FlowVariablesButton extends JButton implements ActionListener, Chan
 			DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<>();
 
 			Collection<FlowVariable> availableFw = getMatchingVariables(m);
-			if (availableFw.size() > 0) {
+			if (!availableFw.isEmpty()) {
 				model.addElement("<not set>");
 				for (FlowVariable fw : availableFw) {
 					model.addElement(fw);
@@ -250,7 +250,7 @@ public class FlowVariablesButton extends JButton implements ActionListener, Chan
 
 		public void readFromControls() {
 			Object selected = input.getSelectedItem();
-			if (selected != null && selected instanceof FlowVariable) {
+			if (selected instanceof FlowVariable) {
 				model.setInputVariableName(((FlowVariable) selected).getName());
 			} else {
 				model.setInputVariableName(null);

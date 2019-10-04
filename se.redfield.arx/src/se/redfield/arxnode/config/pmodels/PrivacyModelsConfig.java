@@ -2,6 +2,7 @@ package se.redfield.arxnode.config.pmodels;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +34,7 @@ public class PrivacyModelsConfig implements SettingsModelConfig {
 		return models.stream().filter(m -> m.getIndex() > -1).collect(Collectors.toList());
 	}
 
+	@Override
 	public void save(NodeSettingsWO settings) {
 		SettingsModelConfig.super.save(settings);
 		String json = createGson().toJson(
@@ -41,8 +43,9 @@ public class PrivacyModelsConfig implements SettingsModelConfig {
 		settings.addString(CONFIG_JSON, json);
 	}
 
+	@Override
 	public void validate() throws InvalidSettingsException {
-		if (models.size() == 0) {
+		if (models.isEmpty()) {
 			throw new InvalidSettingsException("No privacy models selected");
 		}
 	}
@@ -66,9 +69,7 @@ public class PrivacyModelsConfig implements SettingsModelConfig {
 		String json = settings.getString(CONFIG_JSON, null);
 		AbstractPrivacyModelConfig[] result = createGson().fromJson(json, AbstractPrivacyModelConfig[].class);
 		if (result != null) {
-			for (AbstractPrivacyModelConfig m : result) {
-				models.add(m);
-			}
+			Collections.addAll(models, result);
 		}
 	}
 

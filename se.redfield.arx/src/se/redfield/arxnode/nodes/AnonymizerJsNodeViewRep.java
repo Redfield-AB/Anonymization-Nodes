@@ -103,8 +103,6 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 	public void saveToNodeSettings(NodeSettingsWO settings) {
 		Gson gson = new GsonBuilder().create();
 		String json = gson.toJson(this);
-		// System.out.println("rep.json");
-		// System.out.println(json);
 		settings.addString(CONFIG_VIEW_REP, json);
 	}
 
@@ -118,8 +116,8 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 			this.attributes = temp.attributes;
 			this.levels = temp.levels;
 			this.maxLevel = temp.maxLevel;
-		} catch (Throwable e) {
-
+		} catch (Exception e) {
+			// ignore
 		}
 
 	}
@@ -131,14 +129,14 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 			if (partitions == null) {
 				return other.partitions == null;
 			}
-			return partitions.equals(other.partitions);
+			return Arrays.equals(partitions, other.partitions);
 		}
 		return false;
 	}
 
 	@Override
 	public int hashCode() {
-		return partitions == null ? 0 : partitions.hashCode();
+		return partitions == null ? 0 : Arrays.hashCode(partitions);
 	}
 
 	public static class AnonymizationResultRep {

@@ -51,7 +51,7 @@ public class HierarchyExpandNodeDialog extends NodeDialogPane implements Hierarc
 			columnsPanel.add(createBindingPanel(h));
 		}
 
-		if (config.getBindings().size() == 0) {
+		if (config.getBindings().isEmpty()) {
 			onAdd(null);
 		}
 	}
@@ -77,7 +77,7 @@ public class HierarchyExpandNodeDialog extends NodeDialogPane implements Hierarc
 		config.getBindings().remove(panel.getBinding());
 		columnsPanel.remove(panel);
 		columnsPanel.revalidate();
-		if (config.getBindings().size() == 0) {
+		if (config.getBindings().isEmpty()) {
 			onAdd(null);
 		}
 	}

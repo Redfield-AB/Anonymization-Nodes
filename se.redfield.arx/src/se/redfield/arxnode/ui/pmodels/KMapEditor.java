@@ -16,11 +16,10 @@ import com.jgoodies.forms.layout.FormLayout;
 import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.KMapConfig;
 import se.redfield.arxnode.config.pmodels.KMapConfig.EstimatorOption;
-import se.redfield.arxnode.ui.PrivacyModelsPane;
 
 public class KMapEditor implements PrivacyModelEditor {
 	@SuppressWarnings("unused")
-	private static final NodeLogger logger = NodeLogger.getLogger(PrivacyModelsPane.class);
+	private static final NodeLogger logger = NodeLogger.getLogger(KMapEditor.class);
 
 	private JPanel panel;
 	private JSpinner kInput;
@@ -70,6 +69,6 @@ public class KMapEditor implements PrivacyModelEditor {
 
 	@Override
 	public void validate() throws InvalidSettingsException {
-
+		// nothing to validate
 	}
 }

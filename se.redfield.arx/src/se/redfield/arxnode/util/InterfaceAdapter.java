@@ -27,9 +27,7 @@ public class InterfaceAdapter<T> implements JsonSerializer<T>, JsonDeserializer<
 		}
 	}
 
-	public T deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext)
-			throws JsonParseException {
-
+	public T deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) {
 		JsonObject jsonObject = jsonElement.getAsJsonObject();
 		JsonPrimitive prim = (JsonPrimitive) jsonObject.get(CLASSNAME);
 		String className = prim.getAsString();
@@ -57,7 +55,7 @@ public class InterfaceAdapter<T> implements JsonSerializer<T>, JsonDeserializer<
 	}
 
 	private String toSimpleName(String className) {
-		int idx = className.lastIndexOf(".");
+		int idx = className.lastIndexOf('.');
 		if (idx > -1) {
 			return className.substring(idx + 1);
 		}

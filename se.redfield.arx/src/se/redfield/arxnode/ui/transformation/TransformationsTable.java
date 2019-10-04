@@ -30,7 +30,7 @@ public class TransformationsTable extends JTable {
 				.setCellRenderer(new SelectedCellRenderer());
 		getColumnModel().getColumn(TransformationTableModel.COLUMN_SELECTED).setMaxWidth(40);
 
-		TableRowSorter<TransformationTableModel> sorter = new TableRowSorter<TransformationTableModel>(getModel());
+		TableRowSorter<TransformationTableModel> sorter = new TableRowSorter<>(getModel());
 		sorter.setSortKeys(Arrays.asList(new SortKey(TransformationTableModel.COLUMN_MIN_SCORE, SortOrder.DESCENDING)));
 		setRowSorter(sorter);
 

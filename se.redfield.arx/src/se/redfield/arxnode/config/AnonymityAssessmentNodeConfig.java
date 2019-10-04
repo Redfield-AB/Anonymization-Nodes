@@ -42,7 +42,7 @@ public class AnonymityAssessmentNodeConfig implements SettingsModelConfig {
 	}
 
 	public void removeMissingColumns(DataTableSpec spec) {
-		List<String> filtered = columnFilter.getIncludeList().stream().filter(name -> spec.containsName(name))
+		List<String> filtered = columnFilter.getIncludeList().stream().filter(spec::containsName)
 				.collect(Collectors.toList());
 		columnFilter.setIncludeList(filtered);
 	}
