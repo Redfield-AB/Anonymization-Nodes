@@ -70,49 +70,55 @@ public class AnonymizationResultProcessor {
 	}
 
 	private BufferedDataTable createDataTable(List<AnonymizationResult> results, ExecutionContext exec) {
-		List<ColumnConfig> outColumns = config.getOutputColumns();
-
 		BufferedDataContainer container = exec.createDataContainer(createOutDataTableSpec());
+
 		RowClassifier classifier = null;
 		if (config.getAnonymizationConfig().getAddClassColumn().getBooleanValue()) {
 			classifier = new RowClassifier(config);
 		}
-		boolean omitSuppressedRecords = config.getAnonymizationConfig().getOmitSuppressedRecords().getBooleanValue();
 
 		for (AnonymizationResult r : results) {
 			ARXResult res = r.getArxResult();
 			if (res.isResultAvailable()) {
-				DataHandle outHandle = res.getOutput(r.getCurrentNode());
-				Iterator<String[]> iter = outHandle.iterator();
-				iter.next();
-				int rowIdx = -1;
-
-				while (iter.hasNext()) {
-					String[] row = iter.next();
-					rowIdx += 1;
-
-					if (omitSuppressedRecords && outHandle.isOutlier(rowIdx)) {
-						continue;
-					}
-
-					List<DataCell> cells = new ArrayList<>();
-
-					for (ColumnConfig c : outColumns) {
-						cells.add(new StringCell(row[c.getIndex()]));
-					}
-
-					if (classifier != null) {
-						cells.add(new IntCell(classifier.computeClass(row)));
-					}
-
-					RowKey rowKey = new RowKey(row[row.length - 1]);
-					DataRow datarow = new DefaultRow(rowKey, cells);
-					container.addRowToTable(datarow);
-				}
+				DataHandle handle = res.getOutput(r.getCurrentNode());
+				writeToContainer(container, handle, classifier);
 			}
 		}
+
 		container.close();
 		return container.getTable();
+	}
+
+	private void writeToContainer(BufferedDataContainer container, DataHandle handle, RowClassifier classifier) {
+		List<ColumnConfig> outColumns = config.getOutputColumns();
+		boolean omitSuppressedRecords = config.getAnonymizationConfig().getOmitSuppressedRecords().getBooleanValue();
+
+		Iterator<String[]> iter = handle.iterator();
+		iter.next();
+		int rowIdx = -1;
+
+		while (iter.hasNext()) {
+			String[] row = iter.next();
+			rowIdx += 1;
+
+			if (omitSuppressedRecords && handle.isOutlier(rowIdx)) {
+				continue;
+			}
+
+			List<DataCell> cells = new ArrayList<>();
+
+			for (ColumnConfig c : outColumns) {
+				cells.add(new StringCell(row[c.getIndex()]));
+			}
+
+			if (classifier != null) {
+				cells.add(new IntCell(classifier.computeClass(row)));
+			}
+
+			RowKey rowKey = new RowKey(row[row.length - 1]);
+			DataRow datarow = new DefaultRow(rowKey, cells);
+			container.addRowToTable(datarow);
+		}
 	}
 
 	public DataTableSpec createOutDataTableSpec() {

@@ -39,6 +39,7 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 
 	private void processLevels(List<AnonymizationResult> results) {
 		levels = new ArrayList<>();
+		maxLevel = 0;
 
 		attributes = results.get(0).getArxResult().getGlobalOptimum().getQuasiIdentifyingAttributes();
 		for (int i = 0; i < attributes.length; i++) {
@@ -48,23 +49,22 @@ public class AnonymizerJsNodeViewRep extends JSONViewContent {
 		for (AnonymizationResult result : results) {
 			for (ARXNode[] level : result.getArxResult().getLattice().getLevels()) {
 				for (ARXNode node : level) {
-					int[] transformation = node.getTransformation();
-					for (int i = 0; i < transformation.length; i++) {
-						levels.get(i).add(transformation[i]);
-					}
+					processTransformation(node.getTransformation());
 				}
 			}
 		}
+	}
 
-		maxLevel = 0;
-		for (Set<Integer> row : levels) {
-			for (Integer i : row) {
-				if (i > maxLevel) {
-					maxLevel = i;
-				}
+	private void processTransformation(int[] transformation) {
+		for (int i = 0; i < transformation.length; i++) {
+			int level = transformation[i];
+
+			levels.get(i).add(level);
+
+			if (level > maxLevel) {
+				maxLevel = level;
 			}
 		}
-
 	}
 
 	public AnonymizationResultRep[] getPartitions() {

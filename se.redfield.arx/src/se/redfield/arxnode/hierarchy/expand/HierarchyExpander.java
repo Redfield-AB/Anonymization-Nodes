@@ -54,7 +54,7 @@ public abstract class HierarchyExpander<T, H extends HierarchyBuilderGroupingBas
 	protected abstract HierarchyBuilderGroupingBased<T> createHierarchy();
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static HierarchyExpander<?, ?> create(HierarchyBuilderGroupingBased<?> src, int columnIndex) {
+	private static HierarchyExpander<?, ?> create(HierarchyBuilderGroupingBased<?> src, int columnIndex) {
 		if (src instanceof HierarchyBuilderIntervalBased<?>) {
 			DataType<?> type = src.getDataType();
 			if (type instanceof ARXInteger) {

@@ -91,32 +91,10 @@ public class Anonymizer {
 	}
 
 	private ARXConfiguration configure(Data defData) {
-		config.getColumns().forEach(c -> {
-			DataDefinition def = defData.getDefinition();
-			def.setAttributeType(c.getName(), c.getAttrType());
+		for (ColumnConfig c : config.getColumns()) {
+			configureAttribute(c, defData.getDefinition());
+		}
 
-			if (c.getAttrType() == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
-				HierarchyBuilder<?> hierarchy = getHierarchy(c);
-				if (hierarchy != null) {
-					def.setAttributeType(c.getName(), hierarchy);
-				}
-
-				TransformationConfig tc = c.getTransformationConfig();
-				if (tc.getMode() == Mode.GENERALIZATION) {
-					if (tc.getMinGeneralization() != null) {
-						def.setMinimumGeneralization(c.getName(), tc.getMinGeneralization());
-					}
-					if (tc.getMaxGeneralization() != null) {
-						def.setMaximumGeneralization(c.getName(), tc.getMaxGeneralization());
-					}
-				} else {
-					boolean clustering = tc.getMode() == Mode.CLUSTERING_AND_MICROAGGREGATION;
-					MicroAggregationFunction func = tc.getMicroaggregationFunc()
-							.createFunction(tc.isIgnoreMissingData());
-					def.setMicroAggregationFunction(c.getName(), func, clustering);
-				}
-			}
-		});
 		ARXConfiguration arxConfig = ARXConfiguration.create();
 		config.getPrivacyModels().forEach(m -> arxConfig.addPrivacyModel(m.createCriterion(defData, config)));
 		config.getColumns().forEach(c -> arxConfig.setAttributeWeight(c.getName(), c.getWeight()));
@@ -136,6 +114,31 @@ public class Anonymizer {
 		arxConfig.setPracticalMonotonicity(aConfig.getPractivalMonotonicity().getBooleanValue());
 		arxConfig.setQualityModel(aConfig.getMeasure().createMetric());
 		return arxConfig;
+	}
+
+	private void configureAttribute(ColumnConfig c, DataDefinition def) {
+		def.setAttributeType(c.getName(), c.getAttrType());
+
+		if (c.getAttrType() == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE) {
+			HierarchyBuilder<?> hierarchy = getHierarchy(c);
+			if (hierarchy != null) {
+				def.setAttributeType(c.getName(), hierarchy);
+			}
+
+			TransformationConfig tc = c.getTransformationConfig();
+			if (tc.getMode() == Mode.GENERALIZATION) {
+				if (tc.getMinGeneralization() != null) {
+					def.setMinimumGeneralization(c.getName(), tc.getMinGeneralization());
+				}
+				if (tc.getMaxGeneralization() != null) {
+					def.setMaximumGeneralization(c.getName(), tc.getMaxGeneralization());
+				}
+			} else {
+				boolean clustering = tc.getMode() == Mode.CLUSTERING_AND_MICROAGGREGATION;
+				MicroAggregationFunction func = tc.getMicroaggregationFunc().createFunction(tc.isIgnoreMissingData());
+				def.setMicroAggregationFunction(c.getName(), func, clustering);
+			}
+		}
 	}
 
 	private HierarchyBuilder<?> getHierarchy(ColumnConfig c) {
