@@ -4,10 +4,10 @@
 	<extension
 		point="org.knime.workbench.repository.categories">
 		<category
-			description="Category containing arx nodes"
-			icon="icons/arx.png"
+			description="Category containing Redfield privacy nodes"
+			icon="icons/redfield_logo.png"
 			level-id="arxNodes"
-			name="Arx"
+			name="Privacy"
 			path="/community"/>
 	</extension>
    
