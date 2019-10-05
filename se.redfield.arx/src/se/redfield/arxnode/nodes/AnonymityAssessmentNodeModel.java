@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.apache.mahout.math.Arrays;
@@ -155,7 +156,8 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 		return process(inObjects[PORT_DATA_TABLE], inObjects[PORT_ANONYMIZED_TABLE], exec);
 	}
 
-	private BufferedDataTable[] process(BufferedDataTable plain, BufferedDataTable anonymized, ExecutionContext exec) {
+	private BufferedDataTable[] process(BufferedDataTable plain, BufferedDataTable anonymized, ExecutionContext exec)
+			throws InterruptedException, ExecutionException, CanceledExecutionException {
 		boolean hasSecondTable = anonymized != null;
 
 		RiskEstimateBuilder riskEstimator = getRiskEstimator(readToData(plain));
@@ -230,32 +232,30 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 	}
 
 	private QuasiIdentifierRisk[] getAttributesRisks(RiskEstimateBuilderInterruptible riskEstimator,
-			ExecutionContext exec, boolean hasSecondTable) {
+			ExecutionContext exec, boolean hasSecondTable)
+			throws InterruptedException, ExecutionException, CanceledExecutionException {
 		ExecutionContext subContext = exec.createSubExecutionContext(hasSecondTable ? 0.5 : 1);
+
 		CompletableFuture<RiskModelAttributes> future = CompletableFuture.supplyAsync(() -> {
 			try {
 				return riskEstimator.getAttributeRisks();
 			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 			return null;
 		});
+
 		while (!future.isDone()) {
 			try {
 				Thread.sleep(100);
-			} catch (InterruptedException e) {
-			}
-			try {
 				exec.checkCanceled();
-			} catch (CanceledExecutionException e) {
+				subContext.setProgress(riskEstimator.getProgress() / 100.0);
+			} catch (CanceledExecutionException | InterruptedException e) {
 				riskEstimator.interrupt();
+				throw e;
 			}
-			subContext.setProgress(riskEstimator.getProgress() / 100.0);
 		}
-		try {
-			return future.get().getAttributeRisks();
-		} catch (Exception e) {
-		}
-		return null;
+		return future.get().getAttributeRisks();
 	}
 
 	private RiskModelSampleSummary getRiskSummary(RiskEstimateBuilder riskEstimator) {

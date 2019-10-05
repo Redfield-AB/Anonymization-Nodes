@@ -1,15 +1,17 @@
 package se.redfield.arxnode.util;
 
 import java.util.function.BiConsumer;
+import java.util.function.ObjDoubleConsumer;
+import java.util.function.ObjIntConsumer;
 
 public class FlowVariablesPusher {
 
 	private BiConsumer<String, String> pushString;
-	private BiConsumer<String, Double> pushDouble;
-	private BiConsumer<String, Integer> pushInt;
+	private ObjDoubleConsumer<String> pushDouble;
+	private ObjIntConsumer<String> pushInt;
 
-	public FlowVariablesPusher(BiConsumer<String, String> pushString, BiConsumer<String, Double> pushDouble,
-			BiConsumer<String, Integer> pushInt) {
+	public FlowVariablesPusher(BiConsumer<String, String> pushString, ObjDoubleConsumer<String> pushDouble,
+			ObjIntConsumer<String> pushInt) {
 		this.pushString = pushString;
 		this.pushDouble = pushDouble;
 		this.pushInt = pushInt;
@@ -19,11 +21,11 @@ public class FlowVariablesPusher {
 		pushString.accept(name, value);
 	}
 
-	public void pushDouble(String name, Double value) {
+	public void pushDouble(String name, double value) {
 		pushDouble.accept(name, value);
 	}
 
-	public void pushInt(String name, Integer value) {
+	public void pushInt(String name, int value) {
 		pushInt.accept(name, value);
 	}
 }

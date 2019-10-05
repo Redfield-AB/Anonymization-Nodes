@@ -178,12 +178,8 @@ public class PseudoAnonymizerNodeDialog extends NodeDialogPane {
 		public ModeRadionButton(SettingsModelString model, SaltingMode mode, String title) {
 			super(title);
 			this.mode = mode;
-			addActionListener(e -> {
-				config.setSaltingMode(mode);
-			});
-			model.addChangeListener(e -> {
-				updateSelected();
-			});
+			addActionListener(e -> config.setSaltingMode(mode));
+			model.addChangeListener(e -> updateSelected());
 			updateSelected();
 		}
 

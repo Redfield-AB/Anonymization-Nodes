@@ -37,7 +37,7 @@ public class MetricDescriptionWrap {
 	}
 
 	public static List<MetricDescriptionWrap> list() {
-		return Metric.list().stream().map(m -> new MetricDescriptionWrap(m)).collect(Collectors.toList());
+		return Metric.list().stream().map(MetricDescriptionWrap::new).collect(Collectors.toList());
 	}
 
 	public static MetricDescriptionWrap fromString(String str) {

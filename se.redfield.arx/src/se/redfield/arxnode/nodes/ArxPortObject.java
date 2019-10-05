@@ -29,14 +29,14 @@ public class ArxPortObject extends AbstractPortObject {
 	public static final PortType TYPE = PortTypeRegistry.getInstance().getPortType(ArxPortObject.class);
 	public static final PortType TYPE_OPTIONAL = PortTypeRegistry.getInstance().getPortType(ArxPortObject.class, true);
 
-	private Map<String, HierarchyBuilder<?>> hierarchies;
+	private HashMap<String, HierarchyBuilder<?>> hierarchies;
 	private ArxPortObjectSpec spec;
 
 	public ArxPortObject() {
 
 	}
 
-	public ArxPortObject(Map<String, HierarchyBuilder<?>> hierarchies, ArxPortObjectSpec spec) {
+	public ArxPortObject(HashMap<String, HierarchyBuilder<?>> hierarchies, ArxPortObjectSpec spec) {
 		this.hierarchies = hierarchies;
 		this.spec = spec;
 	}
@@ -57,7 +57,7 @@ public class ArxPortObject extends AbstractPortObject {
 
 	@Override
 	public JComponent[] getViews() {
-		return null;
+		return new JComponent[] {};
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class ArxPortObject extends AbstractPortObject {
 		in.getNextEntry();
 		ObjectInputStream objIn = new ObjectInputStream(in);
 		try {
-			hierarchies = (Map<String, HierarchyBuilder<?>>) objIn.readObject();
+			hierarchies = (HashMap<String, HierarchyBuilder<?>>) objIn.readObject();
 			this.spec = (ArxPortObjectSpec) spec;
 
 		} catch (ClassNotFoundException e) {
@@ -87,7 +87,7 @@ public class ArxPortObject extends AbstractPortObject {
 	}
 
 	public static ArxPortObject create(ArxPortObjectSpec spec, ArxPortObject src) {
-		Map<String, HierarchyBuilder<?>> hierarchies = new HashMap<>();
+		HashMap<String, HierarchyBuilder<?>> hierarchies = new HashMap<>();
 		if (src != null) {
 			hierarchies.putAll(src.getHierarchies());
 		}
