@@ -34,7 +34,6 @@ import javax.swing.JRadioButton;
 import org.apache.commons.lang.StringUtils;
 import org.deidentifier.arx.DataType;
 import org.deidentifier.arx.aggregates.HierarchyBuilder;
-import org.deidentifier.arx.gui.swing.HierarchyModelAbstract;
 import org.knime.core.data.DataColumnDomain;
 import org.knime.core.data.DataColumnSpec;
 import org.knime.core.data.DataTableSpec;
@@ -55,6 +54,7 @@ import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.HierarchyCreateNodeConfig;
 import se.redfield.arxnode.config.HierarchyTypeOptions;
 import se.redfield.arxnode.hierarchy.HierarchyModelFactory;
+import se.redfield.arxnode.hierarchy.edit.HierarchyModelAbstract;
 import se.redfield.arxnode.ui.HierarchyOverwriteNoticeLabel;
 
 public class HierarchyCreateNodeDialog extends NodeDialogPane {

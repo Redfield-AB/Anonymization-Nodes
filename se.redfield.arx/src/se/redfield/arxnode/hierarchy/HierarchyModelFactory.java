@@ -21,17 +21,17 @@ import java.util.Locale;
 import javax.swing.JComponent;
 
 import org.deidentifier.arx.DataType;
-import org.deidentifier.arx.gui.swing.HierarchyDateBasedEditor;
-import org.deidentifier.arx.gui.swing.HierarchyGroupBasedEditor;
-import org.deidentifier.arx.gui.swing.HierarchyModelAbstract;
-import org.deidentifier.arx.gui.swing.HierarchyModelDate;
-import org.deidentifier.arx.gui.swing.HierarchyModelIntervals;
-import org.deidentifier.arx.gui.swing.HierarchyModelOrder;
-import org.deidentifier.arx.gui.swing.HierarchyModelRedaction;
-import org.deidentifier.arx.gui.swing.HierarchyOrderBasedEditor;
-import org.deidentifier.arx.gui.swing.HierarchyRedactionBasedEditor;
 
 import se.redfield.arxnode.config.HierarchyTypeOptions;
+import se.redfield.arxnode.hierarchy.edit.HierarchyDateBasedEditor;
+import se.redfield.arxnode.hierarchy.edit.HierarchyGroupBasedEditor;
+import se.redfield.arxnode.hierarchy.edit.HierarchyModelAbstract;
+import se.redfield.arxnode.hierarchy.edit.HierarchyModelDate;
+import se.redfield.arxnode.hierarchy.edit.HierarchyModelIntervals;
+import se.redfield.arxnode.hierarchy.edit.HierarchyModelOrder;
+import se.redfield.arxnode.hierarchy.edit.HierarchyModelRedaction;
+import se.redfield.arxnode.hierarchy.edit.HierarchyOrderBasedEditor;
+import se.redfield.arxnode.hierarchy.edit.HierarchyRedactionBasedEditor;
 
 public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<T>> {
 
