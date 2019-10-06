@@ -54,7 +54,7 @@ import org.deidentifier.arx.aggregates.HierarchyBuilderDate.Granularity;
 public class HierarchyModelDate extends HierarchyModelAbstract<Date> {
 
 	/** Granularities */
-	private List<Granularity> granularities = new ArrayList<Granularity>();
+	private List<Granularity> granularities = new ArrayList<>();
 	/** Format */
 	private Format format = new Format();
 	/** Time zone */
@@ -220,7 +220,6 @@ public class HierarchyModelDate extends HierarchyModelAbstract<Date> {
 			super.hierarchy = builder.build();
 		} catch (Exception e) {
 			super.error = e.getMessage();
-			return;
 		}
 	}
 }

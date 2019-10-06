@@ -36,7 +36,6 @@ package se.redfield.arxnode.hierarchy.edit;
 
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -167,7 +166,7 @@ public class HierarchyModelOrder<T> extends HierarchyModelGrouping<T> {
 	}
 
 	@Override
-	public void parse(HierarchyBuilder<T> builder) throws IllegalArgumentException {
+	public void parse(HierarchyBuilder<T> builder) {
 
 		if (!(builder instanceof HierarchyBuilderOrderBased)) {
 			return;
@@ -185,14 +184,11 @@ public class HierarchyModelOrder<T> extends HierarchyModelGrouping<T> {
 
 		boolean result = true;
 		try {
-			Arrays.sort(this.data, new Comparator<String>() {
-				@Override
-				public int compare(String o1, String o2) {
-					try {
-						return type.compare(o1, o2);
-					} catch (NumberFormatException | ParseException e) {
-						throw new RuntimeException(e);
-					}
+			Arrays.sort(this.data, (o1, o2) -> {
+				try {
+					return type.compare(o1, o2);
+				} catch (NumberFormatException | ParseException e) {
+					throw new RuntimeException(e);
 				}
 			});
 		} catch (Exception e) {
@@ -236,7 +232,6 @@ public class HierarchyModelOrder<T> extends HierarchyModelGrouping<T> {
 			super.hierarchy = builder.build();
 		} catch (Exception e) {
 			super.error = e.getMessage();
-			return;
 		}
 	}
 }

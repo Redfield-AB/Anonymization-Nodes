@@ -111,8 +111,9 @@ public class HierarchyRenderer<T> {
 			if (group == null) {
 				if (other.group != null)
 					return false;
-			} else if (!group.equals(other.group))
+			} else if (!group.equals(other.group)) {
 				return false;
+			}
 			return true;
 		}
 
@@ -152,8 +153,9 @@ public class HierarchyRenderer<T> {
 			if (interval == null) {
 				if (other.interval != null)
 					return false;
-			} else if (!interval.equals(other.interval))
+			} else if (!interval.equals(other.interval)) {
 				return false;
+			}
 			return true;
 		}
 
@@ -207,16 +209,16 @@ public class HierarchyRenderer<T> {
 	}
 
 	/** Var. */
-	private final List<RenderedInterval<T>> intervals = new ArrayList<RenderedInterval<T>>();
+	private final List<RenderedInterval<T>> intervals = new ArrayList<>();
 
 	/** Var. */
-	private final List<List<RenderedGroup<T>>> groups = new ArrayList<List<RenderedGroup<T>>>();
+	private final List<List<RenderedGroup<T>>> groups = new ArrayList<>();
 
 	/** Var. */
-	private final List<RenderedInterval<T>> renderedIntervals = new ArrayList<RenderedInterval<T>>();
+	private final List<RenderedInterval<T>> renderedIntervals = new ArrayList<>();
 
 	/** Var. */
-	private final List<List<RenderedGroup<T>>> renderedGroups = new ArrayList<List<RenderedGroup<T>>>();
+	private final List<List<RenderedGroup<T>>> renderedGroups = new ArrayList<>();
 
 	/** Var. */
 	private final HierarchyLayout<T> layout;
@@ -231,7 +233,7 @@ public class HierarchyRenderer<T> {
 	 */
 	public HierarchyRenderer(HierarchyModelGrouping<T> model) {
 		this.model = model;
-		this.layout = new HierarchyLayout<T>(model);
+		this.layout = new HierarchyLayout<>(model);
 	}
 
 	/**
@@ -240,7 +242,7 @@ public class HierarchyRenderer<T> {
 	 * @return
 	 */
 	public List<RenderedComponent<T>> getComponents() {
-		List<RenderedComponent<T>> result = new ArrayList<RenderedComponent<T>>();
+		List<RenderedComponent<T>> result = new ArrayList<>();
 		if (model.isShowIntervals())
 			result.addAll(intervals);
 		for (List<RenderedGroup<T>> list : groups) {
@@ -322,9 +324,9 @@ public class HierarchyRenderer<T> {
 			intervalTotalWidth = intervalLabelWidth + intervalBoundWidth;
 		}
 
-		List<Integer> fanoutLabelWidth = new ArrayList<Integer>();
-		List<Integer> fanoutBoundWidth = new ArrayList<Integer>();
-		List<Integer> fanoutTotalWidth = new ArrayList<Integer>();
+		List<Integer> fanoutLabelWidth = new ArrayList<>();
+		List<Integer> fanoutBoundWidth = new ArrayList<>();
+		List<Integer> fanoutTotalWidth = new ArrayList<>();
 
 		for (List<RenderedGroup<T>> list : groups) {
 			int label = getRequiredLabelWidth(gc, list) + OFFSET;
@@ -444,7 +446,7 @@ public class HierarchyRenderer<T> {
 			for (int j = 0; j < factors[i + shift]; j++) {
 				List<HierarchyWizardGroupingGroup<T>> list = modelGroups.get(i);
 				HierarchyWizardGroupingGroup<T> group = list.get(j % list.size());
-				RenderedGroup<T> element = new RenderedGroup<T>();
+				RenderedGroup<T> element = new RenderedGroup<>();
 				element.enabled = j < list.size();
 
 				if (layout.isPretty() && showIntervals) {
@@ -528,7 +530,7 @@ public class HierarchyRenderer<T> {
 		if (showIntervals) {
 			for (int i = 0; i < factors[0]; i++) {
 				HierarchyWizardGroupingInterval<T> interval = modelIntervals.get(i % modelIntervals.size());
-				RenderedInterval<T> element = new RenderedInterval<T>();
+				RenderedInterval<T> element = new RenderedInterval<>();
 				if (i < modelIntervals.size()) {
 					element.offset = null;
 				} else {

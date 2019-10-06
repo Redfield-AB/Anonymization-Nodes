@@ -176,10 +176,10 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 	}
 
 	/** Var. */
-	private List<HierarchyWizardGroupingInterval<T>> intervals = new ArrayList<HierarchyWizardGroupingInterval<T>>();
+	private List<HierarchyWizardGroupingInterval<T>> intervals = new ArrayList<>();
 
 	/** Var. */
-	private List<List<HierarchyWizardGroupingGroup<T>>> groups = new ArrayList<List<HierarchyWizardGroupingGroup<T>>>();
+	private List<List<HierarchyWizardGroupingGroup<T>>> groups = new ArrayList<>();
 
 	/** Var. */
 	private DataType<T> type;
@@ -200,10 +200,10 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 	private Object selected = null;
 
 	/** Var. */
-	private HierarchyRenderer<T> renderer = new HierarchyRenderer<T>(this);
+	private HierarchyRenderer<T> renderer = new HierarchyRenderer<>(this);
 
 	/** Var. */
-	private List<HierarchyWizardView> components = new ArrayList<HierarchyWizardView>();
+	private List<HierarchyWizardView> components = new ArrayList<>();
 
 	/**
 	 * Creates a new instance.
@@ -226,8 +226,8 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 
 			// Prepare
 			DataTypeWithRatioScale<T> dtype = (DataTypeWithRatioScale<T>) type;
-			this.lower = new HierarchyWizardGroupingRange<T>(type, true);
-			this.upper = new HierarchyWizardGroupingRange<T>(type, false);
+			this.lower = new HierarchyWizardGroupingRange<>(type, true);
+			this.upper = new HierarchyWizardGroupingRange<>(type, false);
 			this.function = AggregateFunction.forType(type).createIntervalFunction(true, false);
 
 			// Initialize
@@ -245,9 +245,9 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 				}
 
 				if (equals(type, DataType.INTEGER)) {
-					max = dtype.add(max, (T) new Long(1)); // Add 1
+					max = dtype.add(max, (T) Long.valueOf(1)); // Add 1
 				} else if (equals(type, DataType.DECIMAL)) {
-					max = dtype.add(max, (T) new Double(1)); // Add 1
+					max = dtype.add(max, (T) Double.valueOf(1)); // Add 1
 				} else if (equals(type, DataType.DATE)) {
 					max = dtype.add(max, (T) new Date(3600l * 1000l)); // Add 1 day
 				}
@@ -284,7 +284,6 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 				T bound = ((HierarchyWizardGroupingInterval<T>) selected).max;
 				intervals.add(index + 1, new HierarchyWizardGroupingInterval<T>(bound, bound, this.function));
 				update();
-				return;
 			}
 		} else if (selected instanceof HierarchyWizardGroupingGroup) {
 			for (List<HierarchyWizardGroupingGroup<T>> list : groups) {
@@ -311,7 +310,6 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 				T bound = ((HierarchyWizardGroupingInterval<T>) selected).min;
 				intervals.add(index, new HierarchyWizardGroupingInterval<T>(bound, bound, this.function));
 				update();
-				return;
 			}
 		} else if (selected instanceof HierarchyWizardGroupingGroup) {
 			for (List<HierarchyWizardGroupingGroup<T>> list : groups) {
@@ -340,7 +338,7 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 			}
 		}
 
-		List<HierarchyWizardGroupingGroup<T>> list = new ArrayList<HierarchyWizardGroupingGroup<T>>();
+		List<HierarchyWizardGroupingGroup<T>> list = new ArrayList<>();
 		groups.add(index, list);
 		list.add(new HierarchyWizardGroupingGroup<T>(1, function));
 		update();
@@ -440,12 +438,12 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 		if (selected instanceof HierarchyWizardGroupingInterval) {
 			int index = intervals.indexOf(selected);
 			if (index != -1) {
-				AggregateFunction<T> function = intervals.get(index).function;
+				AggregateFunction<T> func = intervals.get(index).function;
 				T min = intervals.get(index - 1).min;
 				T max = intervals.get(index).max;
 				intervals.remove(index - 1);
 				intervals.remove(index - 1);
-				intervals.add(index - 1, new HierarchyWizardGroupingInterval<T>(min, max, function));
+				intervals.add(index - 1, new HierarchyWizardGroupingInterval<T>(min, max, func));
 				update();
 			}
 		}
@@ -460,12 +458,12 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 		if (selected instanceof HierarchyWizardGroupingInterval) {
 			int index = intervals.indexOf(selected);
 			if (index != -1) {
-				AggregateFunction<T> function = intervals.get(index).function;
+				AggregateFunction<T> func = intervals.get(index).function;
 				T min = intervals.get(index).min;
 				T max = intervals.get(index + 1).max;
 				intervals.remove(index);
 				intervals.remove(index);
-				intervals.add(index, new HierarchyWizardGroupingInterval<T>(min, max, function));
+				intervals.add(index, new HierarchyWizardGroupingInterval<T>(min, max, func));
 				update();
 			}
 		}
@@ -492,7 +490,7 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 			this.intervals.add(new HierarchyWizardGroupingInterval<T>(interval));
 		}
 		for (Level<T> level : builder.getLevels()) {
-			List<HierarchyWizardGroupingGroup<T>> list = new ArrayList<HierarchyWizardGroupingGroup<T>>();
+			List<HierarchyWizardGroupingGroup<T>> list = new ArrayList<>();
 			this.groups.add(list);
 			for (Group<T> group : level.getGroups()) {
 				list.add(new HierarchyWizardGroupingGroup<T>(group));
@@ -507,7 +505,7 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 	 * @param builder
 	 * @throws IllegalArgumentException
 	 */
-	public void parse(HierarchyBuilderOrderBased<T> builder) throws IllegalArgumentException {
+	public void parse(HierarchyBuilderOrderBased<T> builder) {
 
 		if (builder.getComparator() != null) {
 			try {
@@ -523,7 +521,7 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 		this.lower = null;
 		this.upper = null;
 		for (Level<T> level : builder.getLevels()) {
-			List<HierarchyWizardGroupingGroup<T>> list = new ArrayList<HierarchyWizardGroupingGroup<T>>();
+			List<HierarchyWizardGroupingGroup<T>> list = new ArrayList<>();
 			this.groups.add(list);
 			for (Group<T> group : level.getGroups()) {
 				list.add(new HierarchyWizardGroupingGroup<T>(group));
@@ -544,30 +542,31 @@ public abstract class HierarchyModelGrouping<T> extends HierarchyModelAbstract<T
 	/**
 	 * Removes the given object.
 	 *
-	 * @param selected
+	 * @param toRemove
 	 */
-	public void remove(Object selected) {
-		if (selected instanceof HierarchyWizardGroupingInterval) {
+	public void remove(Object toRemove) {
+		if (this.selected != null && this.selected == toRemove) {
+			this.selected = null;
+		}
+		if (toRemove instanceof HierarchyWizardGroupingInterval) {
 			Iterator<HierarchyWizardGroupingInterval<T>> iter = intervals.iterator();
 			while (iter.hasNext()) {
-				if (iter.next().equals(selected)) {
+				if (iter.next().equals(toRemove)) {
 					iter.remove();
-					selected = null;
 					update();
 					return;
 				}
 			}
-		} else if (selected instanceof HierarchyWizardGroupingGroup) {
+		} else if (toRemove instanceof HierarchyWizardGroupingGroup) {
 			for (List<HierarchyWizardGroupingGroup<T>> list : groups) {
 				Iterator<HierarchyWizardGroupingGroup<T>> iter = list.iterator();
 				while (iter.hasNext()) {
 					HierarchyWizardGroupingGroup<T> next = iter.next();
-					if (next.equals(selected)) {
+					if (next.equals(toRemove)) {
 						iter.remove();
 						if (list.isEmpty()) {
 							groups.remove(list);
 						}
-						selected = null;
 						update();
 						return;
 					}

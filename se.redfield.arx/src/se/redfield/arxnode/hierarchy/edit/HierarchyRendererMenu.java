@@ -85,7 +85,7 @@ public class HierarchyRendererMenu<T> extends JPopupMenu {
 		if (selected instanceof HierarchyWizardGroupingInterval) {
 			processEnabledState((HierarchyWizardGroupingInterval<T>) selected);
 		} else if (selected instanceof HierarchyWizardGroupingGroup) {
-			processEnabledState((HierarchyWizardGroupingGroup<T>) selected);
+			processEnabledState();
 		}
 		super.show(invoker, x, y);
 	}
@@ -117,7 +117,7 @@ public class HierarchyRendererMenu<T> extends JPopupMenu {
 		this.addRight.setEnabled(true);
 	}
 
-	private void processEnabledState(HierarchyWizardGroupingGroup<T> group) {
+	private void processEnabledState() {
 		if (model.isShowIntervals()) {
 			this.remove.setEnabled(true);
 		} else {

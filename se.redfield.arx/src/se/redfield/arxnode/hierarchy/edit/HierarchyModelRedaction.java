@@ -279,7 +279,6 @@ public class HierarchyModelRedaction<T> extends HierarchyModelAbstract<T> {
 			super.hierarchy = builder.build();
 		} catch (Exception e) {
 			super.error = "Unknown error";
-			return;
 		}
 	}
 }

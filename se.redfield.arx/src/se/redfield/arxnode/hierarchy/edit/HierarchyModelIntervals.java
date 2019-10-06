@@ -86,7 +86,7 @@ public class HierarchyModelIntervals<T> extends HierarchyModelGrouping<T> {
 	}
 
 	@Override
-	public void parse(HierarchyBuilder<T> builder) throws IllegalArgumentException {
+	public void parse(HierarchyBuilder<T> builder) {
 
 		if (!(builder instanceof HierarchyBuilderIntervalBased)) {
 			return;
@@ -128,7 +128,6 @@ public class HierarchyModelIntervals<T> extends HierarchyModelGrouping<T> {
 			super.hierarchy = builder.build();
 		} catch (Exception e) {
 			super.error = e.getMessage();
-			return;
 		}
 	}
 }
