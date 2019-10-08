@@ -95,6 +95,7 @@ public class AnonymizerNodeDialog extends DefaultNodeSettingsPane {
 		}
 		config.configure(inTableSpec, (ArxPortObjectSpec) specs[AnonymizerNodeModel.PORT_ARX]);
 		initColumnsPanel();
+		privacyPanel.onConfigLoaded();
 		anonConfigPanel.load(settings, specs);
 	}
 

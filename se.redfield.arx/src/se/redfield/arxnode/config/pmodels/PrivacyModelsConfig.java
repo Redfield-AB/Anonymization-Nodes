@@ -18,7 +18,9 @@ package se.redfield.arxnode.config.pmodels;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.knime.core.node.InvalidSettingsException;
@@ -62,6 +64,17 @@ public class PrivacyModelsConfig implements SettingsModelConfig {
 	public void validate() throws InvalidSettingsException {
 		if (models.isEmpty()) {
 			throw new InvalidSettingsException("No privacy models selected");
+		}
+
+		Set<String> implicitModels = new HashSet<>();
+		for (AbstractPrivacyModelConfig m : models) {
+			if (m.isImplicit()) {
+				if (implicitModels.contains(m.getName())) {
+					throw new InvalidSettingsException(
+							"You must not add more than one instance of the " + m.getName() + " model");
+				}
+				implicitModels.add(m.getName());
+			}
 		}
 	}
 

@@ -26,6 +26,7 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeLogger;
 import org.knime.core.node.NodeSettingsRO;
 
+import se.redfield.arxnode.config.TransformationConfig.Mode;
 import se.redfield.arxnode.config.pmodels.AbstractPrivacyModelConfig;
 import se.redfield.arxnode.config.pmodels.PrivacyModelsConfig;
 import se.redfield.arxnode.nodes.ArxPortObjectSpec;
@@ -112,5 +113,21 @@ public class Config implements SettingsModelConfig {
 	@Override
 	public Collection<SettingsModelConfig> getChildred() {
 		return Arrays.asList(columnsConfig, anonymizationConfig, subsetConfig, privacyModelConfig);
+	}
+
+	@Override
+	public void validate() throws InvalidSettingsException {
+		SettingsModelConfig.super.validate();
+		boolean qaWithGeneralizationPresent = false;
+		for (ColumnConfig c : columnsConfig.getColumns().values()) {
+			if (c.getAttrType() == AttributeType.QUASI_IDENTIFYING_ATTRIBUTE
+					&& c.getTransformationConfig().getMode() == Mode.GENERALIZATION) {
+				qaWithGeneralizationPresent = true;
+			}
+		}
+
+		if (!qaWithGeneralizationPresent) {
+			throw new InvalidSettingsException("You need to specify at least one quasi-identifier with generalization");
+		}
 	}
 }

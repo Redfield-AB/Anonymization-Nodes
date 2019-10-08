@@ -6,7 +6,8 @@
       provider-name="Redfield AB">
 
    <description>
-      Redfield ARX
+      This extension allows user to utilize multiple data anonymization and risk assessment techniques.
+Two main approaches that are used for anonymization are: hashing data with salting and use of advanced methods from Arx Java library (https://arx.deidentifier.org).
    </description>
 
    <copyright>

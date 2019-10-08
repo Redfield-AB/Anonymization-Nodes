@@ -34,6 +34,11 @@ public abstract class ColumnPrivacyModelConfig extends AbstractPrivacyModelConfi
 		this.column = column;
 	}
 
+	@Override
+	public boolean isImplicit() {
+		return false;
+	}
+
 	protected abstract String getToStringPrefix();
 
 	@Override

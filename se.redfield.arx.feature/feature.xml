@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="se.redfield.arx.feature"
-      label="Redfield ARX"
+      label="Anonymization extension"
       version="1.0.0.qualifier"
       provider-name="Redfield AB">
 
    <description>
-      Redfield ARX
+      This extension allows user to utilize multiple data anonymization and risk assessment techniques.
+Two main approaches that are used for anonymization are: hashing data with salting and use of advanced methods from Arx Java library (https://arx.deidentifier.org).
    </description>
 
    <copyright>

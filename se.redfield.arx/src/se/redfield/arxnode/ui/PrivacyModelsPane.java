@@ -21,7 +21,10 @@ import java.awt.GridBagLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -64,6 +67,7 @@ public class PrivacyModelsPane {
 	private JList<AbstractPrivacyModelConfig> list;
 	private PrivacyListModel model;
 
+	private Map<String, JMenuItem> menuItems;
 	private JCheckBox cbSplit;
 	private JLabel lEditorError;
 	private JButton bEdit;
@@ -146,6 +150,7 @@ public class PrivacyModelsPane {
 		}
 		model.fireUpdate();
 		cancelEdit();
+		updateMenuItemsEnabled();
 	}
 
 	private void cancelEdit() {
@@ -196,19 +201,25 @@ public class PrivacyModelsPane {
 	}
 
 	private JPopupMenu createDropdownMenu() {
+		menuItems = new HashMap<>();
 		JPopupMenu menu = new JPopupMenu();
-		menu.add(createMenuItem(new KAnonymityConfig()));
-		menu.add(createMenuItem(new KMapConfig()));
-		menu.add(createMenuItem(new DPresenceConfig()));
+		createMenuItem(KAnonymityConfig::new, menu);
+		createMenuItem(KMapConfig::new, menu);
+		createMenuItem(DPresenceConfig::new, menu);
 		menu.addSeparator();
-		menu.add(createMenuItem(new LDiversityConfig()));
-		menu.add(createMenuItem(new TClosenessConfig()));
+		createMenuItem(LDiversityConfig::new, menu);
+		createMenuItem(TClosenessConfig::new, menu);
 		return menu;
 	}
 
-	private JMenuItem createMenuItem(AbstractPrivacyModelConfig instance) {
-		JMenuItem item = new JMenuItem(instance.getName());
-		item.addActionListener(e -> edit(instance, true));
+	private JMenuItem createMenuItem(Supplier<AbstractPrivacyModelConfig> instance, JPopupMenu menu) {
+		String name = instance.get().getName();
+		JMenuItem item = new JMenuItem(name);
+
+		item.addActionListener(e -> edit(instance.get(), true));
+
+		menu.add(item);
+		menuItems.put(name, item);
 		return item;
 	}
 
@@ -232,6 +243,7 @@ public class PrivacyModelsPane {
 			config.getPrivacyModels().remove(selected);
 			model.fireUpdate();
 			list.clearSelection();
+			updateMenuItemsEnabled();
 		}
 	}
 
@@ -251,6 +263,19 @@ public class PrivacyModelsPane {
 		lEditorError.setText("");
 		editPanel.updateUI();
 		editPanel.setVisible(true);
+	}
+
+	public void onConfigLoaded() {
+		updateMenuItemsEnabled();
+	}
+
+	private void updateMenuItemsEnabled() {
+		menuItems.values().forEach(i -> i.setEnabled(true));
+		for (AbstractPrivacyModelConfig m : config.getPrivacyModels()) {
+			if (m.isImplicit()) {
+				menuItems.get(m.getName()).setEnabled(false);
+			}
+		}
 	}
 
 	private class PrivacyListModel implements ListModel<AbstractPrivacyModelConfig> {

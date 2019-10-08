@@ -46,6 +46,10 @@ public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig,
 		this.index = index;
 	}
 
+	public boolean isImplicit() {
+		return true;
+	}
+
 	@Override
 	public String getKey() {
 		return index + "-" + getClass().getSimpleName();
