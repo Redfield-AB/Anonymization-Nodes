@@ -37,9 +37,11 @@ public class PseudoAnonymizerNodeModel extends NodeModel {
 	public static final int PORT_DATA_TABLE = 0;
 
 	private PseudoAnonymizerNodeConfig config;
+	private Pseudoanonymizer worker;
 
 	protected PseudoAnonymizerNodeModel() {
-		super(new PortType[] { BufferedDataTable.TYPE }, new PortType[] { BufferedDataTable.TYPE });
+		super(new PortType[] { BufferedDataTable.TYPE },
+				new PortType[] { BufferedDataTable.TYPE, BufferedDataTable.TYPE });
 		config = new PseudoAnonymizerNodeConfig();
 	}
 
@@ -80,15 +82,13 @@ public class PseudoAnonymizerNodeModel extends NodeModel {
 	@Override
 	protected DataTableSpec[] configure(DataTableSpec[] inSpecs) throws InvalidSettingsException {
 		Utils.removeMissingColumns(config.getColumnFilter(), inSpecs[PORT_DATA_TABLE]);
-		return new DataTableSpec[] {
-				new Pseudoanonymizer(config, inSpecs[PORT_DATA_TABLE]).getColumnRearranger().createSpec() };
+		worker = new Pseudoanonymizer(config, inSpecs[PORT_DATA_TABLE]);
+		return new DataTableSpec[] { worker.getDataTableRearranger().createSpec(), worker.getHashesTableSpec() };
 	}
 
 	@Override
 	protected BufferedDataTable[] execute(BufferedDataTable[] inData, ExecutionContext exec) throws Exception {
-		Pseudoanonymizer worker = new Pseudoanonymizer(config, inData[PORT_DATA_TABLE].getDataTableSpec());
-		BufferedDataTable resultTable = worker.process(exec, inData[PORT_DATA_TABLE]);
-		return new BufferedDataTable[] { resultTable };
+		return worker.process(exec, inData[PORT_DATA_TABLE]);
 	}
 
 }

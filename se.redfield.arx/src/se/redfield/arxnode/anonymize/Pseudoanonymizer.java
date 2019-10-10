@@ -29,8 +29,11 @@ import org.knime.core.data.DataRow;
 import org.knime.core.data.DataTableSpec;
 import org.knime.core.data.container.AbstractCellFactory;
 import org.knime.core.data.container.CellFactory;
+import org.knime.core.data.container.CloseableRowIterator;
 import org.knime.core.data.container.ColumnRearranger;
+import org.knime.core.data.def.DefaultRow;
 import org.knime.core.data.def.StringCell;
+import org.knime.core.node.BufferedDataContainer;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.CanceledExecutionException;
 import org.knime.core.node.ExecutionContext;
@@ -38,21 +41,24 @@ import org.knime.core.node.NodeLogger;
 
 import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.PseudoAnonymizerNodeConfig;
-import se.redfield.arxnode.config.PseudoAnonymizerNodeConfig.ReplaceMode;
 
 public class Pseudoanonymizer {
 	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(Pseudoanonymizer.class);
 
-	private ColumnRearranger columnRearranger;
+	private PseudoAnonymizerNodeConfig config;
+	private ColumnRearranger dataTableRearranger;
+	private DataTableSpec hashesTableSpec;
 	private SaltProvider saltProvider;
 
 	public Pseudoanonymizer(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
-		this.columnRearranger = createRearranger(config, spec);
-		this.saltProvider = createSaltProvider(config, spec);
+		this.config = config;
+		this.dataTableRearranger = createDataTableRearranger(spec);
+		this.hashesTableSpec = createHashesTableSpec(spec);
+		this.saltProvider = createSaltProvider(spec);
 	}
 
-	private SaltProvider createSaltProvider(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
+	private SaltProvider createSaltProvider(DataTableSpec spec) {
 		switch (config.getSaltingMode()) {
 		case RANDOM:
 			return new RandomSaltProvider(config);
@@ -70,7 +76,7 @@ public class Pseudoanonymizer {
 		return row -> "";
 	}
 
-	private ColumnRearranger createRearranger(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
+	private ColumnRearranger createDataTableRearranger(DataTableSpec spec) {
 		List<String> includeList = config.getSelectedColumns();
 		int[] indexes = new int[includeList.size()];
 		List<DataColumnSpec> newSpecs = new ArrayList<>();
@@ -78,12 +84,7 @@ public class Pseudoanonymizer {
 		for (int i = 0; i < includeList.size(); i++) {
 			String name = includeList.get(i);
 			indexes[i] = spec.findColumnIndex(name);
-
-			String newName = name;
-			if (config.getReplaceMode() == ReplaceMode.APPEND) {
-				newName += "-anonymized";
-			}
-			newSpecs.add(new DataColumnSpecCreator(newName, StringCell.TYPE).createSpec());
+			newSpecs.add(new DataColumnSpecCreator(name, StringCell.TYPE).createSpec());
 		}
 
 		boolean debugMode = config.getDebugMode().getBooleanValue();
@@ -108,21 +109,69 @@ public class Pseudoanonymizer {
 		};
 
 		ColumnRearranger rearranger = new ColumnRearranger(spec);
-		if (config.getReplaceMode() == ReplaceMode.REPLACE) {
-			rearranger.replace(factory, indexes);
-		} else {
-			rearranger.append(factory);
-		}
+		rearranger.replace(factory, indexes);
 		return rearranger;
 	}
 
-	public ColumnRearranger getColumnRearranger() {
-		return columnRearranger;
+	private DataTableSpec createHashesTableSpec(DataTableSpec spec) {
+		List<String> includeList = config.getSelectedColumns();
+		List<DataColumnSpec> newSpecs = new ArrayList<>();
+
+		for (String name : includeList) {
+			newSpecs.add(spec.getColumnSpec(name));
+			newSpecs.add(new DataColumnSpecCreator(name + "_anonymized", StringCell.TYPE).createSpec());
+		}
+
+		return new DataTableSpec(newSpecs.toArray(new DataColumnSpec[] {}));
 	}
 
-	public BufferedDataTable process(ExecutionContext exec, BufferedDataTable inTable)
+	private BufferedDataTable createHashesTable(BufferedDataTable inTable, BufferedDataTable outTable,
+			ExecutionContext exec) {
+		BufferedDataContainer container = exec.createDataContainer(hashesTableSpec);
+
+		List<String> includeList = config.getSelectedColumns();
+		int[] indexes = new int[includeList.size()];
+
+		for (int i = 0; i < includeList.size(); i++) {
+			String name = includeList.get(i);
+			indexes[i] = inTable.getDataTableSpec().findColumnIndex(name);
+		}
+
+		CloseableRowIterator inIter = inTable.iterator();
+		CloseableRowIterator outIter = outTable.iterator();
+
+		while (inIter.hasNext() && outIter.hasNext()) {
+			DataRow inRow = inIter.next();
+			DataRow outRow = outIter.next();
+
+			List<DataCell> cells = new ArrayList<>();
+
+			for (int i = 0; i < indexes.length; i++) {
+				cells.add(inRow.getCell(indexes[i]));
+				cells.add(outRow.getCell(indexes[i]));
+			}
+
+			DataRow combinedRow = new DefaultRow(inRow.getKey(), cells.toArray(new DataCell[] {}));
+			container.addRowToTable(combinedRow);
+		}
+		inIter.close();
+		outIter.close();
+		container.close();
+		return container.getTable();
+	}
+
+	public ColumnRearranger getDataTableRearranger() {
+		return dataTableRearranger;
+	}
+
+	public DataTableSpec getHashesTableSpec() {
+		return hashesTableSpec;
+	}
+
+	public BufferedDataTable[] process(ExecutionContext exec, BufferedDataTable inTable)
 			throws CanceledExecutionException {
-		return exec.createColumnRearrangeTable(inTable, getColumnRearranger(), exec);
+		BufferedDataTable outTable = exec.createColumnRearrangeTable(inTable, getDataTableRearranger(), exec);
+		return new BufferedDataTable[] { outTable, createHashesTable(inTable, outTable, exec) };
 	}
 
 	private interface SaltProvider {

@@ -39,6 +39,7 @@
     <ports>
         <inPort index="0" name="Table for pseudoanonymization">Table for pseudoanonymization</inPort>
         <outPort index="0" name="Table with pseudoanonymized data">Table with pseudoanonymized data</outPort>
+        <outPort index="1" name="Hashes Table">Hashes Table</outPort>
     </ports>
     
 </knimeNode>
