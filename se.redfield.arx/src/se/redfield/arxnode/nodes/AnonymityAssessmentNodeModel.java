@@ -243,7 +243,7 @@ public class AnonymityAssessmentNodeModel extends NodeModel {
 	}
 
 	private RiskEstimateBuilder getRiskEstimator(Data data) {
-		return data.getHandle().getRiskEstimator(config.getPopulation().getPopulationModel());
+		return data.getHandle().getRiskEstimator();
 	}
 
 	private QuasiIdentifierRisk[] getAttributesRisks(RiskEstimateBuilderInterruptible riskEstimator,

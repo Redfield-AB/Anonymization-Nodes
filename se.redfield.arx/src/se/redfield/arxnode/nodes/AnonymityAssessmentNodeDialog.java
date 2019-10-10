@@ -31,7 +31,6 @@ import com.jgoodies.forms.factories.CC;
 import com.jgoodies.forms.layout.FormLayout;
 
 import se.redfield.arxnode.config.AnonymityAssessmentNodeConfig;
-import se.redfield.arxnode.ui.PopulationConfigPanel;
 
 public class AnonymityAssessmentNodeDialog extends NodeDialogPane {
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymityAssessmentNodeDialog.class);
@@ -39,7 +38,6 @@ public class AnonymityAssessmentNodeDialog extends NodeDialogPane {
 	private AnonymityAssessmentNodeConfig config;
 
 	private DialogComponentColumnFilter columnFilter;
-	private PopulationConfigPanel population;
 
 	public AnonymityAssessmentNodeDialog() {
 		config = new AnonymityAssessmentNodeConfig();
@@ -55,12 +53,9 @@ public class AnonymityAssessmentNodeDialog extends NodeDialogPane {
 		DialogComponentNumber threshold = new DialogComponentNumber(config.getRiskThreshold(),
 				"Re-identification Risk Threshold", 0.01);
 
-		population = new PopulationConfigPanel(config.getPopulation());
-
-		JPanel panel = new JPanel(new FormLayout("5:n, f:p:g, 5:n", "5:n, f:p:g, 5:n, p:n, 5:n, p:n"));
+		JPanel panel = new JPanel(new FormLayout("5:n, f:p:g, 5:n", "5:n, f:p:g, 5:n, p:n"));
 		panel.add(columnFilter.getComponentPanel(), CC.rc(2, 2));
 		panel.add(threshold.getComponentPanel(), CC.rc(4, 2, "c, l"));
-		panel.add(population, CC.rc(6, 2));
 		return panel;
 	}
 
@@ -78,7 +73,6 @@ public class AnonymityAssessmentNodeDialog extends NodeDialogPane {
 		}
 
 		columnFilter.loadSettingsFrom(settings, specs);
-		population.loadFromConfig();
 	}
 
 	@Override
