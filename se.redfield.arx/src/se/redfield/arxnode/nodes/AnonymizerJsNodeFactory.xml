@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <knimeNode icon="./icons/arx.png" type="Manipulator" xmlns="http://knime.org/node/v2.10" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://knime.org/node/v2.10 http://knime.org/node/v2.10.xsd">
-    <name>Anonymization (JS)</name>
+    <name>Hierarchical Anonymization</name>
     
     <shortDescription>
         Node for anonymizing data using ARX Data Anonymization Tool.
@@ -56,7 +56,7 @@
         </tab>
         <tab name="Anonymization Config">
         	<option name="Number of threads">Number of partitions (threads). Input data will be split into # partitions to run in different threads simultaneously.</option>
-        	<option name="Group by column">
+        	<option name="Partition by column">
         		Partition table by specified column. When unchecked - table will be partitioned into <b>Number of threads</b> parts of equal size.
         		For string columns - table will be partitioned by distinct values for this column, raising an error in case there are more
         		distinct values than specified number of threads.

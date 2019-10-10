@@ -91,4 +91,11 @@
          </webDependency>
       </webResourceBundle>
 	</extension>
+ <extension
+       point="org.knime.product.splashExtension">
+    <splashExtension
+          icon="icons/redfield_logo_48.png"
+          id="se.redfield.arx.splashExtension1">
+    </splashExtension>
+ </extension>
 </plugin>

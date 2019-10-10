@@ -73,11 +73,11 @@ public class AnonymizationConfigPanel {
 
 		JPanel panel = new JPanel(new FormLayout("l:p:n, 5:n, l:p:g, p:g", "p:n, 5:n, p:n"));
 		panel.add(
-				new DialogComponentNumber(config.getNumOfThreads(), "# of threads", 1,
+				new DialogComponentNumber(config.getNumOfThreads(), "Number of threads", 1,
 						dlg.createFlowVariableModel(new String[] { AnonymizationConfig.CONFIG_KEY,
 								AnonymizationConfig.CONFIG_NUM_OF_THREADS }, Type.INTEGER)).getComponentPanel(),
 				cc.rcw(1, 1, 3, "d,l"));
-		panel.add(new DialogComponentBoolean(config.getPartitionsGroupByEnabled(), "Group by column:")
+		panel.add(new DialogComponentBoolean(config.getPartitionsGroupByEnabled(), "Partition by column:")
 				.getComponentPanel(), cc.rc(3, 1));
 		panel.add(columnSelection.getComponentPanel(), cc.rc(3, 3));
 		panel.setBorder(BorderFactory.createTitledBorder("Partitioning"));
