@@ -15,9 +15,6 @@
 		point="org.knime.workbench.repository.nodes">
 		<node
 			category-path="/community/arxNodes/"
-			factory-class="se.redfield.arxnode.nodes.AnonymizerNodeFactory"/>
-		<node
-			category-path="/community/arxNodes/"
 			factory-class="se.redfield.arxnode.nodes.HierarchyExpandNodeFactory"/>
 		<node
 			category-path="/community/arxNodes/"

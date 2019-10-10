@@ -83,7 +83,7 @@ public class AnonymizerNodeDialog extends DefaultNodeSettingsPane {
 	public void loadAdditionalSettingsFrom(NodeSettingsRO settings, PortObjectSpec[] specs)
 			throws NotConfigurableException {
 		logger.info("Dialog.loadSettings");
-		DataTableSpec inTableSpec = (DataTableSpec) specs[AnonymizerNodeModel.PORT_DATA_TABLE];
+		DataTableSpec inTableSpec = (DataTableSpec) specs[AnonymizerJsNodeModel.PORT_DATA_TABLE];
 		if ((inTableSpec == null) || (inTableSpec.getNumColumns() < 1)) {
 			throw new NotConfigurableException("Cannot be configured without" + " input table");
 		}
@@ -93,7 +93,7 @@ public class AnonymizerNodeDialog extends DefaultNodeSettingsPane {
 		} catch (InvalidSettingsException e) {
 			logger.debug(e.getMessage(), e);
 		}
-		config.configure(inTableSpec, (ArxPortObjectSpec) specs[AnonymizerNodeModel.PORT_ARX]);
+		config.configure(inTableSpec, (ArxPortObjectSpec) specs[AnonymizerJsNodeModel.PORT_ARX]);
 		initColumnsPanel();
 		privacyPanel.onConfigLoaded();
 		anonConfigPanel.load(settings, specs);
