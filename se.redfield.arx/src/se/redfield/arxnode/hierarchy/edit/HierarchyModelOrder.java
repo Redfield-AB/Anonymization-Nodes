@@ -119,6 +119,23 @@ public class HierarchyModelOrder<T> extends HierarchyModelGrouping<T> {
 	}
 
 	/**
+	 * 
+	 * Moves items down
+	 * 
+	 * @param index initial starting index of the interval
+	 * @param count items count
+	 * @return
+	 */
+	public boolean moveDown(int index, int count) {
+		for (int i = index + count - 1; i >= index; i--) {
+			if (!moveDown(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Moves an item up.
 	 *
 	 * @param index
@@ -131,6 +148,22 @@ public class HierarchyModelOrder<T> extends HierarchyModelGrouping<T> {
 		data[index - 1] = data[index];
 		data[index] = temp;
 		update();
+		return true;
+	}
+
+	/**
+	 * Moves items up
+	 * 
+	 * @param index initial starting index of the interval
+	 * @param count items count
+	 * @return
+	 */
+	public boolean moveUp(int index, int count) {
+		for (int i = index; i < index + count; i++) {
+			if (!moveUp(i)) {
+				return false;
+			}
+		}
 		return true;
 	}
 
@@ -163,6 +196,31 @@ public class HierarchyModelOrder<T> extends HierarchyModelGrouping<T> {
 		update();
 
 		return true;
+	}
+
+	/**
+	 * Moves items
+	 * 
+	 * @param from  initial starting index of the interval
+	 * @param to    destination index
+	 * @param count items count
+	 * @return
+	 */
+	public boolean move(int from, int to, int count) {
+		if (to >= from && to - from < count) {
+			return false;
+		}
+		boolean res = false;
+		if (from < to) {
+			for (int i = from; i < to - count; i++) {
+				res |= moveDown(i, count);
+			}
+		} else {
+			for (int i = from; i > to; i--) {
+				res |= moveUp(i, count);
+			}
+		}
+		return res;
 	}
 
 	@Override

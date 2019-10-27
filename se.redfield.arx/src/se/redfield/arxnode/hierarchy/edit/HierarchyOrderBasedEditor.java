@@ -15,15 +15,19 @@
  */
 package se.redfield.arxnode.hierarchy.edit;
 
+import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
+import java.io.IOException;
+import java.util.Locale;
 
 import javax.swing.BorderFactory;
 import javax.swing.DropMode;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -100,11 +104,12 @@ public class HierarchyOrderBasedEditor<T> extends JPanel {
 	private void onMove(boolean up) {
 		int index = table.getSelectedRow();
 		if (index > -1) {
-			boolean res = up ? model.moveUp(index) : model.moveDown(index);
+			int count = table.getSelectedRowCount();
+			boolean res = up ? model.moveUp(index, count) : model.moveDown(index, count);
 			if (res) {
 				tableModel.fireTableDataChanged();
 				index = up ? index - 1 : index + 1;
-				table.getSelectionModel().setSelectionInterval(index, index);
+				table.getSelectionModel().setSelectionInterval(index, index + count - 1);
 				cbSort.setSelectedIndex(0);
 			}
 		}
@@ -140,7 +145,7 @@ public class HierarchyOrderBasedEditor<T> extends JPanel {
 		table.setDragEnabled(true);
 		table.setDropMode(DropMode.INSERT_ROWS);
 		table.setTransferHandler(new OrderTransferHandler());
-		table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
 		return new JScrollPane(table, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -148,6 +153,7 @@ public class HierarchyOrderBasedEditor<T> extends JPanel {
 
 	private class OrderTransferHandler extends TransferHandler {
 		private static final long serialVersionUID = 1L;
+		private static final String SEPARATOR = "-";
 
 		@Override
 		public boolean canImport(TransferSupport support) {
@@ -156,7 +162,8 @@ public class HierarchyOrderBasedEditor<T> extends JPanel {
 
 		@Override
 		protected Transferable createTransferable(JComponent c) {
-			return new StringSelection(String.valueOf(((JTable) c).getSelectedRow()));
+			JTable t = (JTable) c;
+			return new StringSelection(t.getSelectedRow() + SEPARATOR + t.getSelectedRowCount());
 		}
 
 		@Override
@@ -169,20 +176,19 @@ public class HierarchyOrderBasedEditor<T> extends JPanel {
 			JTable.DropLocation dl = (javax.swing.JTable.DropLocation) support.getDropLocation();
 			try {
 				int dstRow = dl.getRow();
-				int srcRow = Integer
-						.parseInt((String) support.getTransferable().getTransferData(DataFlavor.stringFlavor));
-				if (dstRow > srcRow) {
-					dstRow -= 1;
-				}
-				onMove(srcRow, dstRow);
+				String[] data = ((String) support.getTransferable().getTransferData(DataFlavor.stringFlavor))
+						.split(SEPARATOR);
+				int srcRow = Integer.parseInt(data[0]);
+				int count = Integer.parseInt(data[1]);
+				onMove(srcRow, dstRow, count);
 			} catch (Exception e) {
 				// ignore
 			}
 			return super.importData(support);
 		}
 
-		private void onMove(int from, int to) {
-			boolean res = model.move(from, to);
+		private void onMove(int from, int to, int count) {
+			boolean res = model.move(from, to, count);
 			if (res) {
 				tableModel.fireTableDataChanged();
 				cbSort.setSelectedIndex(0);
