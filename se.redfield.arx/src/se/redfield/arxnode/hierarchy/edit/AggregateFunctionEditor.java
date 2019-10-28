@@ -89,8 +89,11 @@ public class AggregateFunctionEditor<T> extends JPanel {
 				if (ignoreListeners) {
 					return;
 				}
-				onSelected
-						.accept(((AggregateFunctionWithParameter<T>) selected.function).newInstance(tfParam.getText()));
+				AggregateFunctionWithParameter<T> withParam = (AggregateFunctionWithParameter<T>) selected.function;
+				String param = tfParam.getText();
+				if (withParam.acceptsParameter(param)) {
+					onSelected.accept(withParam.newInstance(param));
+				}
 			}
 		});
 
