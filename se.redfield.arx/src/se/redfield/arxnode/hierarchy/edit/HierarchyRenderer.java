@@ -554,4 +554,8 @@ public class HierarchyRenderer<T> {
 
 		return modelIntervals;
 	}
+
+	public HierarchyLayout<T> getLayout() {
+		return layout;
+	}
 }

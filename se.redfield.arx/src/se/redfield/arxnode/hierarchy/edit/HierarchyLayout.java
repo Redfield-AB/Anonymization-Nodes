@@ -57,6 +57,8 @@ public class HierarchyLayout<T> {
 	/** Var. */
 	private boolean pretty = true;
 
+	private boolean prettify = true;
+
 	/**
 	 * Creates a new instance.
 	 *
@@ -160,11 +162,13 @@ public class HierarchyLayout<T> {
 				}
 			}
 
-			// Check if still pretty
-			for (int i = 0; i < cardinality.length; i++) {
-				if (cardinality[i] > PRETTY_THRESHOLD) {
-					pretty = false;
-					repeat = false;
+			if (prettify) {
+				// Check if still pretty
+				for (int i = 0; i < cardinality.length; i++) {
+					if (cardinality[i] > PRETTY_THRESHOLD) {
+						pretty = false;
+						repeat = false;
+					}
 				}
 			}
 		}
@@ -184,5 +188,13 @@ public class HierarchyLayout<T> {
 	 */
 	public void setPretty(boolean pretty) {
 		this.pretty = pretty;
+	}
+
+	public boolean isPrettify() {
+		return prettify;
+	}
+
+	public void setPrettify(boolean prettify) {
+		this.prettify = prettify;
 	}
 }

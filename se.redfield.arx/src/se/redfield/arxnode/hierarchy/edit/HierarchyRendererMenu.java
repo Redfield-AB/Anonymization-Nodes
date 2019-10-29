@@ -18,6 +18,7 @@ package se.redfield.arxnode.hierarchy.edit;
 import java.awt.Component;
 import java.awt.event.ActionListener;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
@@ -67,6 +68,8 @@ public class HierarchyRendererMenu<T> extends JPopupMenu {
 		add(mergeUp);
 		addSeparator();
 		add(addRight);
+		addSeparator();
+		add(createPrettifyItem());
 	}
 
 	private JMenuItem createMenuItem(String title, ActionListener action) {
@@ -75,22 +78,40 @@ public class HierarchyRendererMenu<T> extends JPopupMenu {
 		return item;
 	}
 
+	private JMenuItem createPrettifyItem() {
+		JCheckBoxMenuItem cb = new JCheckBoxMenuItem("Collapse groups when too many");
+		cb.setSelected(true);
+		cb.addActionListener(e -> {
+			model.getRenderer().getLayout().setPrettify(cb.isSelected());
+			model.update();
+		});
+		return cb;
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void show(Component invoker, int x, int y) {
-		if (model.getSelectedElement() == null) {
-			return;
-		}
 		Object selected = model.getSelectedElement();
-		if (selected instanceof HierarchyWizardGroupingInterval) {
-			processEnabledState((HierarchyWizardGroupingInterval<T>) selected);
+		if (selected == null) {
+			processEnabledNotSelected();
+		} else if (selected instanceof HierarchyWizardGroupingInterval) {
+			processEnabledIntervals((HierarchyWizardGroupingInterval<T>) selected);
 		} else if (selected instanceof HierarchyWizardGroupingGroup) {
-			processEnabledState();
+			processEnabledGroups();
 		}
 		super.show(invoker, x, y);
 	}
 
-	private void processEnabledState(HierarchyWizardGroupingInterval<T> interval) {
+	private void processEnabledNotSelected() {
+		remove.setEnabled(false);
+		addBefore.setEnabled(false);
+		addAfter.setEnabled(false);
+		mergeDown.setEnabled(false);
+		mergeUp.setEnabled(false);
+		addRight.setEnabled(false);
+	}
+
+	private void processEnabledIntervals(HierarchyWizardGroupingInterval<T> interval) {
 		if (model.getIntervals().size() == 1) {
 			this.remove.setEnabled(false);
 		} else if (model.isFirst(interval) || model.isLast(interval)) {
@@ -117,7 +138,7 @@ public class HierarchyRendererMenu<T> extends JPopupMenu {
 		this.addRight.setEnabled(true);
 	}
 
-	private void processEnabledState() {
+	private void processEnabledGroups() {
 		if (model.isShowIntervals()) {
 			this.remove.setEnabled(true);
 		} else {
