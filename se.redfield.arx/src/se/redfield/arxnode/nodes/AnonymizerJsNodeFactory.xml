@@ -3,21 +3,13 @@
     <name>Hierarchical Anonymization</name>
     
     <shortDescription>
-        Node for anonymizing data using ARX Data Anonymization Tool.
+        Node for anonymizing sensitive personal data.
     </shortDescription>
     
     <fullDescription>
         <intro>
-        	Node for anonymizing sensitive personal data using <a href="https://arx.deidentifier.org">ARX Data Anonymization Tool</a>
-        	<br></br>
-        	<sub>
-        		Developed by Alex Bondaletov
-        	</sub>
-        	<br></br>
-        	<sup>
-        		&lt;alex.bondaletov@yahoo.com&gt;
-        	</sup>
-        	
+        	Node for anonymizing sensitive personal data. 
+        	The underlying tools used by the node is based on <a href="https://arx.deidentifier.org">ARX Data Anonymization Tool</a>
         </intro>
         
         <tab name="Columns">
@@ -31,7 +23,7 @@
 				(Either index or name could be used in flow variables)
         	</option>
         	<option name="File">Hierarchy file (*.ahs).</option>
-        	<option name="Mode">Transformation mode. Possible options:
+        	<option name="Mode">Transformation mode options:
 <pre>
 0 | Generalization
 1 | Microaggregation
@@ -39,9 +31,13 @@
 </pre>        	
 				(Either index or name could be used in flow variables)	
         	</option>
-        	<option name="Weight">Attribute weight. Value in range [0.0, 1.0]. Default is 0.5.</option>
-        	<option name="Minimum">Minimum generalization level.</option>
-        	<option name="Maximum">Maximum generalization level.</option>
+        	<option name="Weight">
+        		Attribute weight. Value in range [0.0, 1.0]. 
+        		Default is 0.5. 
+        		The attributes with lesser weights will be anonymized more and vice versa for attributes with higher weights.
+        	</option>
+        	<option name="Minimum">Minimum fixed generalization level.</option>
+        	<option name="Maximum">Maximum fixed generalization level.</option>
         	<option name="Function">Attribute processing function.  Possible options:
 <pre>
 0 | Arithmetic mean
@@ -52,15 +48,20 @@
 </pre>        	
 				(Either index or name could be used in flow variables)	
         	</option>
-        	<option name="Ignore Missing Data">Should the function ignore missing data.</option>
+        	<option name="Ignore Missing Data">Defines if the generalization function ignores missing data or not.</option>
         </tab>
         <tab name="Anonymization Config">
-        	<option name="Number of threads">Number of partitions (threads). Input data will be split into # partitions to run in different threads simultaneously.</option>
+        	<option name="Number of threads">
+        		Number of partitions (threads). 
+        		Input data will be split into a number of partitions to run in different threads simultaneously. 
+        		Might decrease the time of data anonymization, but lead affect the quality of anonymization.
+        	</option>
         	<option name="Partition by column">
-        		Partition table by specified column. When unchecked - table will be partitioned into <b>Number of threads</b> parts of equal size.
-        		For string columns - table will be partitioned by distinct values for this column, raising an error in case there are more
-        		distinct values than specified number of threads.
-        		For decimal and data/time columns - range of possible values will be split into <b>Number of threads</b> of equal length intervals.
+        		Partition table by specified column. 
+        		When unchecked - table will be partitioned into <b>Number of threads</b> parts of equal size. 
+        		For string columns the table will be partitioned by distinct values for this column, 
+        		an error will be raised in case there are more distinct values than specified <b>Number of threads</b>. 
+        		For decimal and Date&amp;Time columns - range of possible values will be split into <b>Number of threads</b> of equal length intervals.
         	</option>
         	<option name="Suppression limit">
         		Define the suppression limit, which is the maximal number of records that can be removed from the input dataset (in fraction). Value between 0.0 and 1.0.
@@ -83,7 +84,7 @@
         		Exclude 'identifying' columns from the result table.
         	</option>
         	<option name="Heuristic Search Enabled">
-        		Sets whether ARX will use a heuristic search strategy.
+        		Defines whether a heuristic search strategy is used.
         	</option>
         	<option name="Limited number of steps">
         		The heuristic search algorithm will terminate after the given number of transformations have been checked.
@@ -121,7 +122,7 @@
         	</option>
         	<option name="Precomputation threshold">Value between 0.0 and 1.0.</option>
         	<option name="Aggregate Function">
-        		Aggregate function will be used to compile the estimates obtained for the individual attributes of a dataset into a global value.
+        		Aggregation function will be used to compile the estimates obtained for the individual attributes of a dataset into a global value. 
         		Possible options:
 <pre>
 0 | SUM
@@ -150,7 +151,7 @@
         </tab>
         <tab name="Research sample">
         	<option name="None">
-        		Do not specify research sample. Research sample can be used by δ-presence and k-map privacy models.
+        		Do not specify research sample.
         	</option>
         	<option name="All">
         		Use entire input table as sample subset.
@@ -186,13 +187,13 @@
     </interactiveView>
     
     <ports>
-        <inPort index="0" name="Input table">Input table</inPort>
-        <inPort index="1" name="Arx Hierarchy Configuration">Arx Hierarchy Configuration</inPort>
-        <outPort index="0" name="Anonymized Data">Result table with anonymized data</outPort>
-        <outPort index="1" name="Stats">Statistics table</outPort>
+        <inPort index="0" name="Input data table">Input data table</inPort>
+        <inPort index="1" name="Hierarchy Configuration">Hierarchy Configuration</inPort>
+        <outPort index="0" name="Result table with anonymized data">Result table with anonymized data</outPort>
+        <outPort index="1" name="Statistics table">Statistics table</outPort>
         <outPort index="2" name="Suppressed records">Suppressed records</outPort>
         <outPort index="3" name="Attribute Risks">Attribute Risks</outPort>
-        <outPort index="4" name="Stats Variables">Statistics in a form of flow variables. If partitioning is enabled only first row of statistic table is used</outPort>
+        <outPort index="4" name="Statistics converted to flow variables">Statistics converted to flow variables. If partitioning is enabled only first row of statistic table is used</outPort>
     </ports>
     
 </knimeNode>

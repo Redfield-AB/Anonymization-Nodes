@@ -8,18 +8,26 @@
     
     <fullDescription>
         <intro>
-        	Two types of risks are considered:
+        	The anonymity assessment node considers two types of risks, quasi-identifiable re-identification and attacker risks. 
+        	The output is an analysis of these two risks. 
+			To get additional insight if two tables are provided an additional columns with the same risks assessment results are provided in the output tables. 
+			This is helpful for comparing non-anonymized and anonymized data.
         	<ol>
-        		<li>
-        			combinations of quasi-identifiers that can be analyzed regarding associated risks of re-identification;<br></br><br></br>
-					The view provides information about the degree to which combinations of variables separate the records from each other and to which degree the variables make records distinct.
+        		<li> Quasi-identifiable re-identification risks<br/>
+        			Combinations of quasi-identifiers that can be analyzed regarding associated risks of re-identification. 
+        			The output table provides information about the degree to which combinations of variables 
+        			separate the records from each other and to which degree the variables make records distinct.
 					<a href="https://arx.deidentifier.org/anonymization-tool/risk-analysis/">Risk Analysis</a>
         		</li>
-        		<li>
-        			estimations for three different attacker models:
-        			<br/><br/>1) The risk that a specific person in the dataset can be re-identified when the attacker knows they are in the dataset. (The “prosecutor scenario.”)
-					<br/><br/>2) The risk that there exists at least one person in the dataset who can be re-identified. The point is to prove that someone can be re-identified. In this case, the goal of the re- identification is frequently to embarrass or discredit the organization that performed the de-identification. (The “journalist scenario.25”)
-					<br/><br/>3)  The percentage of identities in the dataset that can be correctly re-identified. (The “marketer scenario.”) <a href="http://dx.doi.org/10.6028/NIST.IR.8053">Mode Details</a>						
+        		<li> Attacker risks <br/>
+        			There are different types of attackers that are assessed. 
+        			The output table is an estimation of three different attacker models:
+        			<br/><br/>a) [prosecutor scenario] The risk that a specific person in the dataset can be re-identified when the attacker knows this person is in the dataset.
+					<br/><br/>b) [journalist scenario] The risk that there exists at least one person in the dataset who can be re-identified. 
+					The point is to prove that someone can be re-identified. 
+					In this case, the goal of the re-identification is frequently to embarrass or discredit the organization that performed the de-identification.
+					<br/><br/>c) [marketer scenario] The percentage of identities in the dataset that can be correctly re-identified.
+					<br/><br/><a href="http://dx.doi.org/10.6028/NIST.IR.8053">Mode Details</a>						
         		</li>
         	</ol>
 			If two tables are provided then, additional columns are shown in the output tables.

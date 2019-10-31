@@ -17,16 +17,16 @@
 				There are four salting strategies:
 				<ul>
 					<li>
-						None - values in selected are hashed as they are, no additional concatenation is used;
+						None - values in selected columns are hashed as they are, no additional concatenation is used;
 					</li>
 					<li>
-						Random - random seed is used for salting every time node is executed. It is possbile to use fixed seed value.
+						Random - random seed is used for salting every time node is executed. It is possbile to use a fixed seed value.
 					</li>
 					<li>
-						Column - values for additional column is used for salting. Values from selected columns are concatenated row-wise.
+						Column - values from additional column is used for salting. Values from selected columns are concatenated row-wise.
 					</li>
 					<li>
-						Timestamp - selected date and time are used for salting. Values from selected columns are concatenated row-wise.
+						Timestamp - selected date and time are used for salting.
 					</li>
 				</ul>
         	</option>
@@ -37,9 +37,9 @@
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Table for pseudoanonymization">Table for pseudoanonymization</inPort>
-        <outPort index="0" name="Table with pseudoanonymized data">Table with pseudoanonymized data</outPort>
-        <outPort index="1" name="Hashes Table">Hashes Table</outPort>
+        <inPort index="0" name="Input table for anonymization">Input table for anonymization</inPort>
+        <outPort index="0" name="Table with anonymized data">Table with anonymized data</outPort>
+        <outPort index="1" name="Dictionary table with hashed and original values">Dictionary table with hashed and original values</outPort>
     </ports>
     
 </knimeNode>

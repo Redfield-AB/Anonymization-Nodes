@@ -11,10 +11,10 @@
         
         <tab name="Options">
         	<option name="Selected Directory">
-        		Directory to save hierarchy files.
+        		Directory where hierarchy files will be saved.
         	</option>
         	<option name="File name prefix">
-        		Optional prefix added to the beginning of the file name.
+        		Optional prefix that will be added to the file name.
         	</option>
         	<option name="Overwrite existing files">
         		If enabled any existing files will be overwritten.
@@ -24,7 +24,7 @@
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Arx Hierarchy Configuration">Arx Hierarchy Configuration</inPort>
+        <inPort index="0" name="Hierarchy Configuration">Hierarchy Configuration</inPort>
         <!-- possibly more input ports here-->
         <!-- possibly more output ports here-->
     </ports>    

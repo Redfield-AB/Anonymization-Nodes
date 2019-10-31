@@ -3,35 +3,35 @@
     <name>Hierarchy Reader</name>
     
     <shortDescription>
-		Node for expanding boundaries of generalization hierarchies.
+		The node reads hierarchy configuration files (.ahs) and/or updating their boundaries of generalization for new data sets.
     </shortDescription>
     
     <fullDescription>
         <intro>
-        	Node for expanding boundaries of generalization hierarchies.
+        	The node reads hierarchy configuration files (.ahs) and/or updating their boundaries of generalization for new data sets.
         	<br/>For interval-based hierarchies: minimum and maximum values will be adjusted according to data from the input table.
-        	<br/>For order-based hierarchies: order list will be extended by adding any missing values to the end of the list.
-        	<br/>Date- and mask-based hierarchies doesn't require expanding and will be returned unchanged. 
+        	<br/>For order-based hierarchies: order list will be extended by adding new values to the end of the list.
+        	<br/>Note for date- and mask-based hierarchies it does not require expanding and hierarchy configuration will be returned unchanged. 
         </intro>
         
         <tab name="Hierarchies">
         	<description>
-        		Area for specifying hierarchies for expanding. Multiple hierarchies could be expanded within a single node.
+        		Area for specifying hierarchies for reading/updating. Multiple hierarchies can be read/updated within a single node.
         	</description>
         	<option name="Column">
         		Input table column corresponding to the selected hierarchy.
         	</option>
         	<option name="Selected File:">
-        		Arx hierarchy file (*.ahs). Can be empty in case when hierarchy is provided through Arx Config Overrides port.
+        		Hierarchy configuration file (*.ahs). Can be empty in case hierarchy is provided via Hierarchy Configuration port.
         	</option>
         </tab>
     </fullDescription>
     
     <ports>
-        <inPort index="0" name="Date table">Date table</inPort>
-        <inPort index="1" name="Arx Hierarchy Configuration">Arx Hierarchy Configuration</inPort>
-        <outPort index="0" name="Date table">Date table unchanged</outPort>
-        <outPort index="1" name="Preview">Hierarchy preview</outPort>
-        <outPort index="2" name="Arx Hierarchy Configuration">Arx Hierarchy Configuration</outPort>
+        <inPort index="0" name="Input data table">Input data table</inPort>
+        <inPort index="1" name="Hierarchy Configuration">Hierarchy Configuration</inPort>
+        <outPort index="0" name="Input data table unchanged">Input data table unchanged</outPort>
+        <outPort index="1" name="Hierarchy preview table">Hierarchy preview table</outPort>
+        <outPort index="2" name="Hierarchy Configuration">Hierarchy Configuration</outPort>
     </ports>    
 </knimeNode>
