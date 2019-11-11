@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="se.redfield.arx.feature"
-      label="Anonymization extension"
+      label="Redfield Privacy Nodes"
       version="1.0.0.qualifier"
       provider-name="Redfield AB">
 
