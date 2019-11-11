@@ -42,6 +42,11 @@ import org.knime.core.node.NodeLogger;
 import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.PseudoAnonymizerNodeConfig;
 
+/**
+ * Class performing pseudoanonymization - hashing selected columns with
+ * different salting modes.
+ *
+ */
 public class Pseudoanonymizer {
 	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(Pseudoanonymizer.class);
@@ -51,6 +56,12 @@ public class Pseudoanonymizer {
 	private DataTableSpec hashesTableSpec;
 	private SaltProvider saltProvider;
 
+	/**
+	 * Creates instance
+	 * 
+	 * @param config node config
+	 * @param spec   input data tabple spec
+	 */
 	public Pseudoanonymizer(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
 		this.config = config;
 		this.dataTableRearranger = createDataTableRearranger(spec);
@@ -58,6 +69,13 @@ public class Pseudoanonymizer {
 		this.saltProvider = createSaltProvider(spec);
 	}
 
+	/**
+	 * Creates salt provider
+	 * 
+	 * @param spec input data table spec
+	 * @return {@link SaltProvider} instance according to the salting type specified
+	 *         in node config
+	 */
 	private SaltProvider createSaltProvider(DataTableSpec spec) {
 		switch (config.getSaltingMode()) {
 		case RANDOM:
@@ -76,6 +94,12 @@ public class Pseudoanonymizer {
 		return row -> "";
 	}
 
+	/**
+	 * Creates column rearranger instance.
+	 * 
+	 * @param spec Input table spec.
+	 * @return Column rearranger.
+	 */
 	private ColumnRearranger createDataTableRearranger(DataTableSpec spec) {
 		List<String> includeList = config.getSelectedColumns();
 		int[] indexes = new int[includeList.size()];
@@ -113,6 +137,13 @@ public class Pseudoanonymizer {
 		return rearranger;
 	}
 
+	/**
+	 * Creates output hashes table spec. This table contains only selected columns
+	 * alongside with hashed values.
+	 * 
+	 * @param spec Input data table spec.
+	 * @return Output hashes table spec.
+	 */
 	private DataTableSpec createHashesTableSpec(DataTableSpec spec) {
 		List<String> includeList = config.getSelectedColumns();
 		List<DataColumnSpec> newSpecs = new ArrayList<>();
@@ -125,6 +156,14 @@ public class Pseudoanonymizer {
 		return new DataTableSpec(newSpecs.toArray(new DataColumnSpec[] {}));
 	}
 
+	/**
+	 * Creates output hashes table.
+	 * 
+	 * @param inTable  Input data table.
+	 * @param outTable Ouput data table.
+	 * @param exec     Execution context.
+	 * @return Hashes output table.
+	 */
 	private BufferedDataTable createHashesTable(BufferedDataTable inTable, BufferedDataTable outTable,
 			ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(hashesTableSpec);
@@ -160,28 +199,58 @@ public class Pseudoanonymizer {
 		return container.getTable();
 	}
 
+	/**
+	 * @return dataTableRearranger
+	 */
 	public ColumnRearranger getDataTableRearranger() {
 		return dataTableRearranger;
 	}
 
+	/**
+	 * @return Hashes Table Spec.
+	 */
 	public DataTableSpec getHashesTableSpec() {
 		return hashesTableSpec;
 	}
 
+	/**
+	 * Performs anonymization.
+	 * 
+	 * @param exec    Execution context.
+	 * @param inTable Input data table.
+	 * @return Ouput tables. One is data table with selected columns replaced with
+	 *         hashes, second one is hashes table containing only selected columns
+	 *         alongside with hashes
+	 * @throws CanceledExecutionException
+	 */
 	public BufferedDataTable[] process(ExecutionContext exec, BufferedDataTable inTable)
 			throws CanceledExecutionException {
 		BufferedDataTable outTable = exec.createColumnRearrangeTable(inTable, getDataTableRearranger(), exec);
 		return new BufferedDataTable[] { outTable, createHashesTable(inTable, outTable, exec) };
 	}
 
+	/**
+	 * Interface for salting provider.
+	 */
 	private interface SaltProvider {
+		/**
+		 * @param row Data table row.
+		 * @return Salt value for the provided row.
+		 */
 		public String getSalt(DataRow row);
 	}
 
+	/**
+	 * Salt provider class for random salting mode.
+	 *
+	 */
 	private class RandomSaltProvider implements SaltProvider {
 
 		private Random random;
 
+		/**
+		 * @param config node config
+		 */
 		public RandomSaltProvider(PseudoAnonymizerNodeConfig config) {
 			this.random = new Random();
 			if (config.getUseSeed().getBooleanValue()) {
@@ -189,6 +258,9 @@ public class Pseudoanonymizer {
 			}
 		}
 
+		/**
+		 * @return Random long salt value.
+		 */
 		@Override
 		public String getSalt(DataRow row) {
 			return String.valueOf(random.nextLong());
@@ -196,21 +268,39 @@ public class Pseudoanonymizer {
 
 	}
 
+	/**
+	 * Salt provider class for column mode. Only used when a regular column is
+	 * selected.
+	 */
 	private class ColumnSaltProvider implements SaltProvider {
 		private int saltIdx;
 
+		/**
+		 * @param config Node config.
+		 * @param spec   Input table spec.
+		 */
 		public ColumnSaltProvider(PseudoAnonymizerNodeConfig config, DataTableSpec spec) {
 			saltIdx = spec.findColumnIndex(config.getSaltColumn().getStringValue());
 		}
 
+		/**
+		 * @return Salt value from the selected column.
+		 */
 		@Override
 		public String getSalt(DataRow row) {
 			return Utils.toString(row.getCell(saltIdx));
 		}
 	}
 
+	/**
+	 * Salt provider class for column mode when RowId column is selected
+	 *
+	 */
 	private class RowIdSaltProvider implements SaltProvider {
 
+		/**
+		 * @return RowId value for the provided row.
+		 */
 		@Override
 		public String getSalt(DataRow row) {
 			return row.getKey().toString();
@@ -218,16 +308,26 @@ public class Pseudoanonymizer {
 
 	}
 
+	/**
+	 * Salt provider class for timistamp salting mode.
+	 *
+	 */
 	private class TimestampSaltProvider implements SaltProvider {
 
 		private String salt;
 
+		/**
+		 * @param config Node config.
+		 */
 		public TimestampSaltProvider(PseudoAnonymizerNodeConfig config) {
 			LocalDateTime timestamp = config.getAutoTimestamp().getBooleanValue() ? LocalDateTime.now()
 					: config.getTimestamp().getLocalDateTime();
 			salt = timestamp.format(DateTimeFormatter.ISO_DATE_TIME);
 		}
 
+		/**
+		 * @return Timestamp value.
+		 */
 		@Override
 		public String getSalt(DataRow row) {
 			return salt;

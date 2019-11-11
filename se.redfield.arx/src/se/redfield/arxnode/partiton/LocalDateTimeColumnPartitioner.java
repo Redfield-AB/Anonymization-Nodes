@@ -23,6 +23,11 @@ import org.knime.core.data.DataCell;
 import org.knime.core.data.DataRow;
 import org.knime.core.data.time.localdatetime.LocalDateTimeCell;
 
+/**
+ * Grouping partitioner for {@link LocalDateTime} columns. Works the same way as
+ * {@link DoubleColumnPartitioner}.
+ *
+ */
 public class LocalDateTimeColumnPartitioner extends DoubleColumnPartitioner {
 
 	public LocalDateTimeColumnPartitioner(String column, int partsNum) {

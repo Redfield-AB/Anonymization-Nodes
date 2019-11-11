@@ -22,6 +22,10 @@ import org.knime.core.data.DataRow;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeLogger;
 
+/**
+ * Partitioner to split input table into number of partitions of equal size.
+ *
+ */
 public class EqualSizePartitioner extends Partitioner {
 	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(EqualSizePartitioner.class);
@@ -29,6 +33,9 @@ public class EqualSizePartitioner extends Partitioner {
 	private List<Partition> partitions;
 	private long partitionSize;
 
+	/**
+	 * @param partsNum Number of partitions.
+	 */
 	public EqualSizePartitioner(int partsNum) {
 		super(partsNum);
 	}

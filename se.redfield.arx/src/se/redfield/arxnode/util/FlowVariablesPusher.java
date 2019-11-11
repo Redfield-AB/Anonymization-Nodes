@@ -19,12 +19,24 @@ import java.util.function.BiConsumer;
 import java.util.function.ObjDoubleConsumer;
 import java.util.function.ObjIntConsumer;
 
+import org.knime.core.node.NodeModel;
+
+/**
+ * Class intended to allow pushing output flow variables from outside of the
+ * {@link NodeModel}.
+ *
+ */
 public class FlowVariablesPusher {
 
 	private BiConsumer<String, String> pushString;
 	private ObjDoubleConsumer<String> pushDouble;
 	private ObjIntConsumer<String> pushInt;
 
+	/**
+	 * @param pushString pushString method.
+	 * @param pushDouble pushDouble method.
+	 * @param pushInt    pushInt method.
+	 */
 	public FlowVariablesPusher(BiConsumer<String, String> pushString, ObjDoubleConsumer<String> pushDouble,
 			ObjIntConsumer<String> pushInt) {
 		this.pushString = pushString;
@@ -32,14 +44,32 @@ public class FlowVariablesPusher {
 		this.pushInt = pushInt;
 	}
 
+	/**
+	 * Pushes string variable.
+	 * 
+	 * @param name  Variable name.
+	 * @param value Variable value.
+	 */
 	public void pushString(String name, String value) {
 		pushString.accept(name, value);
 	}
 
+	/**
+	 * Pushes double variable.
+	 * 
+	 * @param name  Variable name.
+	 * @param value Variable value.
+	 */
 	public void pushDouble(String name, double value) {
 		pushDouble.accept(name, value);
 	}
 
+	/**
+	 * Pushes int variable.
+	 * 
+	 * @param name  Variable name.
+	 * @param value Variable value.
+	 */
 	public void pushInt(String name, int value) {
 		pushInt.accept(name, value);
 	}

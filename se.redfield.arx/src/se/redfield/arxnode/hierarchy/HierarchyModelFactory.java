@@ -33,6 +33,13 @@ import se.redfield.arxnode.hierarchy.edit.HierarchyModelRedaction;
 import se.redfield.arxnode.hierarchy.edit.HierarchyOrderBasedEditor;
 import se.redfield.arxnode.hierarchy.edit.HierarchyRedactionBasedEditor;
 
+/**
+ * Factory class for creating hierarchy models alongside with appropriate
+ * editors.
+ *
+ * @param <T> {@link HierarchyModelAbstract} param.
+ * @param <H> {@link HierarchyModelAbstract} class.
+ */
 public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<T>> {
 
 	private H model;
@@ -46,6 +53,9 @@ public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<
 		this.data = data;
 	}
 
+	/**
+	 * @return Hierarchy model. New model is created if not initialized yet.
+	 */
 	public H getModel() {
 		if (model == null) {
 			model = createModel();
@@ -53,6 +63,9 @@ public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<
 		return model;
 	}
 
+	/**
+	 * @return Hierarchy editor. New instance is created if necessary.
+	 */
 	public JComponent getEditor() {
 		if (editor == null) {
 			editor = createEditor();
@@ -60,10 +73,24 @@ public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<
 		return editor;
 	}
 
+	/**
+	 * @return New hierarchy model instance
+	 */
 	public abstract H createModel();
 
+	/**
+	 * @return New hierarchy editor instance.
+	 */
 	public abstract JComponent createEditor();
 
+	/**
+	 * Creates factory instance based on provided hierarchy type.
+	 * 
+	 * @param type     Hierarchy type.
+	 * @param dataType Hierarchy data type
+	 * @param data     Data from column assigned to hierarchy
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	public static HierarchyModelFactory<?, ? extends HierarchyModelAbstract<?>> create(HierarchyTypeOptions type,
 			DataType<?> dataType, String[] data) {
@@ -80,6 +107,11 @@ public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<
 		return null;
 	}
 
+	/**
+	 * Hierarchy model factory for interval based hierarchy.
+	 *
+	 * @param <T>
+	 */
 	private static class HierarchyModelFactoryInterval<T> extends HierarchyModelFactory<T, HierarchyModelIntervals<T>> {
 		private HierarchyModelFactoryInterval(DataType<T> type, String[] data) {
 			super(type, data);
@@ -96,6 +128,11 @@ public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<
 		}
 	}
 
+	/**
+	 * Hierarchy model factory for masking based hierarchy.
+	 *
+	 * @param <T>
+	 */
 	private static class HierarchyModelFactoryMasking<T> extends HierarchyModelFactory<T, HierarchyModelRedaction<T>> {
 		private HierarchyModelFactoryMasking(DataType<T> type, String[] data) {
 			super(type, data);
@@ -113,6 +150,11 @@ public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<
 
 	}
 
+	/**
+	 * Hierarchy model factory for order based hierarchy.
+	 *
+	 * @param <T>
+	 */
 	private static class HierarchyModelFactoryOrdering<T> extends HierarchyModelFactory<T, HierarchyModelOrder<T>> {
 		private HierarchyModelFactoryOrdering(DataType<T> type, String[] data) {
 			super(type, data);
@@ -129,6 +171,10 @@ public abstract class HierarchyModelFactory<T, H extends HierarchyModelAbstract<
 		}
 	}
 
+	/**
+	 * Hierarchy model factory for date based hierarchy.
+	 *
+	 */
 	private static class HierarchyModelFactoryDate extends HierarchyModelFactory<Date, HierarchyModelDate> {
 		private HierarchyModelFactoryDate(DataType<Date> type, String[] data) {
 			super(type, data);

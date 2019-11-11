@@ -19,6 +19,11 @@ import org.knime.core.node.InvalidSettingsException;
 import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 
+/**
+ * Base class for all explicit (associated with a column) privacy models
+ * configurations.
+ *
+ */
 public abstract class ColumnPrivacyModelConfig extends AbstractPrivacyModelConfig {
 	private static final long serialVersionUID = 331842865009291153L;
 
@@ -26,10 +31,16 @@ public abstract class ColumnPrivacyModelConfig extends AbstractPrivacyModelConfi
 
 	private String column;
 
+	/**
+	 * @return Column name
+	 */
 	public String getColumn() {
 		return column;
 	}
 
+	/**
+	 * @param column Column name.
+	 */
 	public void setColumn(String column) {
 		this.column = column;
 	}
@@ -39,6 +50,10 @@ public abstract class ColumnPrivacyModelConfig extends AbstractPrivacyModelConfi
 		return false;
 	}
 
+	/**
+	 * @return String prefix used to build a human readable representation of the
+	 *         model.
+	 */
 	protected abstract String getToStringPrefix();
 
 	@Override

@@ -59,6 +59,11 @@ import se.redfield.arxnode.util.FlowVariablesPusher;
 import se.redfield.arxnode.util.MessageWarningController;
 import se.redfield.arxnode.util.RowClassifier;
 
+/**
+ * Class for processing raw anonymization results and converting in into node
+ * output tables
+ *
+ */
 public class AnonymizationResultProcessor {
 	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(AnonymizationResultProcessor.class);
@@ -69,6 +74,13 @@ public class AnonymizationResultProcessor {
 
 	private Set<String> suppressedRows;
 
+	/**
+	 * Creates new instance
+	 * 
+	 * @param config   node config
+	 * @param warnings node warning message controller
+	 * @param fwPusher node flow variables pusher
+	 */
 	public AnonymizationResultProcessor(Config config, MessageWarningController warnings,
 			FlowVariablesPusher fwPusher) {
 		this.config = config;
@@ -76,6 +88,16 @@ public class AnonymizationResultProcessor {
 		this.fwPusher = fwPusher;
 	}
 
+	/**
+	 * Takes raw anonymization results and returns array of {@link PortObject}
+	 * returned by node
+	 * 
+	 * @param inTable input table
+	 * @param results raw anonymization results
+	 * @param exec    execution context
+	 * @return port objects returned by the node
+	 * @throws CanceledExecutionException
+	 */
 	public PortObject[] process(BufferedDataTable inTable, List<AnonymizationResult> results, ExecutionContext exec)
 			throws CanceledExecutionException {
 		suppressedRows = new HashSet<>();
@@ -84,6 +106,14 @@ public class AnonymizationResultProcessor {
 				FlowVariablePortObject.INSTANCE };
 	}
 
+	/**
+	 * Create anonymized data table
+	 * 
+	 * @param results raw anonymization results
+	 * @param exec    execution context
+	 * 
+	 * @return anonymized data table
+	 */
 	private BufferedDataTable createDataTable(List<AnonymizationResult> results, ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(createOutDataTableSpec());
 
@@ -104,6 +134,14 @@ public class AnonymizationResultProcessor {
 		return container.getTable();
 	}
 
+	/**
+	 * Read rows from provided handle and append to provided container
+	 * 
+	 * @param container  container to append rows
+	 * @param handle     data handle
+	 * @param classifier row classifier to distinguish transformation classes. Could
+	 *                   be null if adding class column option is disabled
+	 */
 	private void writeToContainer(BufferedDataContainer container, DataHandle handle, RowClassifier classifier) {
 		List<ColumnConfig> outColumns = config.getOutputColumns();
 		boolean omitSuppressedRecords = config.getAnonymizationConfig().getOmitSuppressedRecords().getBooleanValue();
@@ -136,6 +174,11 @@ public class AnonymizationResultProcessor {
 		}
 	}
 
+	/**
+	 * Creates data table spec for anonymized data table
+	 * 
+	 * @return spec
+	 */
 	public DataTableSpec createOutDataTableSpec() {
 		boolean classColumn = config.getAnonymizationConfig().getAddClassColumn().getBooleanValue();
 		List<DataColumnSpec> specs = new ArrayList<>();
@@ -151,6 +194,15 @@ public class AnonymizationResultProcessor {
 		return new DataTableSpec(specs.toArray(new DataColumnSpec[] {}));
 	}
 
+	/**
+	 * Creates stats output table. Pushes stats as ouput flow variables, when
+	 * multiple results provided only first row is pushed as flow variables. Show
+	 * warning message in case there are suppressed records
+	 * 
+	 * @param results raw anonymization results
+	 * @param exec    execution context
+	 * @return stats table
+	 */
 	private BufferedDataTable createStatsTable(List<AnonymizationResult> results, ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(createStatsTableSpec());
 		int row = 0;
@@ -235,6 +287,21 @@ public class AnonymizationResultProcessor {
 		return container.getTable();
 	}
 
+	/**
+	 * Pushes stats data into output flow variables
+	 * 
+	 * @param minScore         min information loss score
+	 * @param maxScore         max information loss score
+	 * @param headers          quasi-identifying attributes
+	 * @param transformation   active transformation levels
+	 * @param anonymity        anonymity of the result
+	 * @param rowCount         total row count
+	 * @param suppresedRecords number of suppressed records
+	 * @param statistics       equivalence classes statistic
+	 * @param prosecutor       prosecutor re-identification risks
+	 * @param journalist       journalist re-identification risks
+	 * @param marketer         marketer re-identification risks
+	 */
 	private void putVariables(InfolossScore minScore, InfolossScore maxScore, String headers, String transformation,
 			String anonymity, long rowCount, long suppresedRecords, StatisticsEquivalenceClasses statistics,
 			ProsecutorRisk prosecutor, JournalistRisk journalist, MarketerRisk marketer) {
@@ -267,12 +334,23 @@ public class AnonymizationResultProcessor {
 		fwPusher.pushDouble("marketerSuccessRate", marketer.getSuccessRate());
 	}
 
+	/**
+	 * Gets riskEstimator for current transformation
+	 * 
+	 * @param r raw anonymization result
+	 * @return risk estimator
+	 */
 	private RiskEstimateBuilder getRiskEstimator(AnonymizationResult r) {
 		ARXNode node = r.getCurrentNode();
 		return r.getArxResult().getOutput(node)
 				.getRiskEstimator(config.getAnonymizationConfig().getPopulation().getPopulationModel());
 	}
 
+	/**
+	 * Creates table spec for stats table
+	 * 
+	 * @return spec
+	 */
 	public DataTableSpec createStatsTableSpec() {
 		List<DataColumnSpec> cols = new ArrayList<>();
 		cols.add(new DataColumnSpecCreator("Min Score", StringCell.TYPE).createSpec());
@@ -307,6 +385,16 @@ public class AnonymizationResultProcessor {
 		return new DataTableSpec(cols.toArray(new DataColumnSpec[] {}));
 	}
 
+	/**
+	 * Creates exceptions table. Consists of outliers (records completely suppressed
+	 * after anonymization) and omitted rows with missing values.
+	 * 
+	 * @param inTable input data table
+	 * @param results raw anonymization results
+	 * @param exec    execution context
+	 * @return exceptions table
+	 * @throws CanceledExecutionException
+	 */
 	private BufferedDataTable createExceptionsTable(BufferedDataTable inTable, List<AnonymizationResult> results,
 			ExecutionContext exec) throws CanceledExecutionException {
 		Set<String> ommitedRows = new HashSet<>();
@@ -335,6 +423,11 @@ public class AnonymizationResultProcessor {
 		return exec.createConcatenateTable(exec, suppressed.getTable(), omitted.getTable());
 	}
 
+	/**
+	 * Creates risk table spec
+	 * 
+	 * @return spec
+	 */
 	public DataTableSpec createRiskTableSpec() {
 		DataColumnSpec[] outColSpecs = new DataColumnSpec[4];
 		outColSpecs[0] = new DataColumnSpecCreator("Attribute", StringCell.TYPE).createSpec();
@@ -344,6 +437,14 @@ public class AnonymizationResultProcessor {
 		return new DataTableSpec(outColSpecs);
 	}
 
+	/**
+	 * Creates risk table containing distinction and separation values for each
+	 * individual quasi-identifying attribute and all combinations
+	 * 
+	 * @param results raw anonymization results
+	 * @param exec    execution context
+	 * @return risk table
+	 */
 	private BufferedDataTable createRiskTable(List<AnonymizationResult> results, ExecutionContext exec) {
 		BufferedDataContainer container = exec.createDataContainer(createRiskTableSpec());
 		int partition = 0;

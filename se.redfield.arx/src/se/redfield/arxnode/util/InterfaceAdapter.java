@@ -28,12 +28,21 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
+/**
+ * Json serialization/deserialization class to work with a classes implementing
+ * given interface or extending given class.
+ *
+ * @param <T> Base class or interface.
+ */
 public class InterfaceAdapter<T> implements JsonSerializer<T>, JsonDeserializer<T> {
 
 	private static final String CLASSNAME = "CLASSNAME";
 	private static final String DATA = "DATA";
 	private Map<String, Class<?>> classes;
 
+	/**
+	 * @param classes List of classes that would be serialized/deserealized.
+	 */
 	public InterfaceAdapter(Class<?>... classes) {
 		this.classes = new HashMap<>();
 		for (int i = 0; i < classes.length; i++) {
@@ -57,6 +66,13 @@ public class InterfaceAdapter<T> implements JsonSerializer<T>, JsonDeserializer<
 		return jsonObject;
 	}
 
+	/**
+	 * Finds a class by string representation. String could be a simple or full
+	 * qualified class name.
+	 * 
+	 * @param className Class name.
+	 * @return Class.
+	 */
 	public Class<?> getObjectClass(String className) {
 		try {
 			return Class.forName(className);
@@ -69,6 +85,12 @@ public class InterfaceAdapter<T> implements JsonSerializer<T>, JsonDeserializer<
 		}
 	}
 
+	/**
+	 * Converts full qualified class name into simple name.
+	 * 
+	 * @param className Class name.
+	 * @return Class name.
+	 */
 	private String toSimpleName(String className) {
 		int idx = className.lastIndexOf('.');
 		if (idx > -1) {

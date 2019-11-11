@@ -24,7 +24,14 @@ import org.knime.core.data.DoubleValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeLogger;
 
+/**
+ * Grouping partitioner for numeric columns. Calculates min and max values of
+ * the column and then splits this range into specified number of intervals.
+ * Each of the intervals corresponds to one partition.
+ *
+ */
 public class DoubleColumnPartitioner extends ColumnPartitioner {
+	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(DoubleColumnPartitioner.class);
 
 	protected Double min;
@@ -32,6 +39,10 @@ public class DoubleColumnPartitioner extends ColumnPartitioner {
 	protected double intervalLength;
 	private List<Partition> partitions;
 
+	/**
+	 * @param column   Grouping column name.
+	 * @param partsNum Number of partitions.
+	 */
 	public DoubleColumnPartitioner(String column, int partsNum) {
 		super(column, partsNum);
 	}
@@ -50,16 +61,19 @@ public class DoubleColumnPartitioner extends ColumnPartitioner {
 				}
 			}
 		}
-		logger.info("min: " + min);
-		logger.info("max: " + max);
 		intervalLength = (max - min) / (partsNum);
-		logger.info("interval length = " + intervalLength);
 		partitions = new ArrayList<>();
 		for (int i = 0; i < partsNum; i++) {
 			partitions.add(new Partition(createData(source)));
 		}
 	}
 
+	/**
+	 * Reads cell value from a given row.
+	 * 
+	 * @param row Input row.
+	 * @return Double value.
+	 */
 	protected Double getValue(DataRow row) {
 		DataCell cell = row.getCell(columnIndex);
 		if (cell.isMissing()) {
@@ -88,6 +102,12 @@ public class DoubleColumnPartitioner extends ColumnPartitioner {
 		return partitions;
 	}
 
+	/**
+	 * Creates human readable criteria for a given partition
+	 * 
+	 * @param index partition index.
+	 * @return String criteria.
+	 */
 	protected String createCriteria(int index) {
 		return String.format("%s in [%.2f, %.2f%s", column, (min + intervalLength * index),
 				(min + intervalLength * (index + 1)), index < partsNum - 1 ? ")" : "]");

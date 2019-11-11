@@ -27,6 +27,11 @@ import org.knime.core.node.NodeLogger;
 
 import se.redfield.arxnode.Utils;
 
+/**
+ * Hierarchy expander class for order based hierarchies.
+ *
+ * @param <T>
+ */
 public class HierarchyExpanderOrder<T> extends HierarchyExpander<T, HierarchyBuilderOrderBased<T>> {
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyExpanderOrder.class);
 

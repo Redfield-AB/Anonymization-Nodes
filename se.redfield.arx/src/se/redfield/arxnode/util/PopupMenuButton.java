@@ -18,17 +18,28 @@ package se.redfield.arxnode.util;
 import javax.swing.JButton;
 import javax.swing.JPopupMenu;
 
+/**
+ * Button that show a pop-up menu on click.
+ *
+ */
 public class PopupMenuButton extends JButton {
 	private static final long serialVersionUID = 1L;
 
 	private JPopupMenu menu;
 
+	/**
+	 * @param title Button title.
+	 * @param menu  Pop-up menu to show on click.
+	 */
 	public PopupMenuButton(String title, JPopupMenu menu) {
 		super(title);
 		this.menu = menu;
 		addActionListener(e -> onClick());
 	}
 
+	/**
+	 * onClick handler.
+	 */
 	private void onClick() {
 		menu.show(this, 0, getHeight());
 	}

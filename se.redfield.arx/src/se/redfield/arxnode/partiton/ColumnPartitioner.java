@@ -17,11 +17,19 @@ package se.redfield.arxnode.partiton;
 
 import org.knime.core.node.BufferedDataTable;
 
+/**
+ * Base class for partitioner associated with a table column.
+ *
+ */
 public abstract class ColumnPartitioner extends Partitioner {
 
 	protected String column;
 	protected int columnIndex;
 
+	/**
+	 * @param column   Column name used to group values.
+	 * @param partsNum Number of partitions.
+	 */
 	public ColumnPartitioner(String column, int partsNum) {
 		super(partsNum);
 		this.column = column;

@@ -46,6 +46,10 @@ import se.redfield.arxnode.nodes.ArxPortObject;
 import se.redfield.arxnode.partiton.Partition;
 import se.redfield.arxnode.partiton.Partitioner;
 
+/**
+ * Class performing anonymization
+ *
+ */
 public class Anonymizer {
 	private static final NodeLogger logger = NodeLogger.getLogger(Anonymizer.class);
 
@@ -54,10 +58,25 @@ public class Anonymizer {
 	private Config config;
 	private ArxPortObject arxPortObject;
 
+	/**
+	 * Creates new instance
+	 * 
+	 * @param config node config
+	 */
 	public Anonymizer(Config config) {
 		this.config = config;
 	}
 
+	/**
+	 * Takes input table and performs anonymization
+	 * 
+	 * @param inTable   input data table
+	 * @param arxObject arx port object instance
+	 * @return raw anonymization results. Multiple items returned in case
+	 *         partitioning is enabled
+	 * @throws InterruptedException
+	 * @throws ExecutionException
+	 */
 	public List<AnonymizationResult> process(BufferedDataTable inTable, ArxPortObject arxObject)
 			throws InterruptedException, ExecutionException {
 		this.arxPortObject = arxObject;
@@ -105,6 +124,12 @@ public class Anonymizer {
 		return results;
 	}
 
+	/**
+	 * Configures {@link Data} instance according to node configuration
+	 * 
+	 * @param defData data instance
+	 * @return {@link ARXConfiguration instance}
+	 */
 	private ARXConfiguration configure(Data defData) {
 		for (ColumnConfig c : config.getColumns()) {
 			configureAttribute(c, defData.getDefinition());
@@ -131,6 +156,12 @@ public class Anonymizer {
 		return arxConfig;
 	}
 
+	/**
+	 * Configures single attribute
+	 * 
+	 * @param c   column config
+	 * @param def data
+	 */
 	private void configureAttribute(ColumnConfig c, DataDefinition def) {
 		def.setAttributeType(c.getName(), c.getAttrType());
 
@@ -156,6 +187,13 @@ public class Anonymizer {
 		}
 	}
 
+	/**
+	 * Fetches {@link HierarchyBuilder} instance.
+	 * 
+	 * @param c Column config
+	 * @return Hierarchy builder taken from arx port object (if present) or from ahs
+	 *         file
+	 */
 	private HierarchyBuilder<?> getHierarchy(ColumnConfig c) {
 		try {
 			if (arxPortObject != null && arxPortObject.getHierarchies().containsKey(c.getName())) {

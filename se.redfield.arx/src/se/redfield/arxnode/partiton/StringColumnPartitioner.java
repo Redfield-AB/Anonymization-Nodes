@@ -26,6 +26,11 @@ import org.knime.core.data.StringValue;
 import org.knime.core.node.BufferedDataTable;
 import org.knime.core.node.NodeLogger;
 
+/**
+ * Grouping partitioner for a String columns. Finds all distinct values and
+ * creates partition for each value.
+ *
+ */
 public class StringColumnPartitioner extends ColumnPartitioner {
 	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(StringColumnPartitioner.class);
@@ -53,6 +58,12 @@ public class StringColumnPartitioner extends ColumnPartitioner {
 		}
 	}
 
+	/**
+	 * Gets String cell values from a given row.
+	 * 
+	 * @param row Input row.
+	 * @return String value.
+	 */
 	private String getValue(DataRow row) {
 		DataCell cell = row.getCell(columnIndex);
 		if (cell.isMissing()) {
@@ -72,6 +83,13 @@ public class StringColumnPartitioner extends ColumnPartitioner {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Fills partitioning criteria fields for a given partition.
+	 * 
+	 * @param p   Partition.
+	 * @param key Cell value of the partition.
+	 * @return Partition.
+	 */
 	private Partition fillCriteria(Partition p, String key) {
 		p.getInfo().setCriteria(String.format("%s is %s", column, key));
 		return p;

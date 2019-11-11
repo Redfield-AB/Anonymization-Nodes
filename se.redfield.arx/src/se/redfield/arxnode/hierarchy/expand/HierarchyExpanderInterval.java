@@ -18,6 +18,9 @@ package se.redfield.arxnode.hierarchy.expand;
 import java.time.ZoneId;
 import java.util.Date;
 
+import org.deidentifier.arx.DataType.ARXDate;
+import org.deidentifier.arx.DataType.ARXDecimal;
+import org.deidentifier.arx.DataType.ARXInteger;
 import org.deidentifier.arx.aggregates.HierarchyBuilderGroupingBased;
 import org.deidentifier.arx.aggregates.HierarchyBuilderGroupingBased.Group;
 import org.deidentifier.arx.aggregates.HierarchyBuilderGroupingBased.Level;
@@ -31,6 +34,11 @@ import org.knime.core.data.LongValue;
 import org.knime.core.data.time.localdatetime.LocalDateTimeValue;
 import org.knime.core.node.NodeLogger;
 
+/**
+ * Hierarchy expander for interval based hierarchies.
+ * 
+ * @param <T>
+ */
 public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, HierarchyBuilderIntervalBased<T>> {
 	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyExpanderInterval.class);
@@ -62,10 +70,20 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 		return result;
 	}
 
+	/**
+	 * Creates new {@link Range} instance with a new minMax value.
+	 * 
+	 * @param from   Original range.
+	 * @param minMax New minMax value.
+	 * @return Adjusted range.
+	 */
 	protected Range<T> createRange(Range<T> from, T minMax) {
 		return new Range<>(from.getSnapFrom(), from.getBottomTopCodingFrom(), minMax);
 	}
 
+	/**
+	 * Hierarchy expander for {@link ARXInteger} interval hierarchies.
+	 */
 	static class HierarchyExpanderArxInteger extends HierarchyExpanderInterval<Long> {
 		protected HierarchyExpanderArxInteger(HierarchyBuilderIntervalBased<Long> src, int columnIndex) {
 			super(src, columnIndex);
@@ -89,6 +107,10 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 		}
 	}
 
+	/**
+	 * Hierarchy expander for {@link ARXDecimal} interval hierarchies.
+	 *
+	 */
 	static class HierarchyExpanderArcDecimal extends HierarchyExpanderInterval<Double> {
 
 		protected HierarchyExpanderArcDecimal(HierarchyBuilderIntervalBased<Double> src, int columnIndex) {
@@ -114,6 +136,10 @@ public abstract class HierarchyExpanderInterval<T> extends HierarchyExpander<T, 
 
 	}
 
+	/**
+	 * Hierarchy expander for {@link ARXDate} interval hierarchies
+	 *
+	 */
 	static class HierarcyExpanderArxDate extends HierarchyExpanderInterval<Date> {
 
 		private static final int HOUR = 60 * 60 * 1000;

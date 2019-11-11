@@ -25,9 +25,25 @@ import org.knime.core.node.NodeSettingsRO;
 import org.knime.core.node.NodeSettingsWO;
 import org.knime.core.node.defaultnodesettings.SettingsModel;
 
+/**
+ * Class for creating hierarchical node configs. Each config could hold nested
+ * {@link SettingsModelConfig} instances as well as {@link SettingsModel}
+ * instances
+ *
+ */
+/**
+ * @author ajbond
+ *
+ */
 public interface SettingsModelConfig {
 	static final NodeLogger logger = NodeLogger.getLogger(SettingsModelConfig.class);
 
+	/**
+	 * Performs saving. Stores each of settings models to a provided settings.
+	 * Nested settings are created for each of the children.
+	 * 
+	 * @param settings node settings
+	 */
 	default void save(NodeSettingsWO settings) {
 		getModels().forEach(s -> s.saveSettingsTo(settings));
 		for (SettingsModelConfig c : getChildred()) {
@@ -36,6 +52,13 @@ public interface SettingsModelConfig {
 		}
 	}
 
+	/**
+	 * Performs loading. Settings models are read from the provided settings.
+	 * Children are read from the appropriate nested entries.
+	 * 
+	 * @param settings node settings
+	 * @throws InvalidSettingsException
+	 */
 	default void load(NodeSettingsRO settings) throws InvalidSettingsException {
 		for (SettingsModel s : getModels()) {
 			try {
@@ -55,19 +78,39 @@ public interface SettingsModelConfig {
 		}
 	}
 
+	/**
+	 * Performs validation. Calls validation for each of the children recursively.
+	 * 
+	 * @throws InvalidSettingsException
+	 */
 	default void validate() throws InvalidSettingsException {
 		for (SettingsModelConfig c : getChildred()) {
 			c.validate();
 		}
 	}
 
+	/**
+	 * Returns list of nested {@link SettingsModelConfig} objects.
+	 * 
+	 * @return
+	 */
 	default Collection<? extends SettingsModelConfig> getChildred() {
 		return Collections.emptyList();
 	}
 
+	/**
+	 * Returns list of {@link SettingsModel} objects.
+	 * 
+	 * @return
+	 */
 	default List<SettingsModel> getModels() {
 		return Collections.emptyList();
 	}
 
+	/**
+	 * Returns key under which this config will be stored.
+	 * 
+	 * @return
+	 */
 	public String getKey();
 }

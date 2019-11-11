@@ -18,6 +18,10 @@ package se.redfield.arxnode.partiton;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Data class to hold partition info.
+ *
+ */
 public class PartitionInfo {
 
 	private long rows;
@@ -30,22 +34,37 @@ public class PartitionInfo {
 		this.omittedRows = new HashSet<>();
 	}
 
+	/**
+	 * @return Number of rows.
+	 */
 	public long getRows() {
 		return rows;
 	}
 
+	/**
+	 * @param rows Number of rows.
+	 */
 	public void setRows(long rows) {
 		this.rows = rows;
 	}
 
+	/**
+	 * @return Human readable partitioning criteria.
+	 */
 	public String getCriteria() {
 		return criteria;
 	}
 
+	/**
+	 * @param criteria Human readable partitioning criteria.
+	 */
 	public void setCriteria(String criteria) {
 		this.criteria = criteria;
 	}
 
+	/**
+	 * @return Collection or omitted rows in a form of RowId.
+	 */
 	public Set<String> getOmittedRows() {
 		return omittedRows;
 	}

@@ -18,6 +18,11 @@ package se.redfield.arxnode.util;
 import org.apache.commons.lang.StringUtils;
 import org.knime.core.node.NodeLogger;
 
+/**
+ * Base interface for a enums with title. Provides a method to convert string
+ * representation to a enum instance.
+ *
+ */
 public interface TitledEnum {
 	static final NodeLogger logger = NodeLogger.getLogger(TitledEnum.class);
 
@@ -25,6 +30,17 @@ public interface TitledEnum {
 
 	String name();
 
+	/**
+	 * Method to fetch enum instance from a string representation. Tries to match a
+	 * given string as an index, then name, then a title of the enum object.
+	 * 
+	 * @param <E>    Enum class.
+	 * @param values Enum values.
+	 * @param str    String representation.
+	 * @param def    Default values to be used if instance for a given string is not
+	 *               found.
+	 * @return enum instance.
+	 */
 	static <E extends TitledEnum> E fromString(E[] values, String str, E def) {
 		if (!StringUtils.isEmpty(str)) {
 			try {

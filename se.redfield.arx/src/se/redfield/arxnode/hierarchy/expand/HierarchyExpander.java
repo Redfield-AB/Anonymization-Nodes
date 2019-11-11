@@ -39,17 +39,33 @@ import se.redfield.arxnode.Utils;
 import se.redfield.arxnode.config.HierarchyBinding;
 import se.redfield.arxnode.config.HierarchyExpandNodeConfig;
 
+/**
+ * Class for expanding a hierarchy to make in work with a different dataset.
+ *
+ * @param <T> {@link HierarchyBuilder} param
+ * @param <H> {@link HierarchyBuilder} class
+ */
 public abstract class HierarchyExpander<T, H extends HierarchyBuilderGroupingBased<T>> {
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyExpander.class);
 
 	protected H src;
 	protected int columnIndex;
 
+	/**
+	 * @param src         Source hierarchy builder.
+	 * @param columnIndex Associated column index.
+	 */
 	protected HierarchyExpander(H src, int columnIndex) {
 		this.src = src;
 		this.columnIndex = columnIndex;
 	}
 
+	/**
+	 * Processes the row. Checks if selected column cell is missing and has expected
+	 * data type.
+	 * 
+	 * @param row Data table row.
+	 */
 	protected void processRow(DataRow row) {
 		DataCell cell = row.getCell(columnIndex);
 		if (!cell.isMissing()) {
@@ -62,12 +78,33 @@ public abstract class HierarchyExpander<T, H extends HierarchyBuilderGroupingBas
 		}
 	}
 
+	/**
+	 * Processes the cell value altering the hierarchy if necessary
+	 * 
+	 * @param cell
+	 */
 	protected abstract void processCell(DataCell cell);
 
+	/**
+	 * @return The expected cell type for a selected column.
+	 */
 	protected abstract Class<? extends DataValue> getExpectedCellType();
 
+	/**
+	 * Creates {@link HierarchyBuilder} instance.
+	 * 
+	 * @return Hierarchy builder.
+	 */
 	protected abstract HierarchyBuilderGroupingBased<T> createHierarchy();
 
+	/**
+	 * Creates Hierarchy expander instance based on type of provided hierarchy
+	 * builder
+	 * 
+	 * @param src         Source hierarchy builder.
+	 * @param columnIndex Column index associated with the hierarchy.
+	 * @return Hierarchy expander.
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static HierarchyExpander<?, ?> create(HierarchyBuilderGroupingBased<?> src, int columnIndex) {
 		if (src instanceof HierarchyBuilderIntervalBased<?>) {
@@ -91,6 +128,18 @@ public abstract class HierarchyExpander<T, H extends HierarchyBuilderGroupingBas
 		}
 	}
 
+	/**
+	 * Expands provided hierarchies based on a data from inTable adding any missing
+	 * values and increasing hierarchy intervals if necessary. If the hierarchy
+	 * doesn't require expanding it's left unchanged.
+	 * 
+	 * @param inTable             Input data table.
+	 * @param config              Node config.
+	 * @param existingHierarchies Hierarchies to expand. Mapped by the associated
+	 *                            column names.
+	 * @return Expanded hierarchies
+	 * @throws IOException
+	 */
 	public static Map<String, HierarchyBuilder<?>> expand(BufferedDataTable inTable, HierarchyExpandNodeConfig config,
 			Map<String, HierarchyBuilder<?>> existingHierarchies) throws IOException {
 		Map<String, HierarchyExpander<?, ?>> expanders = new HashMap<>();
@@ -112,6 +161,15 @@ public abstract class HierarchyExpander<T, H extends HierarchyBuilderGroupingBas
 		return result;
 	}
 
+	/**
+	 * Reads hierarchy builder from specified file or takes from existing
+	 * hierarchies and returns a copy of it.
+	 * 
+	 * @param binding             Binding config for the hierarchy.
+	 * @param existingHierarchies Existing hierarchies.
+	 * @return Copy of a hierarchy builder.
+	 * @throws IOException
+	 */
 	private static HierarchyBuilder<?> getHierarchyBuilder(HierarchyBinding binding,
 			Map<String, HierarchyBuilder<?>> existingHierarchies) throws IOException {
 		if (StringUtils.isNotEmpty(binding.getFileModel().getStringValue())) {

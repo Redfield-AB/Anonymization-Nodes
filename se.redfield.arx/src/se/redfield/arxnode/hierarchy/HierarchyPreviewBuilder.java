@@ -40,10 +40,25 @@ import org.knime.core.node.NodeLogger;
 
 import se.redfield.arxnode.Utils;
 
+/**
+ * Class for building hierarchy preview - a table with data anonymized using
+ * different hierarchy levels.
+ *
+ */
 public class HierarchyPreviewBuilder {
 	@SuppressWarnings("unused")
 	private static final NodeLogger logger = NodeLogger.getLogger(HierarchyPreviewBuilder.class);
 
+	/**
+	 * Build preview table.
+	 * 
+	 * @param inTable   Input data table.
+	 * @param column    Column assigned to hierarchy.
+	 * @param hierarchy Hierarchy builder instance.
+	 * @param exec      Execution context.
+	 * @return Buffered data table with hierarchy preview data.
+	 * @throws IOException
+	 */
 	public BufferedDataTable build(BufferedDataTable inTable, String column, HierarchyBuilder<?> hierarchy,
 			ExecutionContext exec) throws IOException {
 		Map<String, HierarchyBuilder<?>> map = new HashMap<>();
@@ -51,6 +66,15 @@ public class HierarchyPreviewBuilder {
 		return build(inTable, map, exec);
 	}
 
+	/**
+	 * Build preview table.
+	 * 
+	 * @param inTable     Input data table.
+	 * @param hierarchies Hierarchies mapped by assigned column.
+	 * @param exec        Execution context.
+	 * @return Buffered data table with hierarchy preview data.
+	 * @throws IOException
+	 */
 	public BufferedDataTable build(BufferedDataTable inTable, Map<String, HierarchyBuilder<?>> hierarchies,
 			ExecutionContext exec) throws IOException {
 
@@ -98,6 +122,14 @@ public class HierarchyPreviewBuilder {
 		return container.getTable();
 	}
 
+	/**
+	 * Create preview table spec.
+	 * 
+	 * @param hasAttribute Determines if an attribute column should be added. Only
+	 *                     used in tables consists of multiple hierarchy previews.
+	 * @param levelsCount  Max total hierarchy levels count.
+	 * @return New spec.
+	 */
 	private DataTableSpec createSpec(boolean hasAttribute, int levelsCount) {
 		List<DataColumnSpec> specss = new ArrayList<>();
 		if (hasAttribute) {
@@ -109,6 +141,13 @@ public class HierarchyPreviewBuilder {
 		return new DataTableSpec(specss.toArray(new DataColumnSpec[] {}));
 	}
 
+	/**
+	 * Add empty string cells to pad a row to match column count.
+	 * 
+	 * @param count Column count.
+	 * @param cells List of row cells.
+	 * @return List of row cells with empty cells added.
+	 */
 	private List<DataCell> addMissingCells(int count, List<DataCell> cells) {
 		for (int i = cells.size(); i < count; i++) {
 			cells.add(new StringCell(""));
@@ -116,6 +155,10 @@ public class HierarchyPreviewBuilder {
 		return cells;
 	}
 
+	/**
+	 * Data class to hold values for a single hierarchy preview.
+	 *
+	 */
 	private class HierarchyPreview {
 		private String name;
 		private int index;
@@ -123,6 +166,11 @@ public class HierarchyPreviewBuilder {
 		private Set<String> data;
 		private String[][] preview;
 
+		/**
+		 * @param name      Associated column name.
+		 * @param index     Associated column index.
+		 * @param hierarchy Hierarchy builder instance
+		 */
 		public HierarchyPreview(String name, int index, HierarchyBuilder<?> hierarchy) {
 			this.name = name;
 			this.index = index;
@@ -142,6 +190,10 @@ public class HierarchyPreviewBuilder {
 			return data;
 		}
 
+		/**
+		 * @return Hierarchy preview. A new instance created if necessary.
+		 * @throws IOException
+		 */
 		public String[][] getPreview() throws IOException {
 			if (preview == null) {
 				preview = Utils.clone(hierarchy).build(data.toArray(new String[] {})).getHierarchy();
@@ -149,6 +201,9 @@ public class HierarchyPreviewBuilder {
 			return preview;
 		}
 
+		/**
+		 * @return Hierarchy preview table column count.
+		 */
 		public int getColumnCount() {
 			try {
 				return getPreview()[0].length;

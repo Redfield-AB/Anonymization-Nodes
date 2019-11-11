@@ -20,21 +20,38 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang.StringUtils;
+import org.knime.core.node.NodeModel;
 
+/**
+ * Class allows to show multiple node's warning messages by grouping them into
+ * single string.
+ *
+ */
 public class MessageWarningController {
 
 	private Set<String> messages;
 	private Consumer<String> setMessage;
 
+	/**
+	 * @param setMessage setWarningMessage method of the {@link NodeModel}
+	 */
 	public MessageWarningController(Consumer<String> setMessage) {
 		this.setMessage = setMessage;
 		this.messages = new HashSet<>();
 	}
 
+	/**
+	 * Clears the warning messages.
+	 */
 	public void reset() {
 		messages.clear();
 	}
 
+	/**
+	 * Shows warning messages appending it to existing ones if necessary.
+	 * 
+	 * @param message Warning message.
+	 */
 	public void showWarning(String message) {
 		if (!messages.contains(message)) {
 			messages.add(message);

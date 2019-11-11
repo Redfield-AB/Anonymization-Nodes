@@ -18,9 +18,16 @@ package se.redfield.arxnode.partiton;
 import java.util.Arrays;
 import java.util.List;
 
+import org.deidentifier.arx.Data;
 import org.knime.core.data.DataRow;
 import org.knime.core.node.BufferedDataTable;
 
+/**
+ * Single table partitioner. Creates only a single partitioner. Used when
+ * partitioning is disabled just for converting {@link BufferedDataTable} into
+ * {@link Data}.
+ *
+ */
 public class SingleTablePartitoner extends Partitioner {
 
 	private Partition data;

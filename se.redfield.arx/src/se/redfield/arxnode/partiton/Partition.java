@@ -17,11 +17,18 @@ package se.redfield.arxnode.partiton;
 
 import org.deidentifier.arx.Data.DefaultData;
 
+/**
+ * Data class to hold a partition.
+ *
+ */
 public class Partition {
 
 	private DefaultData data;
 	private PartitionInfo info;
 
+	/**
+	 * @param data Arx data instance.
+	 */
 	public Partition(DefaultData data) {
 		this.data = data;
 		this.info = new PartitionInfo();

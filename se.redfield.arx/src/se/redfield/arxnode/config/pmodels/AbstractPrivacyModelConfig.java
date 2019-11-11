@@ -28,6 +28,10 @@ import se.redfield.arxnode.config.Config;
 import se.redfield.arxnode.config.SettingsModelConfig;
 import se.redfield.arxnode.ui.pmodels.PrivacyModelEditor;
 
+/**
+ * Base class for all privacy models configs.
+ *
+ */
 public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig, Serializable {
 	private static final long serialVersionUID = -6856452803075188914L;
 	private static final NodeLogger logger = NodeLogger.getLogger(AbstractPrivacyModelConfig.class);
@@ -38,14 +42,29 @@ public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig,
 		index = -1;
 	}
 
+	/**
+	 * Returns the index under which this privacy model will be stored in node
+	 * config. If the index is < 0 the model will be saved as a part of json string
+	 * 
+	 * @return index
+	 */
 	public int getIndex() {
 		return index;
 	}
 
+	/**
+	 * Sets the index.
+	 * 
+	 * @param index Index
+	 */
 	public void setIndex(int index) {
 		this.index = index;
 	}
 
+	/**
+	 * @return The property indicates if the privacy model is implicit (not
+	 *         associated with any attributes)
+	 */
 	public boolean isImplicit() {
 		return true;
 	}
@@ -55,6 +74,12 @@ public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig,
 		return index + "-" + getClass().getSimpleName();
 	}
 
+	/**
+	 * Creates new instance based of a config key.
+	 * 
+	 * @param configKey String in format "[index]-[class name]"
+	 * @return New instance.
+	 */
 	public static AbstractPrivacyModelConfig newInstance(String configKey) {
 		try {
 			String[] arr = configKey.split("-");
@@ -70,6 +95,11 @@ public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig,
 		return null;
 	}
 
+	/**
+	 * Assign the smallest one unique index to the model based on existing models.
+	 * 
+	 * @param models Existing models
+	 */
 	public void assignIndex(List<AbstractPrivacyModelConfig> models) {
 		if (index == -1) {
 			index = models.stream().map(AbstractPrivacyModelConfig::getIndex).filter(i -> i > -1).sorted().reduce(0,
@@ -77,9 +107,25 @@ public abstract class AbstractPrivacyModelConfig implements SettingsModelConfig,
 		}
 	}
 
+	/**
+	 * Creates editor component for the model.
+	 * 
+	 * @param columns Columns configs.
+	 * @return Editor component.
+	 */
 	public abstract PrivacyModelEditor createEditor(Collection<ColumnConfig> columns);
 
+	/**
+	 * Creates {@link PrivacyCriterion} instance.
+	 * 
+	 * @param data   Data to be used.
+	 * @param config Node config.
+	 * @return
+	 */
 	public abstract PrivacyCriterion createCriterion(Data data, Config config);
 
+	/**
+	 * @return Model display name.
+	 */
 	public abstract String getName();
 }
