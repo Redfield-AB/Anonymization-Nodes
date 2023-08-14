@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature id="se.redfield.arx.feature" version="0.0.0">
+       <category name="Anonymization-Nodes" />
+   </feature>
+   <feature id="se.redfield.arx.feature.source" version="0.0.0">
+       <category name="Anonymization-Nodes" />
+   </feature>
+
+   <category-def name="Anonymization-Nodes" label="Build artifacts from Anonymization-Nodes">
+       <description>Build artifacts from Anonymization-Nodes</description>
+   </category-def>
+</site>
